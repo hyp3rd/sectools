@@ -64,14 +64,38 @@ func SecurePath(path string, allowedPaths ...string) (string, error) {
 // and provides error handling with resource cleanup. If an error occurs during reading,
 // the buffer is zeroed out to prevent potential information leakage.
 // Returns the file contents as a byte slice or an error if the file cannot be read securely.
+//
+//nolint:revive,cyclop // (the function complexity is appropriate for its purpose)
 func SecureReadFile(path string, log hyperlogger.Logger) ([]byte, error) {
-	_, err := SecurePath(path)
+	securePath, err := SecurePath(path)
 	if err != nil {
 		return nil, ewrap.Wrap(err, "invalid path")
 	}
 
-	//nolint:gosec // #nosec G304: Potential file inclusion via variable
-	file, err := os.Open(path)
+	tempDir := os.TempDir()
+
+	relPath, err := filepath.Rel(tempDir, securePath)
+	if err != nil {
+		return nil, ewrap.Wrap(err, "failed to determine relative path").WithMetadata(pathLabel, path)
+	}
+
+	if strings.HasPrefix(relPath, ".."+string(os.PathSeparator)) || relPath == ".." {
+		return nil, ewrap.New("path escapes temp directory").WithMetadata(pathLabel, path)
+	}
+
+	root, err := os.OpenRoot(tempDir)
+	if err != nil {
+		return nil, ewrap.Wrap(err, "failed to open temp root").WithMetadata(pathLabel, path)
+	}
+
+	defer func() {
+		err = root.Close()
+		if err != nil && log != nil {
+			log.WithError(err).Errorf("failed to close root for path %v", path)
+		}
+	}()
+
+	file, err := root.Open(relPath)
 	if err != nil {
 		return nil, ewrap.Wrap(err, "failed to open file").WithMetadata(pathLabel, path)
 	}
@@ -80,7 +104,9 @@ func SecureReadFile(path string, log hyperlogger.Logger) ([]byte, error) {
 		err = file.Close()
 		if err != nil {
 			// Log the error but don't return it
-			log.WithError(err).Errorf("failed to close file with path %v", path)
+			if log != nil {
+				log.WithError(err).Errorf("failed to close file with path %v", path)
+			}
 		}
 	}()
 
