@@ -381,7 +381,6 @@ $RECYCLE.BIN/
 *.lnk
 
 ### Project-specific ###
-.github/*
 .trunk/*
 *.bak
 *.example

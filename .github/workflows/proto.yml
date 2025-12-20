@@ -1,0 +1,46 @@
+---
+name: proto
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  proto:
+    runs-on: ubuntu-latest
+    env:
+      PROTO_ENABLED: true
+    steps:
+      - uses: actions/checkout@v6
+      - name: Load project settings
+        id: settings
+        run: |
+          set -a
+          source .project-settings.env
+          set +a
+          echo "go_version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "buf_version=${BUF_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "PROTO_ENABLED=${PROTO_ENABLED:-true}" >> "$GITHUB_ENV"
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "${{ steps.settings.outputs.go_version }}"
+          check-latest: true
+      - name: Setup buf
+        uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "${{ steps.settings.outputs.buf_version }}"
+      - name: Lint protos
+        if: env.PROTO_ENABLED != 'false'
+        run: buf lint
+      - name: Format protos
+        if: env.PROTO_ENABLED != 'false'
+        run: buf format -w
+      - name: Generate protos
+        if: env.PROTO_ENABLED != 'false'
+        run: buf generate
+      - name: Check diff
+        if: env.PROTO_ENABLED != 'false'
+        run: git diff --exit-code
