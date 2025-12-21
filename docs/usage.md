@@ -140,9 +140,11 @@ Options:
 Key behaviors:
 
 - Copies input data into an internal byte slice protected by a mutex.
-- `Bytes()` returns a copy of the internal data.
-- `String()` returns a string copy of the internal data.
+- `Bytes()` and `BytesCopy()` return a copy of the internal data.
+- `String()` and `UnsafeString()` return string copies that cannot be zeroized; prefer `BytesCopy()` for sensitive data.
 - `Clear()` overwrites the buffer (random data then zeros), releases the slice, and clears the finalizer.
+- `ClearFast()` skips the random overwrite and only zeroes the buffer.
+- `ZeroBytes()` zeroes a byte slice in place.
 - A finalizer calls `Clear()` as a best-effort fallback; it is not deterministic.
 
 ## pkg/converters
