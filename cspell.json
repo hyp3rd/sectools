@@ -46,6 +46,7 @@
     "Fprintf",
     "Fprintln",
     "funlen",
+    "fuzztime",
     "gocache",
     "gofiber",
     "GOFILES",
