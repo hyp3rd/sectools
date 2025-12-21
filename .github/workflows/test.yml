@@ -34,7 +34,7 @@ jobs:
           go-version: "${{ steps.settings.outputs.go_version }}"
           check-latest: true
       - name: Cache Go modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/go/pkg/mod
@@ -52,7 +52,7 @@ jobs:
         run: go test ./...
       - name: Upload coverage artifact
         if: matrix.race
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: coverage
           path: coverage.out
