@@ -65,7 +65,7 @@ func SecurePath(path string, allowedPaths ...string) (string, error) {
 // the buffer is zeroed out to prevent potential information leakage.
 // Returns the file contents as a byte slice or an error if the file cannot be read securely.
 //
-//nolint:revive,cyclop // (the function complexity is appropriate for its purpose)
+//nolint:revive,cyclop
 func SecureReadFile(path string, log hyperlogger.Logger) ([]byte, error) {
 	securePath, err := SecurePath(path)
 	if err != nil {
