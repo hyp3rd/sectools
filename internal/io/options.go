@@ -19,6 +19,8 @@ type WriteOptions struct {
 	MaxSizeBytes    int64
 	FileMode        os.FileMode
 	CreateExclusive bool
+	DisableAtomic   bool
+	DisableSync     bool
 	AllowAbsolute   bool
 	AllowSymlinks   bool
 }

@@ -1,6 +1,7 @@
 package io
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 
@@ -42,6 +43,10 @@ func SecureWriteFile(path string, data []byte, opts WriteOptions, log hyperlogge
 
 	if normalized.CreateExclusive {
 		return writeExclusive(resolved.fullPath, data, normalized, log, path)
+	}
+
+	if normalized.DisableAtomic {
+		return writeDirect(resolved.fullPath, data, normalized, log, path)
 	}
 
 	return writeAtomic(resolved.fullPath, data, normalized, log, path)
@@ -111,16 +116,45 @@ func writeExclusive(path string, data []byte, opts WriteOptions, log hyperlogger
 
 	defer closeFile(file, log, originalPath)
 
-	_, err = file.Write(data)
+	err = writeAll(file, data)
 	if err != nil {
 		return ewrap.Wrap(err, "failed to write file").
 			WithMetadata(pathLabel, originalPath)
 	}
 
-	err = file.Sync()
+	if !opts.DisableSync {
+		err = file.Sync()
+		if err != nil {
+			return ewrap.Wrap(err, "failed to sync file").
+				WithMetadata(pathLabel, originalPath)
+		}
+	}
+
+	return nil
+}
+
+func writeDirect(path string, data []byte, opts WriteOptions, log hyperlogger.Logger, originalPath string) error {
+	// #nosec G304 -- path is validated against allowed roots and symlink policy.
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, opts.FileMode)
 	if err != nil {
-		return ewrap.Wrap(err, "failed to sync file").
+		return ewrap.Wrap(err, "failed to open file for write").
 			WithMetadata(pathLabel, originalPath)
+	}
+
+	defer closeFile(file, log, originalPath)
+
+	err = writeAll(file, data)
+	if err != nil {
+		return ewrap.Wrap(err, "failed to write file").
+			WithMetadata(pathLabel, originalPath)
+	}
+
+	if !opts.DisableSync {
+		err = file.Sync()
+		if err != nil {
+			return ewrap.Wrap(err, "failed to sync file").
+				WithMetadata(pathLabel, originalPath)
+		}
 	}
 
 	return nil
@@ -158,7 +192,7 @@ func writeAtomic(path string, data []byte, opts WriteOptions, log hyperlogger.Lo
 			WithMetadata(pathLabel, originalPath)
 	}
 
-	_, err = tempFile.Write(data)
+	err = writeAll(tempFile, data)
 	if err != nil {
 		closeFile(tempFile, log, tempName)
 
@@ -166,12 +200,14 @@ func writeAtomic(path string, data []byte, opts WriteOptions, log hyperlogger.Lo
 			WithMetadata(pathLabel, originalPath)
 	}
 
-	err = tempFile.Sync()
-	if err != nil {
-		closeFile(tempFile, log, tempName)
+	if !opts.DisableSync {
+		err = tempFile.Sync()
+		if err != nil {
+			closeFile(tempFile, log, tempName)
 
-		return ewrap.Wrap(err, "failed to sync temp file").
-			WithMetadata(pathLabel, originalPath)
+			return ewrap.Wrap(err, "failed to sync temp file").
+				WithMetadata(pathLabel, originalPath)
+		}
 	}
 
 	err = tempFile.Close()
@@ -191,6 +227,23 @@ func writeAtomic(path string, data []byte, opts WriteOptions, log hyperlogger.Lo
 	}
 
 	success = true
+
+	return nil
+}
+
+func writeAll(file *os.File, data []byte) error {
+	for len(data) > 0 {
+		written, err := file.Write(data)
+		if err != nil {
+			return ewrap.Wrap(err, "failed to write to file")
+		}
+
+		if written == 0 {
+			return io.ErrShortWrite
+		}
+
+		data = data[written:]
+	}
 
 	return nil
 }

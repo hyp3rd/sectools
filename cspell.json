@@ -79,6 +79,7 @@
     "nolint",
     "nonamedreturns",
     "nosec",
+    "nosync",
     "popd",
     "Println",
     "protoc",

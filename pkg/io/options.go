@@ -23,6 +23,8 @@ type SecureWriteOptions struct {
 	MaxSizeBytes    int64
 	FileMode        os.FileMode
 	CreateExclusive bool
+	DisableAtomic   bool
+	DisableSync     bool
 	AllowAbsolute   bool
 	AllowSymlinks   bool
 }
@@ -45,6 +47,8 @@ func toInternalWriteOptions(opts SecureWriteOptions) internalio.WriteOptions {
 		MaxSizeBytes:    opts.MaxSizeBytes,
 		FileMode:        opts.FileMode,
 		CreateExclusive: opts.CreateExclusive,
+		DisableAtomic:   opts.DisableAtomic,
+		DisableSync:     opts.DisableSync,
 		AllowAbsolute:   opts.AllowAbsolute,
 		AllowSymlinks:   opts.AllowSymlinks,
 	}
