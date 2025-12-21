@@ -19,11 +19,13 @@ func SecureReadFile(file string, log hyperlogger.Logger) ([]byte, error)
 Behavior:
 
 - Validates the path via `internal/io.SecurePath`.
-- Rejects empty paths and any path containing `..`.
+- Rejects empty paths and traversal segments (`..`).
 - If the path is relative, it is resolved under `os.TempDir()`.
-- If the path is absolute, it is only accepted when it already begins with `os.TempDir()`.
+- Absolute paths are rejected by default; use `SecureReadFileWithOptions` with `AllowAbsolute` to permit.
+- Symlinks are rejected by default; use `SecureReadFileWithOptions` with `AllowSymlinks` to permit.
+- Non-regular files are rejected by default.
 - Uses `os.OpenRoot(os.TempDir())` and `root.Open(relPath)` to scope file access to the temp directory.
-- If a symlink resolves outside the temp directory, the path is rejected.
+- When symlinks are allowed, paths that resolve outside the allowed root are rejected.
 - Reads the file into a byte slice sized to the file, using `io.ReadFull`.
 - Zeroes the buffer before returning an error on a read failure.
 - Close errors are logged only when `log` is non-nil.
@@ -44,7 +46,7 @@ func main() {
  path := filepath.Join(os.TempDir(), "example.txt")
  _ = os.WriteFile(path, []byte("secret"), 0o600)
 
- data, err := sectools.SecureReadFile(path, nil)
+ data, err := sectools.SecureReadFile(filepath.Base(path), nil)
  if err != nil {
   panic(err)
  }
@@ -52,6 +54,30 @@ func main() {
  _ = data
 }
 ```
+
+### SecureReadFileWithOptions
+
+```go
+func SecureReadFileWithOptions(file string, opts SecureReadOptions, log hyperlogger.Logger) ([]byte, error)
+```
+
+Options:
+
+- `BaseDir`: defaults to `os.TempDir()`.
+- `AllowedRoots`: optional list of allowed root directories.
+- `MaxSizeBytes`: when set, rejects files larger than this size.
+- `AllowAbsolute`: defaults to false.
+- `AllowSymlinks`: defaults to false.
+- `AllowNonRegular`: defaults to false.
+
+### SecureOpenFile
+
+```go
+func SecureOpenFile(file string, opts SecureReadOptions, log hyperlogger.Logger) (*os.File, error)
+```
+
+Opens a file for streaming reads while enforcing the same path validation rules as
+`SecureReadFileWithOptions`.
 
 ### SecureReadFileWithSecureBuffer
 
@@ -81,7 +107,7 @@ func main() {
  path := filepath.Join(os.TempDir(), "example.txt")
  _ = os.WriteFile(path, []byte("secret"), 0o600)
 
- buf, err := sectools.SecureReadFileWithSecureBuffer(path, nil)
+ buf, err := sectools.SecureReadFileWithSecureBuffer(filepath.Base(path), nil)
  if err != nil {
   panic(err)
  }
@@ -90,6 +116,22 @@ func main() {
  _ = buf.Bytes()
 }
 ```
+
+### SecureWriteFile
+
+```go
+func SecureWriteFile(file string, data []byte, opts SecureWriteOptions, log hyperlogger.Logger) error
+```
+
+Options:
+
+- `BaseDir`: defaults to `os.TempDir()`.
+- `AllowedRoots`: optional list of allowed root directories.
+- `MaxSizeBytes`: when set, rejects writes larger than this size.
+- `FileMode`: defaults to `0o600` when zero.
+- `CreateExclusive`: when true, fails if the file already exists.
+- `AllowAbsolute`: defaults to false.
+- `AllowSymlinks`: defaults to false.
 
 ## internal/memory
 
@@ -128,6 +170,19 @@ func SafeIntFromInt64(value int64) (int, error)
 ```
 
 - Returns an error if the value overflows the native `int` size on the current platform.
+
+### Additional converters
+
+- `SafeUintFromInt64`
+- `SafeUint32FromInt64`
+- `SafeUint16FromInt64`
+- `SafeUint8FromInt64`
+- `SafeIntFromUint64`
+- `SafeInt32FromInt64`
+- `SafeInt16FromInt64`
+- `SafeInt8FromInt64`
+- `SafeInt64FromUint64`
+- `SafeUint32FromUint64`
 
 Example:
 

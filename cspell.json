@@ -64,6 +64,7 @@
     "honnef",
     "hyperlogger",
     "Infof",
+    "internalio",
     "ints",
     "ireturn",
     "localmodule",
@@ -95,6 +96,7 @@
     "strs",
     "syncer",
     "tagalign",
+    "TOCTOU",
     "toplevel",
     "Tracef",
     "varnamelen",
@@ -104,6 +106,7 @@
     "Wrapf",
     "xlarge",
     "zeroization",
+    "zeroized",
     "zeroizes"
   ],
   "ignoreWords": [],

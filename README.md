@@ -5,6 +5,7 @@ Security-focused Go helpers for file I/O, in-memory handling of sensitive data, 
 ## Features
 
 - Secure file reads scoped to the system temp directory
+- Secure file writes with atomic replace and permissions
 - Symlink checks and root-scoped file access using `os.OpenRoot`
 - Secure in-memory buffers with best-effort zeroization
 - Safe integer conversion helpers with overflow/negative guards
@@ -37,7 +38,7 @@ func main() {
  path := filepath.Join(os.TempDir(), "example.txt")
  _ = os.WriteFile(path, []byte("secret"), 0o600)
 
- data, err := sectools.SecureReadFile(path, nil)
+ data, err := sectools.SecureReadFile(filepath.Base(path), nil)
  if err != nil {
   panic(err)
  }
@@ -62,7 +63,7 @@ func main() {
  path := filepath.Join(os.TempDir(), "example.txt")
  _ = os.WriteFile(path, []byte("secret"), 0o600)
 
- buf, err := sectools.SecureReadFileWithSecureBuffer(path, nil)
+ buf, err := sectools.SecureReadFileWithSecureBuffer(filepath.Base(path), nil)
  if err != nil {
   panic(err)
  }
@@ -89,11 +90,28 @@ func main() {
 }
 ```
 
+### Secure file write
+
+```go
+package main
+
+import (
+ sectools "github.com/hyp3rd/sectools/pkg/io"
+)
+
+func main() {
+ err := sectools.SecureWriteFile("example.txt", []byte("secret"), sectools.SecureWriteOptions{}, nil)
+ if err != nil {
+  panic(err)
+ }
+}
+```
+
 ## Security and behavior notes
 
-- `SecureReadFile` only permits paths under `os.TempDir()`. Relative paths are resolved against the temp directory; absolute paths are only allowed when they already start with the temp directory.
+- `SecureReadFile` only permits relative paths under `os.TempDir()` by default. Use `SecureReadFileWithOptions` to allow absolute paths or alternate roots.
 - Paths containing `..` are rejected to prevent directory traversal.
-- Symlinks are checked to ensure they resolve within the temp directory.
+- Symlinks are rejected by default; when allowed, paths that resolve outside the allowed roots are rejected.
 - File access is scoped with `os.OpenRoot(os.TempDir())`. See the Go `os.Root` docs for platform-specific caveats.
 - `SecureBuffer` zeroizes memory on `Clear()` and uses a finalizer as a best-effort fallback; call `Clear()` when done.
 
