@@ -87,6 +87,38 @@ func TestSecureWriteFileDefaultOptions(t *testing.T) {
 	assert.Equal(t, data, readData)
 }
 
+func TestSecureWriteFileDisableAtomic(t *testing.T) {
+	filename := filepath.Base(uniqueTempPath(t, "sectools-direct-"))
+	data := []byte("direct-write")
+
+	err := SecureWriteFile(filename, data, SecureWriteOptions{
+		DisableAtomic: true,
+	}, nil)
+	require.NoError(t, err)
+
+	defer func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) }()
+
+	readData, err := os.ReadFile(filepath.Join(os.TempDir(), filename))
+	require.NoError(t, err)
+	assert.Equal(t, data, readData)
+}
+
+func TestSecureWriteFileDisableSync(t *testing.T) {
+	filename := filepath.Base(uniqueTempPath(t, "sectools-nosync-"))
+	data := []byte("no-sync")
+
+	err := SecureWriteFile(filename, data, SecureWriteOptions{
+		DisableSync: true,
+	}, nil)
+	require.NoError(t, err)
+
+	defer func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) }()
+
+	readData, err := os.ReadFile(filepath.Join(os.TempDir(), filename))
+	require.NoError(t, err)
+	assert.Equal(t, data, readData)
+}
+
 func TestSecureWriteFileAbsolutePathRejected(t *testing.T) {
 	path := uniqueTempPath(t, "sectools-abs-")
 

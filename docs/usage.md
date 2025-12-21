@@ -130,6 +130,8 @@ Options:
 - `MaxSizeBytes`: when set, rejects writes larger than this size.
 - `FileMode`: defaults to `0o600` when zero.
 - `CreateExclusive`: when true, fails if the file already exists.
+- `DisableAtomic`: when true, writes directly to the target file (no temp file + rename).
+- `DisableSync`: when true, skips fsync for higher throughput at the cost of durability.
 - `AllowAbsolute`: defaults to false.
 - `AllowSymlinks`: defaults to false.
 
