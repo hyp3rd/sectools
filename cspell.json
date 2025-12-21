@@ -70,6 +70,7 @@
     "ireturn",
     "localmodule",
     "memprofile",
+    "mkdocs",
     "mvdan",
     "myproject",
     "mypy",
