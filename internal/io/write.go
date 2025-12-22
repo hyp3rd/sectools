@@ -114,7 +114,7 @@ func writeExclusive(path string, data []byte, opts WriteOptions, log hyperlogger
 			WithMetadata(pathLabel, originalPath)
 	}
 
-	defer closeFile(file, log, originalPath)
+	defer closeFile(file, originalPath, log)
 
 	err = writeAll(file, data)
 	if err != nil {
@@ -141,7 +141,7 @@ func writeDirect(path string, data []byte, opts WriteOptions, log hyperlogger.Lo
 			WithMetadata(pathLabel, originalPath)
 	}
 
-	defer closeFile(file, log, originalPath)
+	defer closeFile(file, originalPath, log)
 
 	err = writeAll(file, data)
 	if err != nil {
@@ -161,72 +161,143 @@ func writeDirect(path string, data []byte, opts WriteOptions, log hyperlogger.Lo
 }
 
 // writeAtomic writes data to a file atomically by writing to a temporary file and renaming it.
-//
-//nolint:revive
 func writeAtomic(path string, data []byte, opts WriteOptions, log hyperlogger.Logger, originalPath string) error {
 	dir := filepath.Dir(path)
 
+	tempFile, cleanup, err := prepareTempFile(dir, originalPath, log)
+	if err != nil {
+		return err
+	}
+
+	success := false
+	defer cleanup(&success)
+
+	closed, err := performAtomicWrite(tempFile, path, data, opts, log, originalPath)
+	if err != nil {
+		if !closed {
+			closeFile(tempFile, tempFile.Name(), log)
+		}
+
+		return err
+	}
+
+	success = true
+
+	return nil
+}
+
+func prepareTempFile(dir, originalPath string, log hyperlogger.Logger) (*os.File, func(*bool), error) {
 	tempFile, err := os.CreateTemp(dir, ".sectools-*")
 	if err != nil {
-		return ewrap.Wrap(err, "failed to create temp file").
+		return nil, nil, ewrap.Wrap(err, "failed to create temp file").
 			WithMetadata(pathLabel, originalPath)
 	}
 
 	tempName := tempFile.Name()
-	success := false
-
-	defer func() {
-		if !success {
-			removeErr := os.Remove(tempName)
-			if removeErr != nil && log != nil {
-				log.WithError(removeErr).Errorf("failed to remove temp file for path %v", originalPath)
-			}
+	cleanup := func(success *bool) {
+		if success != nil && *success {
+			return
 		}
-	}()
 
-	err = tempFile.Chmod(opts.FileMode)
+		removeErr := os.Remove(tempName)
+		if removeErr != nil && log != nil {
+			log.WithError(removeErr).Errorf("failed to remove temp file for path %v", originalPath)
+		}
+	}
+
+	return tempFile, cleanup, nil
+}
+
+func performAtomicWrite(
+	file *os.File,
+	targetPath string,
+	data []byte,
+	opts WriteOptions,
+	log hyperlogger.Logger,
+	originalPath string,
+) (bool, error) {
+	err := applyTempPermissions(file, opts.FileMode, originalPath)
 	if err != nil {
-		closeFile(tempFile, log, tempName)
+		return false, err
+	}
 
+	err = writeTempData(file, data, originalPath)
+	if err != nil {
+		return false, err
+	}
+
+	err = syncTempFile(file, opts.DisableSync, originalPath)
+	if err != nil {
+		return false, err
+	}
+
+	err = closeTempFile(file, log, originalPath)
+	if err != nil {
+		return true, err
+	}
+
+	err = renameTempFile(file.Name(), targetPath, originalPath)
+	if err != nil {
+		return true, err
+	}
+
+	return true, nil
+}
+
+func applyTempPermissions(file *os.File, mode os.FileMode, path string) error {
+	err := file.Chmod(mode)
+	if err != nil {
 		return ewrap.Wrap(err, "failed to set temp file permissions").
-			WithMetadata(pathLabel, originalPath)
+			WithMetadata(pathLabel, path)
 	}
 
-	err = writeAll(tempFile, data)
+	return nil
+}
+
+func writeTempData(file *os.File, data []byte, path string) error {
+	err := writeAll(file, data)
 	if err != nil {
-		closeFile(tempFile, log, tempName)
-
 		return ewrap.Wrap(err, "failed to write temp file").
-			WithMetadata(pathLabel, originalPath)
+			WithMetadata(pathLabel, path)
 	}
 
-	if !opts.DisableSync {
-		err = tempFile.Sync()
-		if err != nil {
-			closeFile(tempFile, log, tempName)
+	return nil
+}
 
-			return ewrap.Wrap(err, "failed to sync temp file").
-				WithMetadata(pathLabel, originalPath)
-		}
+func syncTempFile(file *os.File, disableSync bool, path string) error {
+	if disableSync {
+		return nil
 	}
 
-	err = tempFile.Close()
+	err := file.Sync()
+	if err != nil {
+		return ewrap.Wrap(err, "failed to sync temp file").
+			WithMetadata(pathLabel, path)
+	}
+
+	return nil
+}
+
+func closeTempFile(file *os.File, log hyperlogger.Logger, path string) error {
+	err := file.Close()
 	if err != nil {
 		if log != nil {
-			log.WithError(err).Errorf("failed to close temp file for path %v", originalPath)
+			log.WithError(err).Errorf("failed to close temp file for path %v", path)
 		}
 
 		return ewrap.Wrap(err, "failed to close temp file").
-			WithMetadata(pathLabel, originalPath)
+			WithMetadata(pathLabel, path)
 	}
 
-	err = os.Rename(tempName, path)
+	return nil
+}
+
+func renameTempFile(tempName, targetPath, originalPath string) error {
+	err := os.Rename(tempName, targetPath)
 	if err != nil {
 		return ewrap.Wrap(err, "failed to replace target file").
 			WithMetadata(pathLabel, originalPath)
 	}
-
-	success = true
 
 	return nil
 }

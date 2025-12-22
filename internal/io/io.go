@@ -127,14 +127,14 @@ func openFileWithOptions(path string, opts ReadOptions, log hyperlogger.Logger) 
 
 	info, err := file.Stat()
 	if err != nil {
-		closeFile(file, log, path)
+		closeFile(file, path, log)
 
 		return nil, nil, ewrap.Wrap(err, "failed to get file info").WithMetadata(pathLabel, path)
 	}
 
 	err = validateFileInfo(info, normalized, path)
 	if err != nil {
-		closeFile(file, log, path)
+		closeFile(file, path, log)
 
 		return nil, nil, err
 	}
@@ -188,7 +188,7 @@ func validateFileInfo(info os.FileInfo, opts ReadOptions, path string) error {
 	return nil
 }
 
-func closeFile(file *os.File, log hyperlogger.Logger, path string) {
+func closeFile(file *os.File, path string, log hyperlogger.Logger) {
 	if file == nil {
 		return
 	}
