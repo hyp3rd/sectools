@@ -1,5 +1,7 @@
 # sectools
 
+[![lint](https://github.com/hyp3rd/sectools/actions/workflows/lint.yml/badge.svg)](https://github.com/hyp3rd/sectools/actions/workflows/lint.yml) [![test](https://github.com/hyp3rd/sectools/actions/workflows/test.yml/badge.svg)](https://github.com/hyp3rd/sectools/actions/workflows/test.yml) [![security](https://github.com/hyp3rd/sectools/actions/workflows/security.yml/badge.svg)](https://github.com/hyp3rd/sectools/actions/workflows/security.yml)
+
 Security-focused Go helpers for file I/O, in-memory handling of sensitive data, and safe numeric conversions.
 
 ## Features
