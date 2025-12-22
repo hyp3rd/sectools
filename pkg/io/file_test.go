@@ -1,6 +1,7 @@
 package io
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -17,6 +18,35 @@ func TestSecureReadFileDefaultOptionsRelativePath(t *testing.T) {
 	assert.Equal(t, []byte("secret"), data)
 
 	_ = absPath
+}
+
+func TestSecureOpenFileDefaultOptionsRelativePath(t *testing.T) {
+	absPath, relPath := createTempFile(t, []byte("stream"))
+
+	file, err := SecureOpenFile(relPath, SecureReadOptions{}, nil)
+	require.NoError(t, err)
+
+	data, err := io.ReadAll(file)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("stream"), data)
+
+	require.NoError(t, file.Close())
+	_ = absPath
+}
+
+func TestSecureOpenFileAllowAbsolute(t *testing.T) {
+	absPath, _ := createTempFile(t, []byte("stream"))
+
+	file, err := SecureOpenFile(absPath, SecureReadOptions{
+		AllowAbsolute: true,
+	}, nil)
+	require.NoError(t, err)
+
+	data, err := io.ReadAll(file)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("stream"), data)
+
+	require.NoError(t, file.Close())
 }
 
 func TestSecureReadFileDefaultOptionsAbsolutePathRejected(t *testing.T) {

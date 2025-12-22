@@ -100,7 +100,10 @@ import (
 )
 
 func main() {
- err := sectools.SecureWriteFile("example.txt", []byte("secret"), sectools.SecureWriteOptions{}, nil)
+ err := sectools.SecureWriteFile("example.txt", []byte("secret"), sectools.SecureWriteOptions{
+  DisableAtomic: false,
+  DisableSync:   false,
+ }, nil)
  if err != nil {
   panic(err)
  }
@@ -113,6 +116,7 @@ func main() {
 - Paths containing `..` are rejected to prevent directory traversal.
 - Symlinks are rejected by default; when allowed, paths that resolve outside the allowed roots are rejected.
 - File access is scoped with `os.OpenRoot(os.TempDir())`. See the Go `os.Root` docs for platform-specific caveats.
+- `SecureWriteFile` uses atomic replace and fsync by default; set `DisableAtomic` or `DisableSync` only if you accept durability risks.
 - `SecureBuffer` zeroizes memory on `Clear()` and uses a finalizer as a best-effort fallback; call `Clear()` when done.
 
 ## Documentation
