@@ -175,6 +175,21 @@ func SafeIntFromInt64(value int64) (int, error)
 
 - Returns an error if the value overflows the native `int` size on the current platform.
 
+### Generic converters
+
+```go
+func ToInt64[T Integer](value T) (int64, error)
+func ToInt32[T Integer](value T) (int32, error)
+func ToInt[T Integer](value T) (int, error)
+func ToUint64[T Integer](value T) (uint64, error)
+func ToUint32[T Integer](value T) (uint32, error)
+func ToUint[T Integer](value T) (uint, error)
+```
+
+- Accepts any integer type, including custom types with integer underlying types.
+- Returns `ErrNegativeValue` for negative inputs to unsigned targets.
+- Returns `ErrOverflow` when the value does not fit in the target type.
+
 ### Additional converters
 
 - `SafeUintFromInt64`
