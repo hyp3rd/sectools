@@ -86,6 +86,6 @@ jobs:
       - name: Modules
         run: go mod download
       - name: Fuzz internal/io (clean relative path)
-        run: go test ./internal/io -run=^$ -fuzz=FuzzCleanRelativePath -fuzztime=10s
+        run: go test ./internal/io -run='^$' -fuzz=FuzzCleanRelativePath -fuzztime=10s
       - name: Fuzz internal/io (resolve path)
-        run: go test ./internal/io -run=^$ -fuzz=FuzzResolvePath -fuzztime=10s
+        run: go test ./internal/io -run='^$' -fuzz=FuzzResolvePath -fuzztime=10s
