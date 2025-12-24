@@ -5,8 +5,9 @@ This document describes the public API and key behaviors of sectools. It is base
 ## Packages
 
 - `pkg/io`: secure file read helpers.
+- `pkg/memory`: secure in-memory buffers.
 - `pkg/converters`: safe numeric conversions.
-- `internal/io`, `internal/memory`: implementation details; not part of the public API contract.
+- `internal/io`: implementation details; not part of the public API contract.
 
 ## pkg/io
 
@@ -91,6 +92,18 @@ Behavior:
 - The original byte slice is zeroed after the secure buffer is created.
 - Call `SecureBuffer.Clear()` when the data is no longer needed.
 
+### SecureReadFileWithSecureBufferOptions
+
+```go
+func SecureReadFileWithSecureBufferOptions(filename string, opts SecureReadOptions, log hyperlogger.Logger) (*memory.SecureBuffer, error)
+```
+
+Behavior:
+
+- Calls `SecureReadFileWithOptions` and then wraps the data in a `SecureBuffer`.
+- The original byte slice is zeroed after the secure buffer is created.
+- Call `SecureBuffer.Clear()` when the data is no longer needed.
+
 Example:
 
 ```go
@@ -135,9 +148,10 @@ Options:
 - `AllowAbsolute`: defaults to false.
 - `AllowSymlinks`: defaults to false.
 
-## internal/memory
+## pkg/memory
 
-`SecureBuffer` is an internal type used by `SecureReadFileWithSecureBuffer`.
+`SecureBuffer` is a public type for holding sensitive data in memory.
+Use `NewSecureBuffer` to wrap a byte slice or `NewSecureBufferFromReader` for bounded reads.
 
 Key behaviors:
 

@@ -103,6 +103,38 @@ func TestSecureReadFileWithOptionsNonRegular(t *testing.T) {
 	_ = dirAbs
 }
 
+func TestSecureReadFileWithSecureBufferDefaultOptions(t *testing.T) {
+	_, relPath := createTempFile(t, []byte("secret"))
+
+	buf, err := SecureReadFileWithSecureBuffer(relPath, nil)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("secret"), buf.Bytes())
+
+	buf.Clear()
+}
+
+func TestSecureReadFileWithSecureBufferOptionsAllowAbsolute(t *testing.T) {
+	absPath, _ := createTempFile(t, []byte("secret"))
+
+	buf, err := SecureReadFileWithSecureBufferOptions(absPath, SecureReadOptions{
+		AllowAbsolute: true,
+	}, nil)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("secret"), buf.Bytes())
+
+	buf.Clear()
+}
+
+func TestSecureReadFileWithSecureBufferOptionsMaxSize(t *testing.T) {
+	_, relPath := createTempFile(t, []byte("secret"))
+
+	_, err := SecureReadFileWithSecureBufferOptions(relPath, SecureReadOptions{
+		MaxSizeBytes: 3,
+	}, nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "maximum")
+}
+
 func TestSecureWriteFileDefaultOptions(t *testing.T) {
 	filename := filepath.Base(uniqueTempPath(t, "sectools-write-"))
 	data := []byte("write-test")

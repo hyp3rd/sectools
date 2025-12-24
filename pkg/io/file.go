@@ -8,7 +8,7 @@ import (
 	"github.com/hyp3rd/hyperlogger"
 
 	internalio "github.com/hyp3rd/sectools/internal/io"
-	"github.com/hyp3rd/sectools/internal/memory"
+	"github.com/hyp3rd/sectools/pkg/memory"
 )
 
 // SecureReadFile reads a file securely and returns the contents as a byte slice.
@@ -47,6 +47,20 @@ func SecureReadFileWithSecureBuffer(filename string, log hyperlogger.Logger) (*m
 	}
 
 	return internalio.SecureReadFileWithSecureBuffer(filename, log)
+}
+
+// SecureReadFileWithSecureBufferOptions reads a file securely using the provided options
+// and returns the contents in a SecureBuffer.
+func SecureReadFileWithSecureBufferOptions(
+	filename string,
+	opts SecureReadOptions,
+	log hyperlogger.Logger,
+) (*memory.SecureBuffer, error) {
+	if log != nil {
+		log.WithField("file", filename).Debug("Reading file securely into secure buffer with options")
+	}
+
+	return internalio.SecureReadFileWithSecureBufferOptions(filename, toInternalReadOptions(opts), log)
 }
 
 // SecureWriteFile writes data to a file securely using the provided options.
