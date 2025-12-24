@@ -67,7 +67,7 @@ func handleLstatError(err error, allowMissingFinal bool, current string) error {
 
 // ensureResolvedWithinRoot ensures that the resolved fullPath is within the rootPath.
 //
-//nolint:revive
+
 func ensureResolvedWithinRoot(fullPath, rootPath string, allowMissingFinal bool) error {
 	resolvedRoot := rootPath
 

@@ -123,7 +123,7 @@ func openFileWithOptions(path string, opts ReadOptions, log hyperlogger.Logger) 
 		return nil, nil, err
 	}
 
-	file, err := openFileHandle(resolved, normalized, log, path)
+	file, err := openFileHandle(resolved, normalized.AllowSymlinks, log, path)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -145,8 +145,8 @@ func openFileWithOptions(path string, opts ReadOptions, log hyperlogger.Logger) 
 	return file, info, nil
 }
 
-func openFileHandle(resolved resolvedPath, opts ReadOptions, log hyperlogger.Logger, originalPath string) (*os.File, error) {
-	if opts.AllowSymlinks {
+func openFileHandle(resolved resolvedPath, allowSymlinks bool, log hyperlogger.Logger, originalPath string) (*os.File, error) {
+	if allowSymlinks {
 		// #nosec G304 -- path is validated against allowed roots and symlink policy.
 		file, err := os.Open(resolved.fullPath)
 		if err != nil {
@@ -162,11 +162,7 @@ func openFileHandle(resolved resolvedPath, opts ReadOptions, log hyperlogger.Log
 	}
 
 	file, err := root.Open(resolved.relPath)
-
-	closeErr := root.Close()
-	if closeErr != nil && log != nil {
-		log.WithError(closeErr).Errorf("failed to close root for path %v", originalPath)
-	}
+	closeRoot(root, originalPath, log)
 
 	if err != nil {
 		return nil, ewrap.Wrap(err, "failed to open file").WithMetadata(pathLabel, originalPath)
@@ -199,5 +195,16 @@ func closeFile(file *os.File, path string, log hyperlogger.Logger) {
 	closeErr := file.Close()
 	if closeErr != nil && log != nil {
 		log.WithError(closeErr).Errorf("failed to close file with path %v", path)
+	}
+}
+
+func closeRoot(root *os.Root, path string, log hyperlogger.Logger) {
+	if root == nil {
+		return
+	}
+
+	closeErr := root.Close()
+	if closeErr != nil && log != nil {
+		log.WithError(closeErr).Errorf("failed to close root for path %v", path)
 	}
 }

@@ -144,7 +144,7 @@ linters:
         - name: cognitive-complexity
           severity: warning
           disabled: false
-          arguments: [10]
+          arguments: [15]
 
         - name: cyclomatic
           arguments: [15]

@@ -25,7 +25,10 @@ Behavior:
 - Absolute paths are rejected by default; use `SecureReadFileWithOptions` with `AllowAbsolute` to permit.
 - Symlinks are rejected by default; use `SecureReadFileWithOptions` with `AllowSymlinks` to permit.
 - Non-regular files are rejected by default.
-- Uses `os.OpenRoot(os.TempDir())` and `root.Open(relPath)` to scope file access to the temp directory.
+- Uses `os.OpenRoot` on the resolved root and `root.Open(relPath)` to scope file access to allowed roots when
+  symlinks are disallowed.
+- When `AllowSymlinks` is true, files are opened via resolved paths after symlink checks and may be subject to
+  TOCTOU risks.
 - When symlinks are allowed, paths that resolve outside the allowed root are rejected.
 - Reads the file into a byte slice sized to the file, using `io.ReadFull`.
 - Zeroes the buffer before returning an error on a read failure.
@@ -147,6 +150,13 @@ Options:
 - `DisableSync`: when true, skips fsync for higher throughput at the cost of durability.
 - `AllowAbsolute`: defaults to false.
 - `AllowSymlinks`: defaults to false.
+
+### Platform caveats
+
+sectools relies on `os.OpenRoot`/`os.Root` to scope file operations to allowed roots. `os.Root` follows symlinks
+but rejects those that resolve outside the root. It does not prevent crossing filesystem boundaries, bind mounts,
+`/proc`-style special files, or access to Unix device files. On `GOOS=js`, `os.Root` is vulnerable to TOCTOU
+symlink checks and cannot guarantee containment. See the Go `os.Root` docs for platform details.
 
 ## pkg/memory
 

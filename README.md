@@ -117,7 +117,9 @@ func main() {
 - `SecureReadFile` only permits relative paths under `os.TempDir()` by default. Use `SecureReadFileWithOptions` to allow absolute paths or alternate roots.
 - Paths containing `..` are rejected to prevent directory traversal.
 - Symlinks are rejected by default; when allowed, paths that resolve outside the allowed roots are rejected.
-- File access is scoped with `os.OpenRoot(os.TempDir())`. See the Go `os.Root` docs for platform-specific caveats.
+- File access is scoped with `os.OpenRoot` on the resolved root when symlinks are disallowed. When symlinks are
+  allowed, files are opened via resolved paths after symlink checks. See the Go `os.Root` docs for platform-specific
+  caveats.
 - `SecureWriteFile` uses atomic replace and fsync by default; set `DisableAtomic` or `DisableSync` only if you accept durability risks.
 - `SecureBuffer` zeroizes memory on `Clear()` and uses a finalizer as a best-effort fallback; call `Clear()` when done.
 
