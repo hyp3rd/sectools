@@ -8,7 +8,7 @@ import (
 	"github.com/hyp3rd/ewrap"
 	"github.com/hyp3rd/hyperlogger"
 
-	"github.com/hyp3rd/sectools/internal/memory"
+	"github.com/hyp3rd/sectools/pkg/memory"
 )
 
 // SecurePath validates and sanitizes a file path using default read options.
@@ -91,15 +91,18 @@ func SecureOpenFile(path string, opts ReadOptions, log hyperlogger.Logger) (*os.
 
 // SecureReadFileWithSecureBuffer reads a file securely and returns its contents in a SecureBuffer.
 func SecureReadFileWithSecureBuffer(path string, log hyperlogger.Logger) (*memory.SecureBuffer, error) {
-	data, err := SecureReadFile(path, log)
+	return SecureReadFileWithSecureBufferOptions(path, ReadOptions{}, log)
+}
+
+// SecureReadFileWithSecureBufferOptions reads a file securely with options and returns its contents in a SecureBuffer.
+func SecureReadFileWithSecureBufferOptions(path string, opts ReadOptions, log hyperlogger.Logger) (*memory.SecureBuffer, error) {
+	data, err := SecureReadFileWithOptions(path, opts, log)
 	if err != nil {
 		return nil, err
 	}
 
 	secureBuffer := memory.NewSecureBuffer(data)
-	for i := range data {
-		data[i] = 0
-	}
+	memory.ZeroBytes(data)
 
 	return secureBuffer, nil
 }

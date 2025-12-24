@@ -80,6 +80,7 @@
     "nonamedreturns",
     "nosec",
     "nosync",
+    "openat",
     "popd",
     "Println",
     "protoc",
