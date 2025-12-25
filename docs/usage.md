@@ -4,7 +4,7 @@ This document describes the public API and key behaviors of sectools. It is base
 
 ## Packages
 
-- `pkg/io`: secure file read helpers.
+- `pkg/io`: secure file read/write helpers.
 - `pkg/memory`: secure in-memory buffers.
 - `pkg/converters`: safe numeric conversions.
 - `internal/io`: implementation details; not part of the public API contract.
@@ -31,6 +31,8 @@ Behavior:
   TOCTOU risks.
 - When symlinks are allowed, paths that resolve outside the allowed root are rejected.
 - Reads the file into a byte slice sized to the file, using `io.ReadFull`.
+- `SecureReadFile` does not set a default size cap; use `SecureReadFileWithMaxSize` or `SecureReadFileWithOptions`
+  with `MaxSizeBytes` when file size is untrusted.
 - Zeroes the buffer before returning an error on a read failure.
 - Close errors are logged only when `log` is non-nil.
 
@@ -73,6 +75,17 @@ Options:
 - `AllowAbsolute`: defaults to false.
 - `AllowSymlinks`: defaults to false.
 - `AllowNonRegular`: defaults to false.
+
+### SecureReadFileWithMaxSize
+
+```go
+func SecureReadFileWithMaxSize(file string, maxBytes int64, log hyperlogger.Logger) ([]byte, error)
+```
+
+Behavior:
+
+- Uses the same defaults as `SecureReadFile` while enforcing `MaxSizeBytes = maxBytes`.
+- Returns `ErrMaxSizeInvalid` when `maxBytes` is zero or negative.
 
 ### SecureOpenFile
 

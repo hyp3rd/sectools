@@ -79,6 +79,29 @@ func TestSecureReadFileWithOptionsMaxSize(t *testing.T) {
 	assert.Contains(t, err.Error(), "maximum")
 }
 
+func TestSecureReadFileWithMaxSizeSuccess(t *testing.T) {
+	data := []byte("secret")
+	_, relPath := createTempFile(t, data)
+
+	read, err := SecureReadFileWithMaxSize(relPath, int64(len(data)), nil)
+	require.NoError(t, err)
+	assert.Equal(t, data, read)
+}
+
+func TestSecureReadFileWithMaxSizeTooLarge(t *testing.T) {
+	_, relPath := createTempFile(t, []byte("secret"))
+
+	_, err := SecureReadFileWithMaxSize(relPath, 3, nil)
+	require.ErrorIs(t, err, ErrFileTooLarge)
+}
+
+func TestSecureReadFileWithMaxSizeInvalid(t *testing.T) {
+	_, relPath := createTempFile(t, []byte("secret"))
+
+	_, err := SecureReadFileWithMaxSize(relPath, 0, nil)
+	require.ErrorIs(t, err, ErrMaxSizeInvalid)
+}
+
 func TestSecureReadFileWithOptionsSymlinkPolicy(t *testing.T) {
 	targetAbs, linkAbs, linkRel := createTempSymlink(t, []byte("secret"))
 

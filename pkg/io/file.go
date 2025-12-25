@@ -1,5 +1,5 @@
-// Package io provides utility functions for client operations,
-// including gRPC error handling and secure file operations.
+// Package io provides secure file read and write helpers, including
+// path validation and secure-buffer convenience functions.
 package io
 
 import (
@@ -28,6 +28,21 @@ func SecureReadFileWithOptions(file string, opts SecureReadOptions, log hyperlog
 	}
 
 	return internalio.SecureReadFileWithOptions(file, toInternalReadOptions(opts), log)
+}
+
+// SecureReadFileWithMaxSize reads a file securely and rejects files larger than maxBytes.
+func SecureReadFileWithMaxSize(file string, maxBytes int64, log hyperlogger.Logger) ([]byte, error) {
+	if maxBytes <= 0 {
+		return nil, ErrMaxSizeInvalid
+	}
+
+	if log != nil {
+		log.WithField("file", file).Debug("Reading file securely with max size")
+	}
+
+	return internalio.SecureReadFileWithOptions(file, toInternalReadOptions(SecureReadOptions{
+		MaxSizeBytes: maxBytes,
+	}), log)
 }
 
 // SecureOpenFile opens a file for streaming reads using the provided options.
