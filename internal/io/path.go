@@ -254,7 +254,7 @@ func findBestRoot(path string, roots []string) (string, error) {
 }
 
 func isWithinRoot(path, root string) (bool, error) {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osWindows {
 		path = strings.ToLower(path)
 		root = strings.ToLower(root)
 	}
@@ -280,7 +280,7 @@ func isWithinRoot(path, root string) (bool, error) {
 }
 
 func samePath(left, right string) bool {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osWindows {
 		return strings.EqualFold(filepath.Clean(left), filepath.Clean(right))
 	}
 

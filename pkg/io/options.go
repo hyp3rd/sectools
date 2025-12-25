@@ -25,6 +25,7 @@ type SecureWriteOptions struct {
 	CreateExclusive bool
 	DisableAtomic   bool
 	DisableSync     bool
+	SyncDir         bool
 	AllowAbsolute   bool
 	AllowSymlinks   bool
 }
@@ -49,6 +50,7 @@ func toInternalWriteOptions(opts SecureWriteOptions) internalio.WriteOptions {
 		CreateExclusive: opts.CreateExclusive,
 		DisableAtomic:   opts.DisableAtomic,
 		DisableSync:     opts.DisableSync,
+		SyncDir:         opts.SyncDir,
 		AllowAbsolute:   opts.AllowAbsolute,
 		AllowSymlinks:   opts.AllowSymlinks,
 	}

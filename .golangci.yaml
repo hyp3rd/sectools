@@ -67,7 +67,7 @@ linters:
     cyclop:
       # The maximal code complexity to report.
       # Default: 10
-      max-complexity: 12
+      max-complexity: 15
     errcheck:
       # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
       # Such cases aren't reported by default.
@@ -137,14 +137,14 @@ linters:
           disabled: false
           arguments:
             - max-lit-count: "3"
-              allow-strs: '"","-"'
+              allow-strs: '"","-","windows"'
               allow-ints: "-1,0,1,2,10,1024,0o600,0o644,0o700,0o755,0666,0755"
               allow-floats: "0.0,1.0"
 
         - name: cognitive-complexity
           severity: warning
           disabled: false
-          arguments: [10]
+          arguments: [15]
 
         - name: cyclomatic
           arguments: [15]

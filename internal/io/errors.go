@@ -25,4 +25,6 @@ var (
 	ErrMaxSizeInvalid = ewrap.New("max size cannot be negative")
 	// ErrFileExists indicates a write target already exists when exclusive creation is requested.
 	ErrFileExists = ewrap.New("file already exists")
+	// ErrSyncDirUnsupported indicates directory sync is not supported on this platform or filesystem.
+	ErrSyncDirUnsupported = ewrap.New("directory sync is not supported")
 )
