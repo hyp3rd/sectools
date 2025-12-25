@@ -1,6 +1,7 @@
 package io
 
 import (
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -31,6 +32,7 @@ func TestSecureOpenFileDefaultOptionsRelativePath(t *testing.T) {
 	assert.Equal(t, []byte("stream"), data)
 
 	require.NoError(t, file.Close())
+
 	_ = absPath
 }
 
@@ -175,6 +177,26 @@ func TestSecureWriteFileDisableSync(t *testing.T) {
 	require.NoError(t, err)
 
 	defer func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) }()
+
+	readData, err := os.ReadFile(filepath.Join(os.TempDir(), filename))
+	require.NoError(t, err)
+	assert.Equal(t, data, readData)
+}
+
+func TestSecureWriteFileSyncDir(t *testing.T) {
+	filename := filepath.Base(uniqueTempPath(t, "sectools-syncdir-"))
+	data := []byte("sync-dir")
+
+	t.Cleanup(func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) })
+
+	err := SecureWriteFile(filename, data, SecureWriteOptions{
+		SyncDir: true,
+	}, nil)
+	if errors.Is(err, ErrSyncDirUnsupported) {
+		t.Skip("directory sync not supported on this platform/filesystem")
+	}
+
+	require.NoError(t, err)
 
 	readData, err := os.ReadFile(filepath.Join(os.TempDir(), filename))
 	require.NoError(t, err)

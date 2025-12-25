@@ -21,6 +21,7 @@ type WriteOptions struct {
 	CreateExclusive bool
 	DisableAtomic   bool
 	DisableSync     bool
+	SyncDir         bool
 	AllowAbsolute   bool
 	AllowSymlinks   bool
 }

@@ -25,4 +25,6 @@ var (
 	ErrMaxSizeInvalid = internalio.ErrMaxSizeInvalid
 	// ErrFileExists indicates a write target already exists when exclusive creation is requested.
 	ErrFileExists = internalio.ErrFileExists
+	// ErrSyncDirUnsupported indicates directory sync is not supported on this platform or filesystem.
+	ErrSyncDirUnsupported = internalio.ErrSyncDirUnsupported
 )

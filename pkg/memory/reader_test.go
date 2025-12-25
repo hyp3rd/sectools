@@ -9,6 +9,7 @@ import (
 
 func TestNewSecureBufferFromReader(t *testing.T) {
 	input := []byte("secret")
+
 	buf, err := NewSecureBufferFromReader(bytes.NewReader(input), int64(len(input)))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

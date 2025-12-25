@@ -148,6 +148,7 @@ Options:
 - `CreateExclusive`: when true, fails if the file already exists.
 - `DisableAtomic`: when true, writes directly to the target file (no temp file + rename).
 - `DisableSync`: when true, skips fsync for higher throughput at the cost of durability.
+- `SyncDir`: when true, fsyncs the parent directory after atomic rename or new-file creation.
 - `AllowAbsolute`: defaults to false.
 - `AllowSymlinks`: defaults to false.
 
@@ -157,6 +158,10 @@ sectools relies on `os.OpenRoot`/`os.Root` to scope file operations to allowed r
 but rejects those that resolve outside the root. It does not prevent crossing filesystem boundaries, bind mounts,
 `/proc`-style special files, or access to Unix device files. On `GOOS=js`, `os.Root` is vulnerable to TOCTOU
 symlink checks and cannot guarantee containment. See the Go `os.Root` docs for platform details.
+
+Directory fsync behavior: when `SyncDir` is enabled and `DisableSync` is false, sectools attempts to fsync the parent
+directory for durability. Some platforms or filesystems do not support directory fsync; in that case the operation
+returns `ErrSyncDirUnsupported`.
 
 ## pkg/memory
 

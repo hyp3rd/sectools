@@ -3,9 +3,11 @@ package io
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
+	"syscall"
 
 	"github.com/hyp3rd/ewrap"
 	"github.com/hyp3rd/hyperlogger"
@@ -16,6 +18,7 @@ const (
 	tempRandBytes   = 16
 	tempMaxAttempts = 10
 	fileModeMask    = 0o777
+	rootDirRel      = "."
 )
 
 // SecureWriteFile writes data to a file with configurable security options.
@@ -56,7 +59,7 @@ func SecureWriteFile(path string, data []byte, opts WriteOptions, log hyperlogge
 		}
 
 		if normalized.DisableAtomic {
-			return writeDirectAllowSymlinks(resolved.fullPath, data, normalized, log, path)
+			return writeDirectAllowSymlinks(resolved.fullPath, data, normalized, log, path, targetExists)
 		}
 
 		return writeAtomicAllowSymlinks(resolved.fullPath, data, normalized, log, path)
@@ -129,6 +132,92 @@ func createPerm(mode os.FileMode) (os.FileMode, bool) {
 	return perm, perm != mode
 }
 
+func openExclusiveFile(root *os.Root, relPath string, perm os.FileMode, originalPath string) (*os.File, error) {
+	file, err := root.OpenFile(relPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, perm)
+	if err == nil {
+		return file, nil
+	}
+
+	if os.IsExist(err) {
+		return nil, ErrFileExists.WithMetadata(pathLabel, originalPath)
+	}
+
+	return nil, ewrap.Wrap(err, "failed to create file").
+		WithMetadata(pathLabel, originalPath)
+}
+
+func openDirectFile(root *os.Root, relPath string, perm os.FileMode, targetExists bool) (*os.File, bool, error) {
+	flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+
+	if targetExists {
+		file, err := root.OpenFile(relPath, flags, perm)
+
+		return file, false, ewrap.Wrap(err, "failed to open file for write").
+			WithMetadata(pathLabel, relPath)
+	}
+
+	file, err := root.OpenFile(relPath, flags|os.O_EXCL, perm)
+	if err == nil {
+		return file, true, nil
+	}
+
+	if !os.IsExist(err) {
+		return nil, false, ewrap.Wrap(err, "failed to open file for write").
+			WithMetadata(pathLabel, relPath)
+	}
+
+	file, err = root.OpenFile(relPath, flags, perm)
+
+	return file, false, ewrap.Wrap(err, "failed to open file for write").
+		WithMetadata(pathLabel, relPath)
+}
+
+func applyFileMode(file *os.File, mode os.FileMode, needsChmod, created bool, originalPath string) error {
+	if !needsChmod || !created {
+		return nil
+	}
+
+	err := file.Chmod(mode)
+	if err != nil {
+		return ewrap.Wrap(err, "failed to set file permissions").
+			WithMetadata(pathLabel, originalPath)
+	}
+
+	return nil
+}
+
+func writeAndSyncFile(
+	file *os.File,
+	data []byte,
+	opts WriteOptions,
+	root *os.Root,
+	relPath string,
+	created bool,
+	originalPath string,
+) error {
+	err := writeAll(file, data)
+	if err != nil {
+		return ewrap.Wrap(err, "failed to write file").
+			WithMetadata(pathLabel, originalPath)
+	}
+
+	if opts.DisableSync {
+		return nil
+	}
+
+	err = file.Sync()
+	if err != nil {
+		return ewrap.Wrap(err, "failed to sync file").
+			WithMetadata(pathLabel, originalPath)
+	}
+
+	if opts.SyncDir && created {
+		return syncDirInRoot(root, filepath.Dir(relPath), originalPath)
+	}
+
+	return nil
+}
+
 func newTempName() (string, error) {
 	buf := make([]byte, tempRandBytes)
 
@@ -166,12 +255,26 @@ func writeExclusiveAllowSymlinks(path string, data []byte, opts WriteOptions, lo
 			return ewrap.Wrap(err, "failed to sync file").
 				WithMetadata(pathLabel, originalPath)
 		}
+
+		if opts.SyncDir {
+			err = syncDirOnDisk(filepath.Dir(path), originalPath)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
 }
 
-func writeDirectAllowSymlinks(path string, data []byte, opts WriteOptions, log hyperlogger.Logger, originalPath string) error {
+func writeDirectAllowSymlinks(
+	path string,
+	data []byte,
+	opts WriteOptions,
+	log hyperlogger.Logger,
+	originalPath string,
+	targetExists bool,
+) error {
 	// #nosec G304 -- path is validated against allowed roots and symlink policy.
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, opts.FileMode)
 	if err != nil {
@@ -192,6 +295,13 @@ func writeDirectAllowSymlinks(path string, data []byte, opts WriteOptions, log h
 		if err != nil {
 			return ewrap.Wrap(err, "failed to sync file").
 				WithMetadata(pathLabel, originalPath)
+		}
+
+		if opts.SyncDir && !targetExists {
+			err = syncDirOnDisk(filepath.Dir(path), originalPath)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -255,41 +365,19 @@ func writeExclusive(resolved resolvedPath, data []byte, opts WriteOptions, log h
 
 	perm, needsChmod := createPerm(opts.FileMode)
 
-	file, err := root.OpenFile(resolved.relPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, perm)
+	file, err := openExclusiveFile(root, resolved.relPath, perm, originalPath)
 	if err != nil {
-		if os.IsExist(err) {
-			return ErrFileExists.WithMetadata(pathLabel, originalPath)
-		}
-
-		return ewrap.Wrap(err, "failed to create file").
-			WithMetadata(pathLabel, originalPath)
+		return err
 	}
 
 	defer closeFile(file, originalPath, log)
 
-	if needsChmod {
-		err = file.Chmod(opts.FileMode)
-		if err != nil {
-			return ewrap.Wrap(err, "failed to set file permissions").
-				WithMetadata(pathLabel, originalPath)
-		}
-	}
-
-	err = writeAll(file, data)
+	err = applyFileMode(file, opts.FileMode, needsChmod, true, originalPath)
 	if err != nil {
-		return ewrap.Wrap(err, "failed to write file").
-			WithMetadata(pathLabel, originalPath)
+		return err
 	}
 
-	if !opts.DisableSync {
-		err = file.Sync()
-		if err != nil {
-			return ewrap.Wrap(err, "failed to sync file").
-				WithMetadata(pathLabel, originalPath)
-		}
-	}
-
-	return nil
+	return writeAndSyncFile(file, data, opts, root, resolved.relPath, true, originalPath)
 }
 
 func writeDirect(
@@ -307,21 +395,8 @@ func writeDirect(
 	defer closeRoot(root, originalPath, log)
 
 	perm, needsChmod := createPerm(opts.FileMode)
-	flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
-	created := false
 
-	var file *os.File
-	if !targetExists {
-		file, err = root.OpenFile(resolved.relPath, flags|os.O_EXCL, perm)
-		if err == nil {
-			created = true
-		} else if os.IsExist(err) {
-			file, err = root.OpenFile(resolved.relPath, flags, perm)
-		}
-	} else {
-		file, err = root.OpenFile(resolved.relPath, flags, perm)
-	}
-
+	file, created, err := openDirectFile(root, resolved.relPath, perm, targetExists)
 	if err != nil {
 		return ewrap.Wrap(err, "failed to open file for write").
 			WithMetadata(pathLabel, originalPath)
@@ -329,29 +404,12 @@ func writeDirect(
 
 	defer closeFile(file, originalPath, log)
 
-	if needsChmod && created {
-		err = file.Chmod(opts.FileMode)
-		if err != nil {
-			return ewrap.Wrap(err, "failed to set file permissions").
-				WithMetadata(pathLabel, originalPath)
-		}
-	}
-
-	err = writeAll(file, data)
+	err = applyFileMode(file, opts.FileMode, needsChmod, created, originalPath)
 	if err != nil {
-		return ewrap.Wrap(err, "failed to write file").
-			WithMetadata(pathLabel, originalPath)
+		return err
 	}
 
-	if !opts.DisableSync {
-		err = file.Sync()
-		if err != nil {
-			return ewrap.Wrap(err, "failed to sync file").
-				WithMetadata(pathLabel, originalPath)
-		}
-	}
-
-	return nil
+	return writeAndSyncFile(file, data, opts, root, resolved.relPath, created, originalPath)
 }
 
 // writeAtomic writes data to a file atomically by writing to a temporary file and renaming it.
@@ -466,6 +524,13 @@ func performAtomicWrite(
 		return true, err
 	}
 
+	if opts.SyncDir && !opts.DisableSync {
+		err = syncDirInRoot(root, filepath.Dir(targetRel), originalPath)
+		if err != nil {
+			return true, err
+		}
+	}
+
 	return true, nil
 }
 
@@ -500,6 +565,13 @@ func performAtomicWriteOnDisk(
 	err = renameTempFileOnDisk(file.Name(), targetPath, originalPath)
 	if err != nil {
 		return true, err
+	}
+
+	if opts.SyncDir && !opts.DisableSync {
+		err = syncDirOnDisk(filepath.Dir(targetPath), originalPath)
+		if err != nil {
+			return true, err
+		}
 	}
 
 	return true, nil
@@ -571,6 +643,64 @@ func renameTempFileOnDisk(tempName, targetPath, originalPath string) error {
 	}
 
 	return nil
+}
+
+func syncDirInRoot(root *os.Root, relDir, originalPath string) error {
+	if root == nil {
+		return ErrInvalidPath.WithMetadata(pathLabel, originalPath)
+	}
+
+	if relDir == "" {
+		relDir = rootDirRel
+	}
+
+	dir, err := root.Open(relDir)
+	if err != nil {
+		return ewrap.Wrap(err, "failed to open directory for sync").
+			WithMetadata(pathLabel, originalPath)
+	}
+	defer closeFile(dir, originalPath, nil)
+
+	err = dir.Sync()
+	if err != nil {
+		if isSyncUnsupported(err) {
+			return ErrSyncDirUnsupported.WithMetadata(pathLabel, originalPath)
+		}
+
+		return ewrap.Wrap(err, "failed to sync directory").
+			WithMetadata(pathLabel, originalPath)
+	}
+
+	return nil
+}
+
+func syncDirOnDisk(dirPath, originalPath string) error {
+	// #nosec G304 -- dirPath is derived from a validated target path scoped to allowed roots.
+	dir, err := os.Open(dirPath)
+	if err != nil {
+		return ewrap.Wrap(err, "failed to open directory for sync").
+			WithMetadata(pathLabel, originalPath)
+	}
+	defer closeFile(dir, originalPath, nil)
+
+	err = dir.Sync()
+	if err != nil {
+		if isSyncUnsupported(err) {
+			return ErrSyncDirUnsupported.WithMetadata(pathLabel, originalPath)
+		}
+
+		return ewrap.Wrap(err, "failed to sync directory").
+			WithMetadata(pathLabel, originalPath)
+	}
+
+	return nil
+}
+
+func isSyncUnsupported(err error) bool {
+	return errors.Is(err, os.ErrInvalid) ||
+		errors.Is(err, syscall.EINVAL) ||
+		errors.Is(err, syscall.ENOTSUP) ||
+		errors.Is(err, syscall.EOPNOTSUPP)
 }
 
 func writeAll(file *os.File, data []byte) error {

@@ -120,7 +120,7 @@ func main() {
 - File access is scoped with `os.OpenRoot` on the resolved root when symlinks are disallowed. When symlinks are
   allowed, files are opened via resolved paths after symlink checks. See the Go `os.Root` docs for platform-specific
   caveats.
-- `SecureWriteFile` uses atomic replace and fsync by default; set `DisableAtomic` or `DisableSync` only if you accept durability risks.
+- `SecureWriteFile` uses atomic replace and fsync by default; set `DisableAtomic` or `DisableSync` only if you accept durability risks. Set `SyncDir` to fsync the parent directory after atomic rename for stronger durability guarantees (may be unsupported on some platforms/filesystems).
 - `SecureBuffer` zeroizes memory on `Clear()` and uses a finalizer as a best-effort fallback; call `Clear()` when done.
 
 ## Documentation
