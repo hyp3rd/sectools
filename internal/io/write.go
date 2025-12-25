@@ -7,18 +7,11 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"syscall"
 
 	"github.com/hyp3rd/ewrap"
 	"github.com/hyp3rd/hyperlogger"
-)
-
-const (
-	tempFilePrefix  = ".sectools-"
-	tempRandBytes   = 16
-	tempMaxAttempts = 10
-	fileModeMask    = 0o777
-	rootDirRel      = "."
 )
 
 // SecureWriteFile writes data to a file with configurable security options.
@@ -697,6 +690,10 @@ func syncDirOnDisk(dirPath, originalPath string) error {
 }
 
 func isSyncUnsupported(err error) bool {
+	if runtime.GOOS == osWindows && errors.Is(err, os.ErrPermission) {
+		return true
+	}
+
 	return errors.Is(err, os.ErrInvalid) ||
 		errors.Is(err, syscall.EINVAL) ||
 		errors.Is(err, syscall.ENOTSUP) ||
