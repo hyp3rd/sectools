@@ -144,9 +144,12 @@ func openDirectFile(root *os.Root, relPath string, perm os.FileMode, targetExist
 
 	if targetExists {
 		file, err := root.OpenFile(relPath, flags, perm)
+		if err != nil {
+			return file, false, ewrap.Wrap(err, "failed to open file for write").
+				WithMetadata(pathLabel, relPath)
+		}
 
-		return file, false, ewrap.Wrap(err, "failed to open file for write").
-			WithMetadata(pathLabel, relPath)
+		return file, false, nil
 	}
 
 	file, err := root.OpenFile(relPath, flags|os.O_EXCL, perm)
@@ -160,9 +163,12 @@ func openDirectFile(root *os.Root, relPath string, perm os.FileMode, targetExist
 	}
 
 	file, err = root.OpenFile(relPath, flags, perm)
+	if err != nil {
+		return nil, false, ewrap.Wrap(err, "failed to open file for write").
+			WithMetadata(pathLabel, relPath)
+	}
 
-	return file, false, ewrap.Wrap(err, "failed to open file for write").
-		WithMetadata(pathLabel, relPath)
+	return file, false, nil
 }
 
 func applyFileMode(file *os.File, mode os.FileMode, needsChmod, created bool, originalPath string) error {
