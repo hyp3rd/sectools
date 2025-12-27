@@ -2,8 +2,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/goccy/go-json v0.10.5 h1:Fq85nIqj+gXn/S5ahsiTlK3TmC85qgirsdTP/+DeaC4=
 github.com/goccy/go-json v0.10.5/go.mod h1:oq7eo15ShAhp70Anwd5lgX2pLfOS3QCiwU/PULtXL6M=
-github.com/hyp3rd/ewrap v1.3.3 h1:8gPE6uEQOpJ5fHCuTyNySg4ZN3SWuMuateJy5g5FNXg=
-github.com/hyp3rd/ewrap v1.3.3/go.mod h1:Nf6m8teevefjvr3ejK47ofL4F05cKpMMGxt3TFIC+B8=
+github.com/hyp3rd/ewrap v1.3.4 h1:LWHEhecropw4j8o4QrY52cF6lGNMcfM6j8y/JjbUqeY=
+github.com/hyp3rd/ewrap v1.3.4/go.mod h1:Nf6m8teevefjvr3ejK47ofL4F05cKpMMGxt3TFIC+B8=
 github.com/hyp3rd/hyperlogger v0.0.7 h1:NmfFpDmQfVcbqwJed+9owRf917Z2IpZ5bk22iD1xF4o=
 github.com/hyp3rd/hyperlogger v0.0.7/go.mod h1:Euc+JbR1YzHhaDByb8N3E6atyXJYwtL+akj0ELPXTmY=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
