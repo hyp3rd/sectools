@@ -4,99 +4,71 @@ package io
 import (
 	"io"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/hyp3rd/ewrap"
 	"github.com/hyp3rd/hyperlogger"
 
-	"github.com/hyp3rd/sectools/internal/memory"
+	"github.com/hyp3rd/sectools/pkg/memory"
 )
 
-const pathLabel = "path"
-
-// SecurePath validates and sanitizes a file path, preventing directory traversal and absolute path usage.
-// It prepends the system's temp directory to the provided path and returns an error if the path:
-// - is empty
-// - contains ".."
-// - is an absolute path
-// - resolves to a symlink outside the temp directory
-// Returns a secure, relative path within the system's temp directory or an error if the path is invalid.
-func SecurePath(path string, allowedPaths ...string) (string, error) {
-	cleanPath, err := cleanPath(path)
-	if err != nil {
-		return "", ewrap.Wrap(err, "failed to clean path").WithMetadata(pathLabel, path)
+// SecurePath validates and sanitizes a file path using default read options.
+// It returns a resolved path or an error if validation fails.
+func SecurePath(path string, allowedRoots ...string) (string, error) {
+	opts := ReadOptions{
+		AllowedRoots: allowedRoots,
 	}
 
-	// Check for directory traversal attempts
-	if hasDirectoryTraversal(cleanPath) {
-		return "", ewrap.New("invalid path contains directory traversal sequence").
-			WithMetadata(pathLabel, path)
+	if len(allowedRoots) > 0 {
+		opts.AllowAbsolute = true
 	}
 
-	if isAllowedPath(cleanPath, allowedPaths...) {
-		return cleanPath, nil
-	}
-
-	// Check for absolute paths
-	isAbsTempAllowed, err := isAbsoluteOrTempAllowed(path, cleanPath)
+	normalized, err := normalizeReadOptions(opts)
 	if err != nil {
 		return "", err
 	}
 
-	if isAbsTempAllowed {
-		return path, nil
-	}
-
-	tempDir := os.TempDir()
-	fullPath := filepath.Join(tempDir, cleanPath)
-
-	err = resolveAndValidateSymlink(fullPath, path)
+	resolved, err := resolvePath(path, normalized.BaseDir, normalized.AllowedRoots, normalized.AllowAbsolute)
 	if err != nil {
-		return "", ewrap.Wrap(err, "symlink validation failed").WithMetadata(pathLabel, path)
+		return "", err
 	}
 
-	return fullPath, nil
+	err = enforceSymlinkPolicy(resolved.fullPath, resolved.rootPath, resolved.relPath, normalized.AllowSymlinks, true)
+	if err != nil {
+		return "", err
+	}
+
+	return resolved.fullPath, nil
 }
 
-// SecureReadFile reads a file into memory with additional security precautions.
-// It ensures the file path is secure, opens the file, reads its entire contents into a buffer,
-// and provides error handling with resource cleanup. If an error occurs during reading,
-// the buffer is zeroed out to prevent potential information leakage.
-// Returns the file contents as a byte slice or an error if the file cannot be read securely.
+// SecureReadFile reads a file into memory with default secure options.
+// Use SecureReadFileWithOptions for custom behaviors.
 func SecureReadFile(path string, log hyperlogger.Logger) ([]byte, error) {
-	_, err := SecurePath(path)
-	if err != nil {
-		return nil, ewrap.Wrap(err, "invalid path")
-	}
+	return SecureReadFileWithOptions(path, ReadOptions{}, log)
+}
 
-	//nolint:gosec // #nosec G304: Potential file inclusion via variable
-	file, err := os.Open(path)
+// SecureReadFileWithOptions reads a file into memory with configurable security options.
+func SecureReadFileWithOptions(path string, opts ReadOptions, log hyperlogger.Logger) ([]byte, error) {
+	file, info, err := openFileWithOptions(path, opts, log)
 	if err != nil {
-		return nil, ewrap.Wrap(err, "failed to open file").WithMetadata(pathLabel, path)
+		return nil, err
 	}
 
 	defer func() {
-		err = file.Close()
-		if err != nil {
-			// Log the error but don't return it
-			log.WithError(err).Errorf("failed to close file with path %v", path)
+		closeErr := file.Close()
+		if closeErr != nil && log != nil {
+			log.WithError(closeErr).Errorf("failed to close file with path %v", path)
 		}
 	}()
 
-	// Get file size to allocate exact buffer
-	info, err := file.Stat()
-	if err != nil {
-		return nil, ewrap.Wrap(err, "failed to get file info").WithMetadata(pathLabel, path)
+	maxInt := int64(^uint(0) >> 1)
+	if info.Size() > maxInt {
+		return nil, ErrFileTooLarge.WithMetadata(pathLabel, path)
 	}
 
-	// Allocate buffer of exact size
-	buf := make([]byte, info.Size())
+	buf := make([]byte, int(info.Size()))
 
-	// Read directly into buffer
 	_, err = io.ReadFull(file, buf)
 	if err != nil {
-		// Clear buffer before returning error
 		for i := range buf {
 			buf[i] = 0
 		}
@@ -107,92 +79,132 @@ func SecureReadFile(path string, log hyperlogger.Logger) ([]byte, error) {
 	return buf, nil
 }
 
-// SecureReadFileWithSecureBuffer reads a file securely and returns its contents as a SecureBuffer.
-// This function combines the security features of SecureReadFile with the memory protection of SecureBuffer.
-// It ensures the file path is secure, reads the entire file contents, and wraps them in a SecureBuffer
-// which will automatically zero out the memory when garbage collected.
-// If an error occurs during reading, all buffers are zeroed out to prevent information leakage.
-//
-// Parameters:
-//   - path: Path to the file to be read
-//   - log: Logger instance for recording any non-fatal errors
-//
-// Returns:
-//   - Pointer to a SecureBuffer containing the file contents
-//   - An error if the file cannot be read securely
-func SecureReadFileWithSecureBuffer(path string, log hyperlogger.Logger) (*memory.SecureBuffer, error) {
-	data, err := SecureReadFile(path, log)
+// SecureOpenFile opens a file for streaming reads with configurable security options.
+func SecureOpenFile(path string, opts ReadOptions, log hyperlogger.Logger) (*os.File, error) {
+	file, _, err := openFileWithOptions(path, opts, log)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create a SecureBuffer from the data
-	secureBuffer := memory.NewSecureBuffer(data)
+	return file, nil
+}
 
-	// Zero out the original buffer to minimize exposure of sensitive data
-	for i := range data {
-		data[i] = 0
+// SecureReadFileWithSecureBuffer reads a file securely and returns its contents in a SecureBuffer.
+func SecureReadFileWithSecureBuffer(path string, log hyperlogger.Logger) (*memory.SecureBuffer, error) {
+	return SecureReadFileWithSecureBufferOptions(path, ReadOptions{}, log)
+}
+
+// SecureReadFileWithSecureBufferOptions reads a file securely with options and returns its contents in a SecureBuffer.
+func SecureReadFileWithSecureBufferOptions(path string, opts ReadOptions, log hyperlogger.Logger) (*memory.SecureBuffer, error) {
+	data, err := SecureReadFileWithOptions(path, opts, log)
+	if err != nil {
+		return nil, err
 	}
+
+	secureBuffer := memory.NewSecureBuffer(data)
+	memory.ZeroBytes(data)
 
 	return secureBuffer, nil
 }
 
-// cleanPath normalizes the provided path and checks for emptiness.
-// Returns the cleaned path or an error if the path is empty.
-func cleanPath(path string) (string, error) {
-	// Check for empty path
-	if path == "" {
-		return "", ewrap.New("path cannot be empty")
+func openFileWithOptions(path string, opts ReadOptions, log hyperlogger.Logger) (*os.File, os.FileInfo, error) {
+	normalized, err := normalizeReadOptions(opts)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	// Clean the path to normalize it
-	cleanPath := filepath.Clean(path)
-
-	return cleanPath, nil
-}
-
-// hasDirectoryTraversal checks if the cleaned path contains any directory traversal sequences ("..").
-func hasDirectoryTraversal(cleanPath string) bool {
-	return strings.Contains(cleanPath, "..")
-}
-
-// isAllowedPath checks if the cleaned path starts with any of the allowed paths.
-func isAllowedPath(cleanPath string, allowedPaths ...string) bool {
-	for _, allowedPath := range allowedPaths {
-		if strings.HasPrefix(cleanPath, allowedPath) {
-			return true
-		}
+	resolved, err := resolvePath(path, normalized.BaseDir, normalized.AllowedRoots, normalized.AllowAbsolute)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return false
-}
-
-// isAbsoluteOrTempAllowed checks if the cleaned path is absolute and if so, whether it is within the system's temp directory.
-func isAbsoluteOrTempAllowed(path, cleanPath string) (bool, error) {
-	if filepath.IsAbs(cleanPath) {
-		tempDir := os.TempDir()
-		if strings.HasPrefix(path, tempDir) {
-			return true, nil
-		}
-
-		return false, ewrap.New("absolute paths are not allowed").WithMetadata(pathLabel, path)
+	err = enforceSymlinkPolicy(resolved.fullPath, resolved.rootPath, resolved.relPath, normalized.AllowSymlinks, false)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return false, nil
+	file, err := openFileHandle(resolved, normalized.AllowSymlinks, log, path)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	info, err := file.Stat()
+	if err != nil {
+		closeFile(file, path, log)
+
+		return nil, nil, ewrap.Wrap(err, "failed to get file info").WithMetadata(pathLabel, path)
+	}
+
+	err = validateFileInfo(info, normalized, path)
+	if err != nil {
+		closeFile(file, path, log)
+
+		return nil, nil, err
+	}
+
+	return file, info, nil
 }
 
-// resolveAndValidateSymlink resolves symlinks in the full path and ensures
-// that the resolved path remains within the system's temp directory.
-func resolveAndValidateSymlink(fullPath, originalPath string) error {
-	resolvedPath, err := filepath.EvalSymlinks(fullPath)
-	if err == nil { // Only check if the path exists and can be resolved
-		// Ensure the resolved path is still within the temp directory
-		tempDir := os.TempDir()
-		if !strings.HasPrefix(resolvedPath, tempDir) {
-			return ewrap.New("path resolves to location outside of temp directory").
-				WithMetadata(pathLabel, originalPath)
+func openFileHandle(resolved resolvedPath, allowSymlinks bool, log hyperlogger.Logger, originalPath string) (*os.File, error) {
+	if allowSymlinks {
+		// #nosec G304 -- path is validated against allowed roots and symlink policy.
+		file, err := os.Open(resolved.fullPath)
+		if err != nil {
+			return nil, ewrap.Wrap(err, "failed to open file").WithMetadata(pathLabel, originalPath)
 		}
+
+		return file, nil
+	}
+
+	root, err := os.OpenRoot(resolved.rootPath)
+	if err != nil {
+		return nil, ewrap.Wrap(err, "failed to open root").WithMetadata(pathLabel, originalPath)
+	}
+
+	file, err := root.Open(resolved.relPath)
+	closeRoot(root, originalPath, log)
+
+	if err != nil {
+		return nil, ewrap.Wrap(err, "failed to open file").WithMetadata(pathLabel, originalPath)
+	}
+
+	return file, nil
+}
+
+func validateFileInfo(info os.FileInfo, opts ReadOptions, path string) error {
+	if info.Size() < 0 {
+		return ErrInvalidPath.WithMetadata(pathLabel, path)
+	}
+
+	if !opts.AllowNonRegular && !info.Mode().IsRegular() {
+		return ErrNonRegularFile.WithMetadata(pathLabel, path)
+	}
+
+	if opts.MaxSizeBytes > 0 && info.Size() > opts.MaxSizeBytes {
+		return ErrFileTooLarge.WithMetadata(pathLabel, path)
 	}
 
 	return nil
+}
+
+func closeFile(file *os.File, path string, log hyperlogger.Logger) {
+	if file == nil {
+		return
+	}
+
+	closeErr := file.Close()
+	if closeErr != nil && log != nil {
+		log.WithError(closeErr).Errorf("failed to close file with path %v", path)
+	}
+}
+
+func closeRoot(root *os.Root, path string, log hyperlogger.Logger) {
+	if root == nil {
+		return
+	}
+
+	closeErr := root.Close()
+	if closeErr != nil && log != nil {
+		log.WithError(closeErr).Errorf("failed to close root for path %v", path)
+	}
 }

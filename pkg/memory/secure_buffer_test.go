@@ -47,17 +47,34 @@ func TestClear(t *testing.T) {
 	buf.Clear() // Should not panic
 }
 
+func TestClearFast(t *testing.T) {
+	buf := NewSecureBuffer([]byte("fast clear"))
+
+	buf.ClearFast()
+
+	if buf.data != nil {
+		t.Errorf("Buffer data should be nil after fast clearing")
+	}
+
+	buf.ClearFast() // Should not panic
+}
+
 func TestBytes(t *testing.T) {
 	// Create a buffer with test data
 	testData := []byte("test data")
 	buf := NewSecureBuffer(testData)
 
 	// Get bytes from buffer
-	retrievedData := buf.Bytes()
+	retrievedData := buf.BytesCopy()
 
 	// Verify data matches
 	if !bytes.Equal(retrievedData, testData) {
 		t.Errorf("Retrieved data doesn't match original data")
+	}
+
+	retrievedAlias := buf.Bytes()
+	if !bytes.Equal(retrievedAlias, testData) {
+		t.Errorf("Bytes alias mismatch")
 	}
 }
 
@@ -68,10 +85,15 @@ func TestString(t *testing.T) {
 
 	// Get string from buffer
 	str := buf.String()
+	unsafeStr := buf.UnsafeString()
 
 	// Verify string matches
 	if str != string(testData) {
 		t.Errorf("String representation doesn't match original data")
+	}
+
+	if unsafeStr != string(testData) {
+		t.Errorf("Unsafe string representation doesn't match original data")
 	}
 }
 
@@ -123,7 +145,7 @@ func TestSecureBufferLargeData(t *testing.T) {
 func TestSecureBufferMultipleCopies(t *testing.T) {
 	original := []byte("sensitive data")
 	buf1 := NewSecureBuffer(original)
-	buf2 := NewSecureBuffer(buf1.Bytes())
+	buf2 := NewSecureBuffer(buf1.BytesCopy())
 
 	if !bytes.Equal(buf1.data, buf2.data) {
 		t.Errorf("Data mismatch between buffer copies")
@@ -144,8 +166,8 @@ func TestSecureBufferConcurrentAccess(t *testing.T) {
 
 	go func() {
 		for range 1000 {
-			_ = buf.Bytes()
-			_ = buf.String()
+			_ = buf.BytesCopy()
+			_ = buf.UnsafeString()
 		}
 
 		done <- true
@@ -178,8 +200,19 @@ func TestSecureBufferStringWithNonUTF8(t *testing.T) {
 	invalidUTF8 := []byte{0xFF, 0xFE, 0xFD}
 	buf := NewSecureBuffer(invalidUTF8)
 
-	str := buf.String()
+	str := buf.UnsafeString()
 	if len(str) != len(invalidUTF8) {
 		t.Errorf("String length mismatch for non-UTF8 data")
 	}
+}
+
+func TestZeroBytes(t *testing.T) {
+	data := []byte{1, 2, 3, 4}
+	ZeroBytes(data)
+
+	if !bytes.Equal(data, []byte{0, 0, 0, 0}) {
+		t.Errorf("Expected zeroed bytes")
+	}
+
+	ZeroBytes(nil) // Should not panic
 }

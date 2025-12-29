@@ -1,134 +1,323 @@
 package io
 
 import (
+	"errors"
+	"io"
 	"os"
+	"path/filepath"
 	"testing"
 
-	"github.com/hyp3rd/hyperlogger"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestValidateFile(t *testing.T) {
-	tests := []struct {
-		name     string
-		filename string
-		wantErr  bool
-	}{
-		{
-			name:     "empty filename",
-			filename: "",
-			wantErr:  true,
-		},
-		{
-			name:     "valid filename",
-			filename: "test.txt",
-			wantErr:  false,
-		},
-		{
-			name:     "filename with path",
-			filename: os.TempDir() + "/test.txt",
-			wantErr:  false,
-		},
-	}
+func TestSecureReadFileDefaultOptionsRelativePath(t *testing.T) {
+	absPath, relPath := createTempFile(t, []byte("secret"))
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := validateFile(tt.filename)
-			if tt.wantErr {
-				assert.Error(t, err)
+	data, err := SecureReadFile(relPath, nil)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("secret"), data)
 
-				if tt.filename == "" {
-					assert.Contains(t, err.Error(), "path cannot be empty")
-				}
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
+	_ = absPath
 }
 
-func TestSecureReadFile(t *testing.T) {
-	tests := []struct {
-		name     string
-		filename string
-		logger   hyperlogger.Logger
-		wantErr  bool
-	}{
-		{
-			name:     "empty filename",
-			filename: "",
-			logger:   nil,
-			wantErr:  true,
-		},
-		{
-			name:     "empty filename with logger",
-			filename: "",
-			logger:   hyperlogger.NewNoop(),
-			wantErr:  true,
-		},
-		{
-			name:     "valid filename without logger",
-			filename: "test.txt",
-			logger:   nil,
-			wantErr:  false,
-		},
-	}
+func TestSecureOpenFileDefaultOptionsRelativePath(t *testing.T) {
+	absPath, relPath := createTempFile(t, []byte("stream"))
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, err := SecureReadFile(tt.filename, tt.logger)
-			if tt.wantErr {
-				assert.Error(t, err)
-			} else {
-				// Note: This will likely fail in actual execution due to utils.SecureReadFile
-				// but tests the validation logic
-				if tt.filename == "" {
-					assert.Error(t, err)
-				}
-			}
-		})
-	}
+	file, err := SecureOpenFile(relPath, SecureReadOptions{}, nil)
+	require.NoError(t, err)
+
+	data, err := io.ReadAll(file)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("stream"), data)
+
+	require.NoError(t, file.Close())
+
+	_ = absPath
 }
 
-func TestSecureReadFileWithSecureBuffer(t *testing.T) {
-	tests := []struct {
-		name     string
-		filename string
-		logger   hyperlogger.Logger
-		wantErr  bool
-	}{
-		{
-			name:     "empty filename",
-			filename: "",
-			logger:   nil,
-			wantErr:  true,
-		},
-		{
-			name:     "empty filename with logger",
-			filename: "",
-			logger:   hyperlogger.NewNoop(),
-			wantErr:  true,
-		},
-		{
-			name:     "valid filename without logger",
-			filename: "test.txt",
-			logger:   nil,
-			wantErr:  false,
-		},
+func TestSecureOpenFileAllowAbsolute(t *testing.T) {
+	absPath, _ := createTempFile(t, []byte("stream"))
+
+	file, err := SecureOpenFile(absPath, SecureReadOptions{
+		AllowAbsolute: true,
+	}, nil)
+	require.NoError(t, err)
+
+	data, err := io.ReadAll(file)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("stream"), data)
+
+	require.NoError(t, file.Close())
+}
+
+func TestSecureReadFileDefaultOptionsAbsolutePathRejected(t *testing.T) {
+	absPath, _ := createTempFile(t, []byte("secret"))
+
+	_, err := SecureReadFile(absPath, nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "absolute")
+}
+
+func TestSecureReadFileWithOptionsAllowAbsolute(t *testing.T) {
+	absPath, _ := createTempFile(t, []byte("secret"))
+
+	data, err := SecureReadFileWithOptions(absPath, SecureReadOptions{
+		AllowAbsolute: true,
+	}, nil)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("secret"), data)
+}
+
+func TestSecureReadFileWithOptionsMaxSize(t *testing.T) {
+	_, relPath := createTempFile(t, []byte("secret"))
+
+	_, err := SecureReadFileWithOptions(relPath, SecureReadOptions{
+		MaxSizeBytes: 3,
+	}, nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "maximum")
+}
+
+func TestSecureReadFileWithMaxSizeSuccess(t *testing.T) {
+	data := []byte("secret")
+	_, relPath := createTempFile(t, data)
+
+	read, err := SecureReadFileWithMaxSize(relPath, int64(len(data)), nil)
+	require.NoError(t, err)
+	assert.Equal(t, data, read)
+}
+
+func TestSecureReadFileWithMaxSizeTooLarge(t *testing.T) {
+	_, relPath := createTempFile(t, []byte("secret"))
+
+	_, err := SecureReadFileWithMaxSize(relPath, 3, nil)
+	require.ErrorIs(t, err, ErrFileTooLarge)
+}
+
+func TestSecureReadFileWithMaxSizeInvalid(t *testing.T) {
+	_, relPath := createTempFile(t, []byte("secret"))
+
+	_, err := SecureReadFileWithMaxSize(relPath, 0, nil)
+	require.ErrorIs(t, err, ErrMaxSizeInvalid)
+}
+
+func TestSecureReadFileWithOptionsSymlinkPolicy(t *testing.T) {
+	targetAbs, linkAbs, linkRel := createTempSymlink(t, []byte("secret"))
+
+	_, err := SecureReadFileWithOptions(linkRel, SecureReadOptions{}, nil)
+	require.Error(t, err)
+
+	data, err := SecureReadFileWithOptions(linkRel, SecureReadOptions{
+		AllowSymlinks: true,
+	}, nil)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("secret"), data)
+
+	_ = targetAbs
+	_ = linkAbs
+}
+
+func TestSecureReadFileWithOptionsNonRegular(t *testing.T) {
+	dirAbs, dirRel := createTempDir(t)
+
+	_, err := SecureReadFileWithOptions(dirRel, SecureReadOptions{}, nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "non-regular")
+
+	_ = dirAbs
+}
+
+func TestSecureReadFileWithSecureBufferDefaultOptions(t *testing.T) {
+	_, relPath := createTempFile(t, []byte("secret"))
+
+	buf, err := SecureReadFileWithSecureBuffer(relPath, nil)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("secret"), buf.Bytes())
+
+	buf.Clear()
+}
+
+func TestSecureReadFileWithSecureBufferOptionsAllowAbsolute(t *testing.T) {
+	absPath, _ := createTempFile(t, []byte("secret"))
+
+	buf, err := SecureReadFileWithSecureBufferOptions(absPath, SecureReadOptions{
+		AllowAbsolute: true,
+	}, nil)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("secret"), buf.Bytes())
+
+	buf.Clear()
+}
+
+func TestSecureReadFileWithSecureBufferOptionsMaxSize(t *testing.T) {
+	_, relPath := createTempFile(t, []byte("secret"))
+
+	_, err := SecureReadFileWithSecureBufferOptions(relPath, SecureReadOptions{
+		MaxSizeBytes: 3,
+	}, nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "maximum")
+}
+
+func TestSecureWriteFileDefaultOptions(t *testing.T) {
+	filename := filepath.Base(uniqueTempPath(t, "sectools-write-"))
+	data := []byte("write-test")
+
+	err := SecureWriteFile(filename, data, SecureWriteOptions{}, nil)
+	require.NoError(t, err)
+
+	defer func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) }()
+
+	readData, err := os.ReadFile(filepath.Join(os.TempDir(), filename))
+	require.NoError(t, err)
+	assert.Equal(t, data, readData)
+}
+
+func TestSecureWriteFileDisableAtomic(t *testing.T) {
+	filename := filepath.Base(uniqueTempPath(t, "sectools-direct-"))
+	data := []byte("direct-write")
+
+	err := SecureWriteFile(filename, data, SecureWriteOptions{
+		DisableAtomic: true,
+	}, nil)
+	require.NoError(t, err)
+
+	defer func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) }()
+
+	readData, err := os.ReadFile(filepath.Join(os.TempDir(), filename))
+	require.NoError(t, err)
+	assert.Equal(t, data, readData)
+}
+
+func TestSecureWriteFileDisableSync(t *testing.T) {
+	filename := filepath.Base(uniqueTempPath(t, "sectools-nosync-"))
+	data := []byte("no-sync")
+
+	err := SecureWriteFile(filename, data, SecureWriteOptions{
+		DisableSync: true,
+	}, nil)
+	require.NoError(t, err)
+
+	defer func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) }()
+
+	readData, err := os.ReadFile(filepath.Join(os.TempDir(), filename))
+	require.NoError(t, err)
+	assert.Equal(t, data, readData)
+}
+
+func TestSecureWriteFileSyncDir(t *testing.T) {
+	filename := filepath.Base(uniqueTempPath(t, "sectools-syncdir-"))
+	data := []byte("sync-dir")
+
+	t.Cleanup(func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) })
+
+	err := SecureWriteFile(filename, data, SecureWriteOptions{
+		SyncDir: true,
+	}, nil)
+	if errors.Is(err, ErrSyncDirUnsupported) {
+		t.Skip("directory sync not supported on this platform/filesystem")
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, err := SecureReadFileWithSecureBuffer(tt.filename, tt.logger)
-			if tt.wantErr {
-				assert.Error(t, err)
-			} else {
-				// Note: This will likely fail in actual execution due to utils.SecureReadFileWithSecureBuffer
-				// but tests the validation logic
-				if tt.filename == "" {
-					assert.Error(t, err)
-				}
-			}
-		})
+	require.NoError(t, err)
+
+	readData, err := os.ReadFile(filepath.Join(os.TempDir(), filename))
+	require.NoError(t, err)
+	assert.Equal(t, data, readData)
+}
+
+func TestSecureWriteFileAbsolutePathRejected(t *testing.T) {
+	path := uniqueTempPath(t, "sectools-abs-")
+
+	err := SecureWriteFile(path, []byte("data"), SecureWriteOptions{}, nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "absolute")
+}
+
+func TestSecureWriteFileCreateExclusive(t *testing.T) {
+	absPath, relPath := createTempFile(t, []byte("existing"))
+
+	err := SecureWriteFile(relPath, []byte("new"), SecureWriteOptions{
+		CreateExclusive: true,
+	}, nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "exists")
+
+	_ = absPath
+}
+
+func TestSecureWriteFileSymlinkRejected(t *testing.T) {
+	_, linkAbs, linkRel := createTempSymlink(t, []byte("secret"))
+
+	err := SecureWriteFile(linkRel, []byte("data"), SecureWriteOptions{}, nil)
+	require.Error(t, err)
+
+	_ = linkAbs
+}
+
+func createTempFile(t *testing.T, data []byte) (string, string) {
+	t.Helper()
+
+	file, err := os.CreateTemp(t.TempDir(), "sectools-file-*")
+	require.NoError(t, err)
+
+	_, err = file.Write(data)
+	require.NoError(t, err)
+
+	require.NoError(t, file.Close())
+
+	t.Cleanup(func() {
+		_ = os.Remove(file.Name())
+	})
+
+	relPath, err := filepath.Rel(os.TempDir(), file.Name())
+	require.NoError(t, err)
+
+	return file.Name(), relPath
+}
+
+func createTempDir(t *testing.T) (string, string) {
+	t.Helper()
+
+	dir, err := os.MkdirTemp("", "sectools-dir-*")
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		_ = os.RemoveAll(dir)
+	})
+
+	relPath, err := filepath.Rel(os.TempDir(), dir)
+	require.NoError(t, err)
+
+	return dir, relPath
+}
+
+func createTempSymlink(t *testing.T, data []byte) (string, string, string) {
+	t.Helper()
+
+	targetAbs, _ := createTempFile(t, data)
+	linkAbs := filepath.Join(os.TempDir(), "sectools-link-"+filepath.Base(targetAbs))
+
+	err := os.Symlink(targetAbs, linkAbs)
+	if err != nil {
+		t.Skipf("symlink not supported: %v", err)
 	}
+
+	t.Cleanup(func() {
+		_ = os.Remove(linkAbs)
+	})
+
+	return targetAbs, linkAbs, filepath.Base(linkAbs)
+}
+
+func uniqueTempPath(t *testing.T, prefix string) string {
+	t.Helper()
+
+	file, err := os.CreateTemp(t.TempDir(), prefix)
+	require.NoError(t, err)
+	require.NoError(t, file.Close())
+
+	require.NoError(t, os.Remove(file.Name()))
+
+	return file.Name()
 }

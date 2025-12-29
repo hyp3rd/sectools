@@ -1,13 +1,14 @@
-// Package io provides utility functions for client operations,
-// including gRPC error handling and secure file operations.
+// Package io provides secure file read and write helpers, including
+// path validation and secure-buffer convenience functions.
 package io
 
 import (
-	"github.com/hyp3rd/ewrap"
+	"os"
+
 	"github.com/hyp3rd/hyperlogger"
 
-	"github.com/hyp3rd/sectools/internal/io"
-	"github.com/hyp3rd/sectools/internal/memory"
+	internalio "github.com/hyp3rd/sectools/internal/io"
+	"github.com/hyp3rd/sectools/pkg/memory"
 )
 
 // SecureReadFile reads a file securely and returns the contents as a byte slice.
@@ -17,12 +18,40 @@ func SecureReadFile(file string, log hyperlogger.Logger) ([]byte, error) {
 		log.WithField("file", file).Debug("Reading file securely")
 	}
 
-	err := validateFile(file)
-	if err != nil {
-		return nil, err
+	return internalio.SecureReadFile(file, log)
+}
+
+// SecureReadFileWithOptions reads a file securely using the provided options.
+func SecureReadFileWithOptions(file string, opts SecureReadOptions, log hyperlogger.Logger) ([]byte, error) {
+	if log != nil {
+		log.WithField("file", file).Debug("Reading file securely with options")
 	}
 
-	return io.SecureReadFile(file, log)
+	return internalio.SecureReadFileWithOptions(file, toInternalReadOptions(opts), log)
+}
+
+// SecureReadFileWithMaxSize reads a file securely and rejects files larger than maxBytes.
+func SecureReadFileWithMaxSize(file string, maxBytes int64, log hyperlogger.Logger) ([]byte, error) {
+	if maxBytes <= 0 {
+		return nil, ErrMaxSizeInvalid
+	}
+
+	if log != nil {
+		log.WithField("file", file).Debug("Reading file securely with max size")
+	}
+
+	return internalio.SecureReadFileWithOptions(file, toInternalReadOptions(SecureReadOptions{
+		MaxSizeBytes: maxBytes,
+	}), log)
+}
+
+// SecureOpenFile opens a file for streaming reads using the provided options.
+func SecureOpenFile(file string, opts SecureReadOptions, log hyperlogger.Logger) (*os.File, error) {
+	if log != nil {
+		log.WithField("file", file).Debug("Opening file securely")
+	}
+
+	return internalio.SecureOpenFile(file, toInternalReadOptions(opts), log)
 }
 
 // SecureReadFileWithSecureBuffer reads a file securely and returns the contents
@@ -32,26 +61,28 @@ func SecureReadFileWithSecureBuffer(filename string, log hyperlogger.Logger) (*m
 		log.WithField("file", filename).Debug("Reading file securely into secure buffer")
 	}
 
-	err := validateFile(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	return io.SecureReadFileWithSecureBuffer(filename, log)
+	return internalio.SecureReadFileWithSecureBuffer(filename, log)
 }
 
-// validateFile checks if the given filename is valid by ensuring it is not empty
-// and verifying the file path using SecurePath. It returns an error if the
-// filename is invalid or the path cannot be secured.
-func validateFile(filename string) error {
-	if filename == "" {
-		return ewrap.New("path cannot be empty")
+// SecureReadFileWithSecureBufferOptions reads a file securely using the provided options
+// and returns the contents in a SecureBuffer.
+func SecureReadFileWithSecureBufferOptions(
+	filename string,
+	opts SecureReadOptions,
+	log hyperlogger.Logger,
+) (*memory.SecureBuffer, error) {
+	if log != nil {
+		log.WithField("file", filename).Debug("Reading file securely into secure buffer with options")
 	}
 
-	_, err := io.SecurePath(filename)
-	if err != nil {
-		return ewrap.Wrap(err, "invalid file path")
+	return internalio.SecureReadFileWithSecureBufferOptions(filename, toInternalReadOptions(opts), log)
+}
+
+// SecureWriteFile writes data to a file securely using the provided options.
+func SecureWriteFile(file string, data []byte, opts SecureWriteOptions, log hyperlogger.Logger) error {
+	if log != nil {
+		log.WithField("file", file).Debug("Writing file securely")
 	}
 
-	return nil
+	return internalio.SecureWriteFile(file, data, toInternalWriteOptions(opts), log)
 }

@@ -1,0 +1,91 @@
+---
+name: test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            race: true
+          - os: macos-latest
+            race: false
+          - os: windows-latest
+            race: false
+    steps:
+      - uses: actions/checkout@v6
+      - name: Load project settings
+        id: settings
+        shell: bash
+        run: |
+          set -a
+          source .project-settings.env
+          set +a
+          echo "go_version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "${{ steps.settings.outputs.go_version }}"
+          check-latest: true
+      - name: Cache Go modules
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ steps.settings.outputs.go_version }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ steps.settings.outputs.go_version }}-
+      - name: Modules
+        run: go mod download
+      - name: Test (race + coverage)
+        if: matrix.race
+        run: go test -race -coverprofile=coverage.out ./...
+      - name: Test
+        if: ${{ matrix.race != true }}
+        run: go test ./...
+      - name: Upload coverage artifact
+        if: matrix.race
+        uses: actions/upload-artifact@v6
+        with:
+          name: coverage
+          path: coverage.out
+  fuzz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Load project settings
+        id: settings
+        shell: bash
+        run: |
+          set -a
+          source .project-settings.env
+          set +a
+          echo "go_version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "${{ steps.settings.outputs.go_version }}"
+          check-latest: true
+      - name: Cache Go modules
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ steps.settings.outputs.go_version }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ steps.settings.outputs.go_version }}-
+      - name: Modules
+        run: go mod download
+      - name: Fuzz internal/io (clean relative path)
+        run: go test ./internal/io -run='^$' -fuzz=FuzzCleanRelativePath -fuzztime=10s
+      - name: Fuzz internal/io (resolve path)
+        run: go test ./internal/io -run='^$' -fuzz=FuzzResolvePath -fuzztime=10s
