@@ -3,7 +3,7 @@ module github.com/hyp3rd/sectools
 go 1.25.5
 
 require (
-	github.com/hyp3rd/ewrap v1.3.3
+	github.com/hyp3rd/ewrap v1.3.4
 	github.com/hyp3rd/hyperlogger v0.0.7
 	github.com/stretchr/testify v1.11.1
 )
