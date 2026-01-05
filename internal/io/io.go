@@ -184,6 +184,10 @@ func validateFileInfo(info os.FileInfo, opts ReadOptions, path string) error {
 		return ErrFileTooLarge.WithMetadata(pathLabel, path)
 	}
 
+	if opts.DisallowPerms != 0 && info.Mode().Perm()&opts.DisallowPerms != 0 {
+		return ErrPermissionsNotAllowed.WithMetadata(pathLabel, path)
+	}
+
 	return nil
 }
 

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -e
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+	echo "gitleaks not found; skipping secret scan"
+	exit 0
+fi
+
+root_dir=$(git rev-parse --show-toplevel)
+
+pushd "${root_dir}" >/dev/null || exit
+
+echo "Running gitleaks..."
+gitleaks detect --source . --no-git --redact --verbose
+
+popd >/dev/null || exit

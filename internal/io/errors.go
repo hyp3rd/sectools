@@ -27,4 +27,12 @@ var (
 	ErrFileExists = ewrap.New("file already exists")
 	// ErrSyncDirUnsupported indicates directory sync is not supported on this platform or filesystem.
 	ErrSyncDirUnsupported = ewrap.New("directory sync is not supported")
+	// ErrNilReader indicates a nil reader was provided.
+	ErrNilReader = ewrap.New("reader cannot be nil")
+	// ErrNotDirectory indicates the target path is not a directory.
+	ErrNotDirectory = ewrap.New("path is not a directory")
+	// ErrInvalidPermissions indicates a permission mask was invalid.
+	ErrInvalidPermissions = ewrap.New("invalid permissions")
+	// ErrPermissionsNotAllowed indicates a path has disallowed permissions.
+	ErrPermissionsNotAllowed = ewrap.New("permissions are not allowed")
 )

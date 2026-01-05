@@ -8,6 +8,8 @@ Security-focused Go helpers for file I/O, in-memory handling of sensitive data, 
 
 - Secure file reads scoped to the system temp directory
 - Secure file writes with atomic replace and permissions
+- Secure directory creation/listing with root scoping and symlink checks
+- Streaming-safe writes from readers with size caps
 - Symlink checks and root-scoped file access using `os.OpenRoot`
 - Secure in-memory buffers with best-effort zeroization
 - Safe integer conversion helpers with overflow/negative guards

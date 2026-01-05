@@ -3,6 +3,7 @@
 package io
 
 import (
+	"io"
 	"os"
 
 	"github.com/hyp3rd/hyperlogger"
@@ -85,4 +86,13 @@ func SecureWriteFile(file string, data []byte, opts SecureWriteOptions, log hype
 	}
 
 	return internalio.SecureWriteFile(file, data, toInternalWriteOptions(opts), log)
+}
+
+// SecureWriteFromReader writes data from a reader to a file securely using the provided options.
+func SecureWriteFromReader(file string, reader io.Reader, opts SecureWriteOptions, log hyperlogger.Logger) error {
+	if log != nil {
+		log.WithField("file", file).Debug("Writing file securely from reader")
+	}
+
+	return internalio.SecureWriteFromReader(file, reader, toInternalWriteOptions(opts), log)
 }

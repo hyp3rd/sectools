@@ -24,6 +24,52 @@ func normalizeReadOptions(opts ReadOptions) (ReadOptions, error) {
 		return opts, ErrMaxSizeInvalid
 	}
 
+	if opts.DisallowPerms&^fileModeMask != 0 {
+		return opts, ErrInvalidPermissions
+	}
+
+	if opts.BaseDir == "" {
+		if len(opts.AllowedRoots) > 0 {
+			opts.BaseDir = opts.AllowedRoots[0]
+		} else {
+			opts.BaseDir = os.TempDir()
+		}
+	}
+
+	baseDir, err := normalizeRoot(opts.BaseDir)
+	if err != nil {
+		return opts, ewrap.Wrap(ErrInvalidBaseDir, "invalid base directory").
+			WithMetadata(pathLabel, opts.BaseDir)
+	}
+
+	roots, err := normalizeAllowedRoots(baseDir, opts.AllowedRoots)
+	if err != nil {
+		return opts, err
+	}
+
+	opts.BaseDir = baseDir
+	opts.AllowedRoots = roots
+
+	return opts, nil
+}
+
+func normalizeDirOptions(opts DirOptions) (DirOptions, error) {
+	if opts.DirMode == 0 {
+		opts.DirMode = 0o700
+	}
+
+	if opts.DirMode&^fileModeMask != 0 {
+		return opts, ErrInvalidPermissions
+	}
+
+	if opts.DisallowPerms&^fileModeMask != 0 {
+		return opts, ErrInvalidPermissions
+	}
+
+	if opts.DisallowPerms != 0 && opts.DirMode&opts.DisallowPerms != 0 {
+		return opts, ErrInvalidPermissions
+	}
+
 	if opts.BaseDir == "" {
 		if len(opts.AllowedRoots) > 0 {
 			opts.BaseDir = opts.AllowedRoots[0]

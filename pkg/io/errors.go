@@ -27,4 +27,12 @@ var (
 	ErrFileExists = internalio.ErrFileExists
 	// ErrSyncDirUnsupported indicates directory sync is not supported on this platform or filesystem.
 	ErrSyncDirUnsupported = internalio.ErrSyncDirUnsupported
+	// ErrNilReader indicates a nil reader was provided.
+	ErrNilReader = internalio.ErrNilReader
+	// ErrNotDirectory indicates the target path is not a directory.
+	ErrNotDirectory = internalio.ErrNotDirectory
+	// ErrInvalidPermissions indicates a permission mask was invalid.
+	ErrInvalidPermissions = internalio.ErrInvalidPermissions
+	// ErrPermissionsNotAllowed indicates a path has disallowed permissions.
+	ErrPermissionsNotAllowed = internalio.ErrPermissionsNotAllowed
 )
