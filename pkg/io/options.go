@@ -43,6 +43,30 @@ type SecureDirOptions struct {
 	DisallowPerms os.FileMode
 }
 
+// SecureTempOptions configures secure temp file behavior.
+type SecureTempOptions struct {
+	BaseDir         string
+	AllowedRoots    []string
+	FileMode        os.FileMode
+	AllowAbsolute   bool
+	AllowSymlinks   bool
+	EnforceFileMode bool
+}
+
+// SecureRemoveOptions configures secure remove behavior.
+type SecureRemoveOptions struct {
+	BaseDir       string
+	AllowedRoots  []string
+	AllowAbsolute bool
+	AllowSymlinks bool
+}
+
+// SecureCopyOptions configures secure copy behavior.
+type SecureCopyOptions struct {
+	Read  SecureReadOptions
+	Write SecureWriteOptions
+}
+
 func toInternalReadOptions(opts SecureReadOptions) internalio.ReadOptions {
 	return internalio.ReadOptions{
 		BaseDir:         opts.BaseDir,
@@ -80,5 +104,25 @@ func toInternalDirOptions(opts SecureDirOptions) internalio.DirOptions {
 		AllowSymlinks: opts.AllowSymlinks,
 		EnforceMode:   opts.EnforceMode,
 		DisallowPerms: opts.DisallowPerms,
+	}
+}
+
+func toInternalTempOptions(opts SecureTempOptions) internalio.TempOptions {
+	return internalio.TempOptions{
+		BaseDir:         opts.BaseDir,
+		AllowedRoots:    opts.AllowedRoots,
+		FileMode:        opts.FileMode,
+		AllowAbsolute:   opts.AllowAbsolute,
+		AllowSymlinks:   opts.AllowSymlinks,
+		EnforceFileMode: opts.EnforceFileMode,
+	}
+}
+
+func toInternalRemoveOptions(opts SecureRemoveOptions) internalio.RemoveOptions {
+	return internalio.RemoveOptions{
+		BaseDir:       opts.BaseDir,
+		AllowedRoots:  opts.AllowedRoots,
+		AllowAbsolute: opts.AllowAbsolute,
+		AllowSymlinks: opts.AllowSymlinks,
 	}
 }

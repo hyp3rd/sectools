@@ -213,6 +213,57 @@ Options:
 - `EnforceMode`: when true, applies `DirMode` after creation to override umask reductions.
 - `DisallowPerms`: when set, rejects directories with any of these permission bits.
 
+### SecureTempFile
+
+```go
+func SecureTempFile(prefix string, opts SecureTempOptions, log hyperlogger.Logger) (*os.File, error)
+```
+
+Options:
+
+- `BaseDir`: defaults to `os.TempDir()`.
+- `AllowedRoots`: optional list of allowed root directories.
+- `FileMode`: defaults to `0o600` when zero.
+- `AllowAbsolute`: defaults to false.
+- `AllowSymlinks`: defaults to false.
+- `EnforceFileMode`: when true, applies `FileMode` after creation to override umask reductions.
+
+### SecureTempDir
+
+```go
+func SecureTempDir(prefix string, opts SecureDirOptions, log hyperlogger.Logger) (string, error)
+```
+
+### SecureRemove
+
+```go
+func SecureRemove(path string, opts SecureRemoveOptions, log hyperlogger.Logger) error
+```
+
+Options:
+
+- `BaseDir`: defaults to `os.TempDir()`.
+- `AllowedRoots`: optional list of allowed root directories.
+- `AllowAbsolute`: defaults to false.
+- `AllowSymlinks`: defaults to false.
+
+### SecureRemoveAll
+
+```go
+func SecureRemoveAll(path string, opts SecureRemoveOptions, log hyperlogger.Logger) error
+```
+
+### SecureCopyFile
+
+```go
+func SecureCopyFile(src string, dest string, opts SecureCopyOptions, log hyperlogger.Logger) error
+```
+
+Options:
+
+- `Read`: `SecureReadOptions` applied to the source file.
+- `Write`: `SecureWriteOptions` applied to the destination file.
+
 ### Platform caveats
 
 sectools relies on `os.OpenRoot`/`os.Root` to scope file operations to allowed roots. `os.Root` follows symlinks

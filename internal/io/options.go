@@ -38,3 +38,21 @@ type DirOptions struct {
 	EnforceMode   bool
 	DisallowPerms os.FileMode
 }
+
+// TempOptions configures secure temp file behavior.
+type TempOptions struct {
+	BaseDir         string
+	AllowedRoots    []string
+	FileMode        os.FileMode
+	AllowAbsolute   bool
+	AllowSymlinks   bool
+	EnforceFileMode bool
+}
+
+// RemoveOptions configures secure remove behavior.
+type RemoveOptions struct {
+	BaseDir       string
+	AllowedRoots  []string
+	AllowAbsolute bool
+	AllowSymlinks bool
+}

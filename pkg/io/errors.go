@@ -35,4 +35,6 @@ var (
 	ErrInvalidPermissions = internalio.ErrInvalidPermissions
 	// ErrPermissionsNotAllowed indicates a path has disallowed permissions.
 	ErrPermissionsNotAllowed = internalio.ErrPermissionsNotAllowed
+	// ErrInvalidTempPrefix indicates a temp prefix was invalid.
+	ErrInvalidTempPrefix = internalio.ErrInvalidTempPrefix
 )

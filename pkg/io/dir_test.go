@@ -41,6 +41,7 @@ func TestSecureMkdirAllDefaultOptions(t *testing.T) {
 	require.NoError(t, err)
 
 	dirPath := filepath.Join(os.TempDir(), dirName)
+
 	t.Cleanup(func() { _ = os.RemoveAll(dirPath) })
 
 	info, err := os.Stat(dirPath)

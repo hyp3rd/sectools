@@ -35,4 +35,6 @@ var (
 	ErrInvalidPermissions = ewrap.New("invalid permissions")
 	// ErrPermissionsNotAllowed indicates a path has disallowed permissions.
 	ErrPermissionsNotAllowed = ewrap.New("permissions are not allowed")
+	// ErrInvalidTempPrefix indicates a temp prefix was invalid.
+	ErrInvalidTempPrefix = ewrap.New("invalid temp prefix")
 )

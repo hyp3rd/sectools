@@ -129,6 +129,66 @@ func normalizeWriteOptions(opts WriteOptions) (WriteOptions, error) {
 	return opts, nil
 }
 
+func normalizeTempOptions(opts TempOptions) (TempOptions, error) {
+	if opts.FileMode == 0 {
+		opts.FileMode = 0o600
+	}
+
+	if opts.FileMode&^fileModeMask != 0 {
+		return opts, ErrInvalidPermissions
+	}
+
+	if opts.BaseDir == "" {
+		if len(opts.AllowedRoots) > 0 {
+			opts.BaseDir = opts.AllowedRoots[0]
+		} else {
+			opts.BaseDir = os.TempDir()
+		}
+	}
+
+	baseDir, err := normalizeRoot(opts.BaseDir)
+	if err != nil {
+		return opts, ewrap.Wrap(ErrInvalidBaseDir, "invalid base directory").
+			WithMetadata(pathLabel, opts.BaseDir)
+	}
+
+	roots, err := normalizeAllowedRoots(baseDir, opts.AllowedRoots)
+	if err != nil {
+		return opts, err
+	}
+
+	opts.BaseDir = baseDir
+	opts.AllowedRoots = roots
+
+	return opts, nil
+}
+
+func normalizeRemoveOptions(opts RemoveOptions) (RemoveOptions, error) {
+	if opts.BaseDir == "" {
+		if len(opts.AllowedRoots) > 0 {
+			opts.BaseDir = opts.AllowedRoots[0]
+		} else {
+			opts.BaseDir = os.TempDir()
+		}
+	}
+
+	baseDir, err := normalizeRoot(opts.BaseDir)
+	if err != nil {
+		return opts, ewrap.Wrap(ErrInvalidBaseDir, "invalid base directory").
+			WithMetadata(pathLabel, opts.BaseDir)
+	}
+
+	roots, err := normalizeAllowedRoots(baseDir, opts.AllowedRoots)
+	if err != nil {
+		return opts, err
+	}
+
+	opts.BaseDir = baseDir
+	opts.AllowedRoots = roots
+
+	return opts, nil
+}
+
 func normalizeRoot(root string) (string, error) {
 	if root == "" {
 		return "", ErrInvalidBaseDir
