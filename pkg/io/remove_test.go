@@ -40,3 +40,16 @@ func TestSecureRemoveAbsolutePathRejected(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "absolute")
 }
+
+func TestSecureRemoveWithWipe(t *testing.T) {
+	_, relPath := createTempFile(t, []byte("wipe-me"))
+
+	err := SecureRemove(relPath, SecureRemoveOptions{
+		Wipe: true,
+	}, nil)
+	require.NoError(t, err)
+
+	_, statErr := os.Stat(filepath.Join(os.TempDir(), relPath))
+	require.Error(t, statErr)
+	require.True(t, os.IsNotExist(statErr))
+}

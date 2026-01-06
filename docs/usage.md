@@ -246,6 +246,8 @@ Options:
 - `AllowedRoots`: optional list of allowed root directories.
 - `AllowAbsolute`: defaults to false.
 - `AllowSymlinks`: defaults to false.
+- `Wipe`: when true, attempts a best-effort zero overwrite for regular files before removal.
+  `Wipe` is ignored for `SecureRemoveAll`.
 
 ### SecureRemoveAll
 

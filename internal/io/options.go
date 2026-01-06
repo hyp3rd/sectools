@@ -55,4 +55,5 @@ type RemoveOptions struct {
 	AllowedRoots  []string
 	AllowAbsolute bool
 	AllowSymlinks bool
+	Wipe          bool
 }
