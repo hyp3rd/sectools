@@ -1,0 +1,88 @@
+package io
+
+import (
+	"bytes"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+)
+
+func FuzzSecureWriteFromReader(f *testing.F) {
+	f.Add("file.txt", []byte("data"), int64(10), false, false, false)
+	f.Add("../escape", []byte("data"), int64(10), false, false, false)
+	f.Add("nested/file.txt", []byte("data"), int64(10), false, false, false)
+	f.Add("link.txt", []byte("data"), int64(10), true, true, false)
+	f.Add("abs.txt", []byte("data"), int64(10), true, false, true)
+
+	f.Fuzz(func(t *testing.T, name string, data []byte, maxSize int64, allowSymlinks bool, useSymlink bool, makeAbsolute bool) {
+		if len(data) > 2048 {
+			data = data[:2048]
+		}
+
+		if maxSize > 2048 {
+			maxSize = 2048
+		} else if maxSize < -1 {
+			maxSize = -1
+		}
+
+		baseDir := t.TempDir()
+		path := name
+		safeName := sanitizeFileName(name)
+
+		if safeName == "" {
+			safeName = "file"
+		}
+
+		if useSymlink {
+			targetPath := filepath.Join(baseDir, "target-"+safeName)
+			if err := os.WriteFile(targetPath, []byte("target"), 0o600); err != nil {
+				t.Skipf("failed to create symlink target: %v", err)
+			}
+
+			linkName := "link-" + safeName
+			linkPath := filepath.Join(baseDir, linkName)
+			if err := os.Symlink(targetPath, linkPath); err != nil {
+				t.Skipf("symlink not supported: %v", err)
+			}
+
+			path = linkName
+			if makeAbsolute {
+				path = linkPath
+			}
+		} else if makeAbsolute {
+			path = filepath.Join(baseDir, safeName)
+		}
+
+		opts := WriteOptions{
+			BaseDir:       baseDir,
+			MaxSizeBytes:  maxSize,
+			AllowAbsolute: makeAbsolute,
+			AllowSymlinks: allowSymlinks,
+		}
+
+		_ = SecureWriteFromReader(path, bytes.NewReader(data), opts, nil)
+	})
+}
+
+func sanitizeFileName(input string) string {
+	cleaned := strings.Map(func(r rune) rune {
+		if r == '.' {
+			return r
+		}
+
+		if r == ':' || os.IsPathSeparator(uint8(r)) {
+			return -1
+		}
+
+		return r
+	}, input)
+
+	cleaned = strings.TrimSpace(cleaned)
+
+	if cleaned == "" || cleaned == "." || cleaned == ".." {
+		return ""
+	}
+
+	return cleaned
+}
