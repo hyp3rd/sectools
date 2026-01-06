@@ -75,6 +75,7 @@ Options:
 - `AllowAbsolute`: defaults to false.
 - `AllowSymlinks`: defaults to false.
 - `AllowNonRegular`: defaults to false.
+- `DisallowPerms`: when set, rejects files with any of these permission bits.
 
 ### SecureReadFileWithMaxSize
 
@@ -164,6 +165,104 @@ Options:
 - `SyncDir`: when true, fsyncs the parent directory after atomic rename or new-file creation.
 - `AllowAbsolute`: defaults to false.
 - `AllowSymlinks`: defaults to false.
+- `EnforceFileMode`: when true, applies `FileMode` after creation to override umask reductions.
+
+### SecureWriteFromReader
+
+```go
+func SecureWriteFromReader(file string, reader io.Reader, opts SecureWriteOptions, log hyperlogger.Logger) error
+```
+
+Behavior:
+
+- Validates the path and enforces the same root/symlink policies as `SecureWriteFile`.
+- Streams data from the reader with optional size limiting using `MaxSizeBytes`.
+- Uses atomic replace by default; direct writes are available with `DisableAtomic`.
+
+### SecureReadDir
+
+```go
+func SecureReadDir(path string, log hyperlogger.Logger) ([]os.DirEntry, error)
+```
+
+Behavior:
+
+- Validates the directory path using the same root and symlink rules as file reads.
+- Rejects non-directory paths.
+- Applies `DisallowPerms` when set.
+
+### SecureReadDirWithOptions
+
+```go
+func SecureReadDirWithOptions(path string, opts SecureReadOptions, log hyperlogger.Logger) ([]os.DirEntry, error)
+```
+
+### SecureMkdirAll
+
+```go
+func SecureMkdirAll(path string, opts SecureDirOptions, log hyperlogger.Logger) error
+```
+
+Options:
+
+- `BaseDir`: defaults to `os.TempDir()`.
+- `AllowedRoots`: optional list of allowed root directories.
+- `DirMode`: defaults to `0o700` when zero.
+- `AllowAbsolute`: defaults to false.
+- `AllowSymlinks`: defaults to false.
+- `EnforceMode`: when true, applies `DirMode` after creation to override umask reductions.
+- `DisallowPerms`: when set, rejects directories with any of these permission bits.
+
+### SecureTempFile
+
+```go
+func SecureTempFile(prefix string, opts SecureTempOptions, log hyperlogger.Logger) (*os.File, error)
+```
+
+Options:
+
+- `BaseDir`: defaults to `os.TempDir()`.
+- `AllowedRoots`: optional list of allowed root directories.
+- `FileMode`: defaults to `0o600` when zero.
+- `AllowAbsolute`: defaults to false.
+- `AllowSymlinks`: defaults to false.
+- `EnforceFileMode`: when true, applies `FileMode` after creation to override umask reductions.
+
+### SecureTempDir
+
+```go
+func SecureTempDir(prefix string, opts SecureDirOptions, log hyperlogger.Logger) (string, error)
+```
+
+### SecureRemove
+
+```go
+func SecureRemove(path string, opts SecureRemoveOptions, log hyperlogger.Logger) error
+```
+
+Options:
+
+- `BaseDir`: defaults to `os.TempDir()`.
+- `AllowedRoots`: optional list of allowed root directories.
+- `AllowAbsolute`: defaults to false.
+- `AllowSymlinks`: defaults to false.
+
+### SecureRemoveAll
+
+```go
+func SecureRemoveAll(path string, opts SecureRemoveOptions, log hyperlogger.Logger) error
+```
+
+### SecureCopyFile
+
+```go
+func SecureCopyFile(src string, dest string, opts SecureCopyOptions, log hyperlogger.Logger) error
+```
+
+Options:
+
+- `Read`: `SecureReadOptions` applied to the source file.
+- `Write`: `SecureWriteOptions` applied to the destination file.
 
 ### Platform caveats
 

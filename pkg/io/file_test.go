@@ -5,6 +5,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -253,6 +255,48 @@ func TestSecureWriteFileSymlinkRejected(t *testing.T) {
 	require.Error(t, err)
 
 	_ = linkAbs
+}
+
+func TestSecureWriteFromReaderDefaultOptions(t *testing.T) {
+	filename := filepath.Base(uniqueTempPath(t, "sectools-reader-"))
+	data := "reader-data"
+
+	err := SecureWriteFromReader(filename, strings.NewReader(data), SecureWriteOptions{}, nil)
+	require.NoError(t, err)
+
+	t.Cleanup(func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) })
+
+	readData, err := os.ReadFile(filepath.Join(os.TempDir(), filename))
+	require.NoError(t, err)
+	assert.Equal(t, []byte(data), readData)
+}
+
+func TestSecureWriteFromReaderMaxSize(t *testing.T) {
+	filename := filepath.Base(uniqueTempPath(t, "sectools-reader-max-"))
+
+	err := SecureWriteFromReader(filename, strings.NewReader("secret"), SecureWriteOptions{
+		MaxSizeBytes: 3,
+	}, nil)
+	require.ErrorIs(t, err, ErrFileTooLarge)
+
+	_, statErr := os.Stat(filepath.Join(os.TempDir(), filename))
+	require.Error(t, statErr)
+	assert.True(t, os.IsNotExist(statErr))
+}
+
+func TestSecureReadFileWithOptionsDisallowPerms(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("permission bits are not reliable on Windows")
+	}
+
+	absPath, relPath := createTempFile(t, []byte("secret"))
+
+	require.NoError(t, os.Chmod(absPath, 0o644))
+
+	_, err := SecureReadFileWithOptions(relPath, SecureReadOptions{
+		DisallowPerms: 0o004,
+	}, nil)
+	require.ErrorIs(t, err, ErrPermissionsNotAllowed)
 }
 
 func createTempFile(t *testing.T, data []byte) (string, string) {

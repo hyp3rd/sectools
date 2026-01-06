@@ -171,8 +171,50 @@ func openDirectFile(root *os.Root, relPath string, perm os.FileMode, targetExist
 	return file, false, nil
 }
 
-func applyFileMode(file *os.File, mode os.FileMode, needsChmod, created bool, originalPath string) error {
-	if !needsChmod || !created {
+func openDirectFileOnDisk(path string, perm os.FileMode, targetExists bool, originalPath string) (*os.File, bool, error) {
+	flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+
+	if targetExists {
+		// #nosec G304 -- path is validated against allowed roots and symlink policy.
+		file, err := os.OpenFile(path, flags, perm)
+		if err != nil {
+			return file, false, ewrap.Wrap(err, "failed to open file for write").
+				WithMetadata(pathLabel, originalPath)
+		}
+
+		return file, false, nil
+	}
+
+	// #nosec G304 -- path is validated against allowed roots and symlink policy.
+	file, err := os.OpenFile(path, flags|os.O_EXCL, perm)
+	if err == nil {
+		return file, true, nil
+	}
+
+	if !os.IsExist(err) {
+		return nil, false, ewrap.Wrap(err, "failed to open file for write").
+			WithMetadata(pathLabel, originalPath)
+	}
+
+	// #nosec G304 -- path is validated against allowed roots and symlink policy.
+	file, err = os.OpenFile(path, flags, perm)
+	if err != nil {
+		return nil, false, ewrap.Wrap(err, "failed to open file for write").
+			WithMetadata(pathLabel, originalPath)
+	}
+
+	return file, false, nil
+}
+
+func applyFileMode(
+	file *os.File,
+	mode os.FileMode,
+	needsChmod bool,
+	created bool,
+	enforce bool,
+	originalPath string,
+) error {
+	if !created || (!needsChmod && !enforce) {
 		return nil
 	}
 
@@ -229,8 +271,10 @@ func newTempName() (string, error) {
 }
 
 func writeExclusiveAllowSymlinks(path string, data []byte, opts WriteOptions, log hyperlogger.Logger, originalPath string) error {
+	perm, needsChmod := createPerm(opts.FileMode)
+
 	// #nosec G304 -- path is validated against allowed roots and symlink policy.
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, opts.FileMode)
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, perm)
 	if err != nil {
 		if os.IsExist(err) {
 			return ErrFileExists.WithMetadata(pathLabel, originalPath)
@@ -241,6 +285,11 @@ func writeExclusiveAllowSymlinks(path string, data []byte, opts WriteOptions, lo
 	}
 
 	defer closeFile(file, originalPath, log)
+
+	err = applyFileMode(file, opts.FileMode, needsChmod, true, opts.EnforceFileMode, originalPath)
+	if err != nil {
+		return err
+	}
 
 	err = writeAll(file, data)
 	if err != nil {
@@ -274,14 +323,19 @@ func writeDirectAllowSymlinks(
 	originalPath string,
 	targetExists bool,
 ) error {
-	// #nosec G304 -- path is validated against allowed roots and symlink policy.
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, opts.FileMode)
+	perm, needsChmod := createPerm(opts.FileMode)
+
+	file, created, err := openDirectFileOnDisk(path, perm, targetExists, originalPath)
 	if err != nil {
-		return ewrap.Wrap(err, "failed to open file for write").
-			WithMetadata(pathLabel, originalPath)
+		return err
 	}
 
 	defer closeFile(file, originalPath, log)
+
+	err = applyFileMode(file, opts.FileMode, needsChmod, created, opts.EnforceFileMode, originalPath)
+	if err != nil {
+		return err
+	}
 
 	err = writeAll(file, data)
 	if err != nil {
@@ -296,7 +350,7 @@ func writeDirectAllowSymlinks(
 				WithMetadata(pathLabel, originalPath)
 		}
 
-		if opts.SyncDir && !targetExists {
+		if opts.SyncDir && created {
 			err = syncDirOnDisk(filepath.Dir(path), originalPath)
 			if err != nil {
 				return err
@@ -371,7 +425,7 @@ func writeExclusive(resolved resolvedPath, data []byte, opts WriteOptions, log h
 
 	defer closeFile(file, originalPath, log)
 
-	err = applyFileMode(file, opts.FileMode, needsChmod, true, originalPath)
+	err = applyFileMode(file, opts.FileMode, needsChmod, true, opts.EnforceFileMode, originalPath)
 	if err != nil {
 		return err
 	}
@@ -403,7 +457,7 @@ func writeDirect(
 
 	defer closeFile(file, originalPath, log)
 
-	err = applyFileMode(file, opts.FileMode, needsChmod, created, originalPath)
+	err = applyFileMode(file, opts.FileMode, needsChmod, created, opts.EnforceFileMode, originalPath)
 	if err != nil {
 		return err
 	}

@@ -387,3 +387,4 @@ $RECYCLE.BIN/
 setup-project.sh
 # Grafana data volume
 observability/grafana/
+PRD.md
