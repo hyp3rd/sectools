@@ -64,8 +64,9 @@ type SecureRemoveOptions struct {
 
 // SecureCopyOptions configures secure copy behavior.
 type SecureCopyOptions struct {
-	Read  SecureReadOptions
-	Write SecureWriteOptions
+	Read           SecureReadOptions
+	Write          SecureWriteOptions
+	VerifyChecksum bool
 }
 
 func toInternalReadOptions(opts SecureReadOptions) internalio.ReadOptions {

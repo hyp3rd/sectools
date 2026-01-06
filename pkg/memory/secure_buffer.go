@@ -4,6 +4,8 @@ package memory
 
 import (
 	"crypto/rand"
+	"fmt"
+	"os"
 	"runtime"
 	"sync"
 )
@@ -11,8 +13,9 @@ import (
 // SecureBuffer represents a secure memory buffer for storing sensitive data.
 // It provides automatic cleanup and protection against memory dumps.
 type SecureBuffer struct {
-	data []byte
-	mu   sync.RWMutex
+	data   []byte
+	mu     sync.RWMutex
+	locked bool
 }
 
 // NewSecureBuffer creates a new secure buffer with the given data.
@@ -105,6 +108,51 @@ func ZeroBytes(buf []byte) {
 	}
 }
 
+// Lock attempts to prevent the buffer from being swapped to disk.
+// It is best-effort and may return ErrLockUnsupported on some platforms.
+func (sb *SecureBuffer) Lock() error {
+	sb.mu.Lock()
+	defer sb.mu.Unlock()
+
+	if len(sb.data) == 0 || sb.locked {
+		return nil
+	}
+
+	err := lockBytes(sb.data)
+	if err != nil {
+		return err
+	}
+
+	sb.locked = true
+
+	return nil
+}
+
+// Unlock releases a previously locked buffer.
+// It is best-effort and may return ErrLockUnsupported on some platforms.
+func (sb *SecureBuffer) Unlock() error {
+	sb.mu.Lock()
+	defer sb.mu.Unlock()
+
+	if len(sb.data) == 0 || !sb.locked {
+		return nil
+	}
+
+	err := unlockBytes(sb.data)
+	if err != nil {
+		return err
+	}
+
+	sb.locked = false
+
+	return nil
+}
+
+// finalize is called by the garbage collector to ensure cleanup.
+func (sb *SecureBuffer) finalize() {
+	sb.Clear()
+}
+
 // performClear performs the actual clearing of the buffer.
 func (sb *SecureBuffer) performClear(randomize bool) {
 	sb.mu.Lock()
@@ -112,6 +160,16 @@ func (sb *SecureBuffer) performClear(randomize bool) {
 
 	if sb.data == nil {
 		return
+	}
+
+	if sb.locked {
+		err := unlockBytes(sb.data)
+		if err != nil {
+			// best-effort; ignore unlock failures during clear
+			fmt.Fprintln(os.Stderr, "failed to unlock memory during clear:", err)
+		}
+
+		sb.locked = false
 	}
 
 	if randomize {
@@ -131,9 +189,4 @@ func (sb *SecureBuffer) performClear(randomize bool) {
 
 	// Clear the finalizer since we've manually cleaned up
 	runtime.SetFinalizer(sb, nil)
-}
-
-// finalize is called by the garbage collector to ensure cleanup.
-func (sb *SecureBuffer) finalize() {
-	sb.Clear()
 }

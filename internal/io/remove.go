@@ -8,11 +8,6 @@ import (
 	"github.com/hyp3rd/hyperlogger"
 )
 
-const (
-	maxRetryAttempts = 3
-	retryDelay       = 100 // milliseconds
-)
-
 // SecureRemove removes a file or empty directory securely with configurable options.
 func SecureRemove(path string, opts RemoveOptions, log hyperlogger.Logger) error {
 	return secureRemovePath(path, opts, log, false)

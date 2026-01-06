@@ -12,5 +12,12 @@ func SecureCopyFile(src, dest string, opts SecureCopyOptions, log hyperlogger.Lo
 		log.WithField("src", src).WithField("dest", dest).Debug("Copying file securely")
 	}
 
-	return internalio.SecureCopyFile(src, dest, toInternalReadOptions(opts.Read), toInternalWriteOptions(opts.Write), log)
+	return internalio.SecureCopyFile(
+		src,
+		dest,
+		toInternalReadOptions(opts.Read),
+		toInternalWriteOptions(opts.Write),
+		opts.VerifyChecksum,
+		log,
+	)
 }

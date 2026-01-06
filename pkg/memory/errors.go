@@ -9,4 +9,6 @@ var (
 	ErrMaxSizeInvalid = ewrap.New("max size must be positive and fit into int")
 	// ErrBufferTooLarge indicates the data exceeds the configured maximum size.
 	ErrBufferTooLarge = ewrap.New("data exceeds maximum size")
+	// ErrLockUnsupported indicates memory locking is not supported on this platform.
+	ErrLockUnsupported = ewrap.New("memory locking is not supported")
 )
