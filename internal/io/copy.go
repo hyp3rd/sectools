@@ -3,6 +3,7 @@ package io
 import (
 	"bytes"
 	"crypto/sha256"
+	"hash"
 	"io"
 
 	"github.com/hyp3rd/ewrap"
@@ -29,28 +30,23 @@ func SecureCopyFile(
 
 	reader := io.Reader(file)
 
-	var sourceSum []byte
+	var hasher hash.Hash
 
 	if verifyChecksum {
-		hasher := sha256.New()
+		hasher = sha256.New()
 		reader = io.TeeReader(reader, hasher)
+	}
 
-		err := SecureWriteFromReader(dest, reader, writeOpts, log)
-		if err != nil {
-			return err
-		}
-
-		sourceSum = hasher.Sum(nil)
-	} else {
-		err := SecureWriteFromReader(dest, reader, writeOpts, log)
-		if err != nil {
-			return err
-		}
+	err = SecureWriteFromReader(dest, reader, writeOpts, log)
+	if err != nil {
+		return err
 	}
 
 	if !verifyChecksum {
 		return nil
 	}
+
+	sourceSum := hasher.Sum(nil)
 
 	destSum, err := checksumFile(dest, readOptsFromWriteOptions(writeOpts, maxSize), log)
 	if err != nil {

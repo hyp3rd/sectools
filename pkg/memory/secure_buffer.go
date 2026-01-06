@@ -4,8 +4,6 @@ package memory
 
 import (
 	"crypto/rand"
-	"fmt"
-	"os"
 	"runtime"
 	"sync"
 )
@@ -164,9 +162,9 @@ func (sb *SecureBuffer) performClear(randomize bool) {
 
 	if sb.locked {
 		err := unlockBytes(sb.data)
+		//nolint:revive,staticcheck
 		if err != nil {
 			// best-effort; ignore unlock failures during clear
-			fmt.Fprintln(os.Stderr, "failed to unlock memory during clear:", err)
 		}
 
 		sb.locked = false
