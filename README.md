@@ -131,6 +131,7 @@ func main() {
 ## Documentation
 
 - Detailed usage and behavior notes: `docs/usage.md`
+- Security checklist: `docs/security-checklist.md`
 
 ## Development
 

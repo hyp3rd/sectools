@@ -25,6 +25,7 @@
   "dictionaries": [],
   "words": [
     "Atoi",
+    "anchore",
     "behaviour",
     "benchmem",
     "benchtime",
@@ -126,6 +127,7 @@
     "SBOMs",
     "SLSA",
     "sha256",
+    "syft",
     "TempDir",
     "TempFile",
     "TempPrefix",
