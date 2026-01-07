@@ -563,7 +563,7 @@ func writeAtomic(resolved resolvedPath, data []byte, opts WriteOptions, log hype
 	return nil
 }
 
-//nolint:revive // function-result-limit is not necessary here
+//nolint:revive
 func prepareTempFileInRoot(
 	root *os.Root,
 	dirRel string,
