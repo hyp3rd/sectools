@@ -76,6 +76,8 @@ Options:
 - `AllowSymlinks`: defaults to false.
 - `AllowNonRegular`: defaults to false.
 - `DisallowPerms`: when set, rejects files with any of these permission bits.
+- `OwnerUID`: when set, requires the file to be owned by this UID (Unix-only).
+- `OwnerGID`: when set, requires the file to be owned by this GID (Unix-only).
 
 ### SecureReadFileWithMaxSize
 
@@ -166,6 +168,8 @@ Options:
 - `AllowAbsolute`: defaults to false.
 - `AllowSymlinks`: defaults to false.
 - `EnforceFileMode`: when true, applies `FileMode` after creation to override umask reductions.
+- `OwnerUID`: when set, requires the file to be owned by this UID (Unix-only).
+- `OwnerGID`: when set, requires the file to be owned by this GID (Unix-only).
 
 ### SecureWriteFromReader
 
@@ -212,6 +216,8 @@ Options:
 - `AllowSymlinks`: defaults to false.
 - `EnforceMode`: when true, applies `DirMode` after creation to override umask reductions.
 - `DisallowPerms`: when set, rejects directories with any of these permission bits.
+- `OwnerUID`: when set, requires the directory to be owned by this UID (Unix-only).
+- `OwnerGID`: when set, requires the directory to be owned by this GID (Unix-only).
 
 ### SecureTempFile
 
@@ -227,6 +233,8 @@ Options:
 - `AllowAbsolute`: defaults to false.
 - `AllowSymlinks`: defaults to false.
 - `EnforceFileMode`: when true, applies `FileMode` after creation to override umask reductions.
+- `OwnerUID`: when set, requires the file to be owned by this UID (Unix-only).
+- `OwnerGID`: when set, requires the file to be owned by this GID (Unix-only).
 
 ### SecureTempDir
 
@@ -248,6 +256,8 @@ Options:
 - `AllowSymlinks`: defaults to false.
 - `Wipe`: when true, attempts a best-effort zero overwrite for regular files before removal.
   `Wipe` is ignored for `SecureRemoveAll`.
+- `OwnerUID`: when set, requires the path to be owned by this UID (Unix-only).
+- `OwnerGID`: when set, requires the path to be owned by this GID (Unix-only).
 
 ### SecureRemoveAll
 
@@ -277,6 +287,9 @@ symlink checks and cannot guarantee containment. See the Go `os.Root` docs for p
 Directory fsync behavior: when `SyncDir` is enabled and `DisableSync` is false, sectools attempts to fsync the parent
 directory for durability. Some platforms or filesystems do not support directory fsync; in that case the operation
 returns `ErrSyncDirUnsupported`.
+
+Ownership checks (`OwnerUID`/`OwnerGID`) are supported on Unix platforms. On other platforms they return
+`ErrOwnershipUnsupported`.
 
 ## pkg/memory
 

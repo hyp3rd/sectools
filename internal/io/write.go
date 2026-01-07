@@ -95,28 +95,60 @@ func validateParentDir(targetPath string) error {
 
 func validateWriteTarget(targetPath string, opts WriteOptions, originalPath string) (bool, error) {
 	info, err := os.Lstat(targetPath)
-	if err == nil {
-		if !info.Mode().IsRegular() {
-			return true, ErrNonRegularFile.WithMetadata(pathLabel, originalPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
 		}
 
-		if info.Mode()&os.ModeSymlink != 0 && !opts.AllowSymlinks {
-			return true, ErrSymlinkNotAllowed.WithMetadata(pathLabel, originalPath)
-		}
-
-		if opts.CreateExclusive {
-			return true, ErrFileExists.WithMetadata(pathLabel, originalPath)
-		}
-
-		return true, nil
+		return false, ewrap.Wrap(err, "failed to stat target").
+			WithMetadata(pathLabel, originalPath)
 	}
 
-	if os.IsNotExist(err) {
-		return false, nil
+	err = validateExistingTarget(info, opts, targetPath, originalPath)
+	if err != nil {
+		return true, err
 	}
 
-	return false, ewrap.Wrap(err, "failed to stat target").
-		WithMetadata(pathLabel, originalPath)
+	return true, nil
+}
+
+func validateExistingTarget(info os.FileInfo, opts WriteOptions, targetPath, originalPath string) error {
+	if !info.Mode().IsRegular() {
+		return ErrNonRegularFile.WithMetadata(pathLabel, originalPath)
+	}
+
+	if info.Mode()&os.ModeSymlink != 0 && !opts.AllowSymlinks {
+		return ErrSymlinkNotAllowed.WithMetadata(pathLabel, originalPath)
+	}
+
+	if opts.CreateExclusive {
+		return ErrFileExists.WithMetadata(pathLabel, originalPath)
+	}
+
+	return validateWriteOwnership(info, opts, targetPath, originalPath)
+}
+
+func validateWriteOwnership(info os.FileInfo, opts WriteOptions, targetPath, originalPath string) error {
+	if opts.OwnerUID == nil && opts.OwnerGID == nil {
+		return nil
+	}
+
+	if opts.CreateExclusive || opts.DisableAtomic {
+		return nil
+	}
+
+	checkInfo := info
+	if info.Mode()&os.ModeSymlink != 0 && opts.AllowSymlinks {
+		targetInfo, statErr := os.Stat(targetPath)
+		if statErr == nil {
+			checkInfo = targetInfo
+		} else if !os.IsNotExist(statErr) {
+			return ewrap.Wrap(statErr, "failed to stat target").
+				WithMetadata(pathLabel, originalPath)
+		}
+	}
+
+	return validateOwnership(checkInfo, opts.OwnerUID, opts.OwnerGID, originalPath)
 }
 
 func createPerm(mode os.FileMode) (os.FileMode, bool) {
@@ -291,6 +323,13 @@ func writeExclusiveAllowSymlinks(path string, data []byte, opts WriteOptions, lo
 		return err
 	}
 
+	err = validateFileOwnership(file, opts.OwnerUID, opts.OwnerGID, originalPath)
+	if err != nil {
+		removeFileOnDisk(path, originalPath, log)
+
+		return err
+	}
+
 	err = writeAll(file, data)
 	if err != nil {
 		return ewrap.Wrap(err, "failed to write file").
@@ -334,6 +373,15 @@ func writeDirectAllowSymlinks(
 
 	err = applyFileMode(file, opts.FileMode, needsChmod, created, opts.EnforceFileMode, originalPath)
 	if err != nil {
+		return err
+	}
+
+	err = validateFileOwnership(file, opts.OwnerUID, opts.OwnerGID, originalPath)
+	if err != nil {
+		if created {
+			removeFileOnDisk(path, originalPath, log)
+		}
+
 		return err
 	}
 
@@ -430,6 +478,13 @@ func writeExclusive(resolved resolvedPath, data []byte, opts WriteOptions, log h
 		return err
 	}
 
+	err = validateFileOwnership(file, opts.OwnerUID, opts.OwnerGID, originalPath)
+	if err != nil {
+		removeFileInRoot(root, resolved.relPath, originalPath, log)
+
+		return err
+	}
+
 	return writeAndSyncFile(file, data, opts, root, resolved.relPath, true, originalPath)
 }
 
@@ -459,6 +514,15 @@ func writeDirect(
 
 	err = applyFileMode(file, opts.FileMode, needsChmod, created, opts.EnforceFileMode, originalPath)
 	if err != nil {
+		return err
+	}
+
+	err = validateFileOwnership(file, opts.OwnerUID, opts.OwnerGID, originalPath)
+	if err != nil {
+		if created {
+			removeFileInRoot(root, resolved.relPath, originalPath, log)
+		}
+
 		return err
 	}
 
@@ -552,7 +616,7 @@ func performAtomicWrite(
 	log hyperlogger.Logger,
 	originalPath string,
 ) (bool, error) {
-	err := applyTempPermissions(file, opts.FileMode, originalPath)
+	err := applyTempPermissions(file, opts.FileMode, opts.OwnerUID, opts.OwnerGID, originalPath)
 	if err != nil {
 		return false, err
 	}
@@ -595,7 +659,7 @@ func performAtomicWriteOnDisk(
 	log hyperlogger.Logger,
 	originalPath string,
 ) (bool, error) {
-	err := applyTempPermissions(file, opts.FileMode, originalPath)
+	err := applyTempPermissions(file, opts.FileMode, opts.OwnerUID, opts.OwnerGID, originalPath)
 	if err != nil {
 		return false, err
 	}
@@ -630,14 +694,14 @@ func performAtomicWriteOnDisk(
 	return true, nil
 }
 
-func applyTempPermissions(file *os.File, mode os.FileMode, path string) error {
+func applyTempPermissions(file *os.File, mode os.FileMode, ownerUID, ownerGID *int, path string) error {
 	err := file.Chmod(mode)
 	if err != nil {
 		return ewrap.Wrap(err, "failed to set temp file permissions").
 			WithMetadata(pathLabel, path)
 	}
 
-	return nil
+	return validateFileOwnership(file, ownerUID, ownerGID, path)
 }
 
 func writeTempData(file *os.File, data []byte, path string) error {

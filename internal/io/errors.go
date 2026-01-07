@@ -35,6 +35,12 @@ var (
 	ErrInvalidPermissions = ewrap.New("invalid permissions")
 	// ErrPermissionsNotAllowed indicates a path has disallowed permissions.
 	ErrPermissionsNotAllowed = ewrap.New("permissions are not allowed")
+	// ErrInvalidOwnership indicates ownership constraints are invalid.
+	ErrInvalidOwnership = ewrap.New("invalid ownership")
+	// ErrOwnershipNotAllowed indicates a path has unexpected ownership.
+	ErrOwnershipNotAllowed = ewrap.New("ownership is not allowed")
+	// ErrOwnershipUnsupported indicates ownership checks are not supported on this platform.
+	ErrOwnershipUnsupported = ewrap.New("ownership checks are not supported")
 	// ErrInvalidTempPrefix indicates a temp prefix was invalid.
 	ErrInvalidTempPrefix = ewrap.New("invalid temp prefix")
 	// ErrChecksumMismatch indicates a checksum verification failure.

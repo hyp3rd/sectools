@@ -20,6 +20,11 @@ type resolvedPath struct {
 }
 
 func normalizeReadOptions(opts ReadOptions) (ReadOptions, error) {
+	err := validateOwnershipOptions(opts.OwnerUID, opts.OwnerGID)
+	if err != nil {
+		return opts, err
+	}
+
 	if opts.MaxSizeBytes < 0 {
 		return opts, ErrMaxSizeInvalid
 	}
@@ -54,6 +59,11 @@ func normalizeReadOptions(opts ReadOptions) (ReadOptions, error) {
 }
 
 func normalizeDirOptions(opts DirOptions) (DirOptions, error) {
+	err := validateOwnershipOptions(opts.OwnerUID, opts.OwnerGID)
+	if err != nil {
+		return opts, err
+	}
+
 	if opts.DirMode == 0 {
 		opts.DirMode = 0o700
 	}
@@ -96,6 +106,11 @@ func normalizeDirOptions(opts DirOptions) (DirOptions, error) {
 }
 
 func normalizeWriteOptions(opts WriteOptions) (WriteOptions, error) {
+	err := validateOwnershipOptions(opts.OwnerUID, opts.OwnerGID)
+	if err != nil {
+		return opts, err
+	}
+
 	if opts.MaxSizeBytes < 0 {
 		return opts, ErrMaxSizeInvalid
 	}
@@ -130,6 +145,11 @@ func normalizeWriteOptions(opts WriteOptions) (WriteOptions, error) {
 }
 
 func normalizeTempOptions(opts TempOptions) (TempOptions, error) {
+	err := validateOwnershipOptions(opts.OwnerUID, opts.OwnerGID)
+	if err != nil {
+		return opts, err
+	}
+
 	if opts.FileMode == 0 {
 		opts.FileMode = 0o600
 	}
@@ -164,6 +184,11 @@ func normalizeTempOptions(opts TempOptions) (TempOptions, error) {
 }
 
 func normalizeRemoveOptions(opts RemoveOptions) (RemoveOptions, error) {
+	err := validateOwnershipOptions(opts.OwnerUID, opts.OwnerGID)
+	if err != nil {
+		return opts, err
+	}
+
 	if opts.BaseDir == "" {
 		if len(opts.AllowedRoots) > 0 {
 			opts.BaseDir = opts.AllowedRoots[0]

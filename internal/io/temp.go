@@ -12,6 +12,8 @@ import (
 )
 
 // SecureTempFile creates a temp file securely with configurable options.
+//
+//nolint:funlen
 func SecureTempFile(prefix string, opts TempOptions, log hyperlogger.Logger) (*os.File, error) {
 	err := validateTempPrefix(prefix)
 	if err != nil {
@@ -23,7 +25,7 @@ func SecureTempFile(prefix string, opts TempOptions, log hyperlogger.Logger) (*o
 		return nil, err
 	}
 
-	err = validateExistingDir(normalized.BaseDir, normalized.AllowSymlinks)
+	err = validateExistingDir(normalized.BaseDir, normalized.AllowSymlinks, normalized.OwnerUID, normalized.OwnerGID)
 	if err != nil {
 		return nil, err
 	}
@@ -41,6 +43,14 @@ func SecureTempFile(prefix string, opts TempOptions, log hyperlogger.Logger) (*o
 		err = applyFileMode(file, normalized.FileMode, needsChmod, true, normalized.EnforceFileMode, file.Name())
 		if err != nil {
 			closeFile(file, file.Name(), log)
+
+			return nil, err
+		}
+
+		err = validateFileOwnership(file, normalized.OwnerUID, normalized.OwnerGID, file.Name())
+		if err != nil {
+			closeFile(file, file.Name(), log)
+			removeFileOnDisk(file.Name(), file.Name(), log)
 
 			return nil, err
 		}
@@ -67,6 +77,14 @@ func SecureTempFile(prefix string, opts TempOptions, log hyperlogger.Logger) (*o
 		return nil, err
 	}
 
+	err = validateFileOwnership(file, normalized.OwnerUID, normalized.OwnerGID, relName)
+	if err != nil {
+		closeFile(file, relName, log)
+		removeFileInRoot(root, relName, relName, log)
+
+		return nil, err
+	}
+
 	return file, nil
 }
 
@@ -82,7 +100,7 @@ func SecureTempDir(prefix string, opts DirOptions, log hyperlogger.Logger) (stri
 		return "", err
 	}
 
-	err = validateExistingDir(normalized.BaseDir, normalized.AllowSymlinks)
+	err = validateExistingDir(normalized.BaseDir, normalized.AllowSymlinks, normalized.OwnerUID, normalized.OwnerGID)
 	if err != nil {
 		return "", err
 	}
@@ -258,7 +276,7 @@ func newTempNameWithPrefix(prefix string) (string, error) {
 	return prefix + hex.EncodeToString(buf), nil
 }
 
-func validateExistingDir(path string, allowSymlinks bool) error {
+func validateExistingDir(path string, allowSymlinks bool, ownerUID, ownerGID *int) error {
 	// #nosec G304 -- base dir is validated against allowed roots.
 	info, err := os.Lstat(path)
 	if err != nil {
@@ -281,7 +299,7 @@ func validateExistingDir(path string, allowSymlinks bool) error {
 		return ErrNotDirectory.WithMetadata(pathLabel, path)
 	}
 
-	return nil
+	return validateOwnership(info, ownerUID, ownerGID, path)
 }
 
 func removeAllOnDisk(path string, log hyperlogger.Logger) {

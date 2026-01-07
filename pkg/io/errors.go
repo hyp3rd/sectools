@@ -35,6 +35,12 @@ var (
 	ErrInvalidPermissions = internalio.ErrInvalidPermissions
 	// ErrPermissionsNotAllowed indicates a path has disallowed permissions.
 	ErrPermissionsNotAllowed = internalio.ErrPermissionsNotAllowed
+	// ErrInvalidOwnership indicates ownership constraints are invalid.
+	ErrInvalidOwnership = internalio.ErrInvalidOwnership
+	// ErrOwnershipNotAllowed indicates a path has unexpected ownership.
+	ErrOwnershipNotAllowed = internalio.ErrOwnershipNotAllowed
+	// ErrOwnershipUnsupported indicates ownership checks are not supported on this platform.
+	ErrOwnershipUnsupported = internalio.ErrOwnershipUnsupported
 	// ErrInvalidTempPrefix indicates a temp prefix was invalid.
 	ErrInvalidTempPrefix = internalio.ErrInvalidTempPrefix
 	// ErrChecksumMismatch indicates a checksum verification failure.

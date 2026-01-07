@@ -11,6 +11,8 @@ type ReadOptions struct {
 	AllowSymlinks   bool
 	AllowNonRegular bool
 	DisallowPerms   os.FileMode
+	OwnerUID        *int
+	OwnerGID        *int
 }
 
 // WriteOptions configures secure write behavior.
@@ -26,6 +28,8 @@ type WriteOptions struct {
 	AllowAbsolute   bool
 	AllowSymlinks   bool
 	EnforceFileMode bool
+	OwnerUID        *int
+	OwnerGID        *int
 }
 
 // DirOptions configures secure directory behavior.
@@ -37,6 +41,8 @@ type DirOptions struct {
 	AllowSymlinks bool
 	EnforceMode   bool
 	DisallowPerms os.FileMode
+	OwnerUID      *int
+	OwnerGID      *int
 }
 
 // TempOptions configures secure temp file behavior.
@@ -47,6 +53,8 @@ type TempOptions struct {
 	AllowAbsolute   bool
 	AllowSymlinks   bool
 	EnforceFileMode bool
+	OwnerUID        *int
+	OwnerGID        *int
 }
 
 // RemoveOptions configures secure remove behavior.
@@ -56,4 +64,6 @@ type RemoveOptions struct {
 	AllowAbsolute bool
 	AllowSymlinks bool
 	Wipe          bool
+	OwnerUID      *int
+	OwnerGID      *int
 }
