@@ -563,6 +563,8 @@ func writeAtomic(resolved resolvedPath, data []byte, opts WriteOptions, log hype
 	return nil
 }
 
+// prepareTempFileInRoot creates a temporary file in the specified root and directory.
+//
 //nolint:revive
 func prepareTempFileInRoot(
 	root *os.Root,
