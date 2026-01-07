@@ -246,6 +246,8 @@ Options:
 - `AllowedRoots`: optional list of allowed root directories.
 - `AllowAbsolute`: defaults to false.
 - `AllowSymlinks`: defaults to false.
+- `Wipe`: when true, attempts a best-effort zero overwrite for regular files before removal.
+  `Wipe` is ignored for `SecureRemoveAll`.
 
 ### SecureRemoveAll
 
@@ -263,6 +265,7 @@ Options:
 
 - `Read`: `SecureReadOptions` applied to the source file.
 - `Write`: `SecureWriteOptions` applied to the destination file.
+- `VerifyChecksum`: when true, verifies source and destination checksums (SHA-256).
 
 ### Platform caveats
 
@@ -288,6 +291,7 @@ Key behaviors:
 - `Clear()` overwrites the buffer (random data then zeros), releases the slice, and clears the finalizer.
 - `ClearFast()` skips the random overwrite and only zeroes the buffer.
 - `ZeroBytes()` zeroes a byte slice in place.
+- `Lock()`/`Unlock()` attempt to prevent swapping to disk (best-effort; may return `ErrLockUnsupported`).
 - A finalizer calls `Clear()` as a best-effort fallback; it is not deterministic.
 
 ## pkg/converters

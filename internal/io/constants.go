@@ -8,3 +8,8 @@ const (
 	rootDirRel      = "."
 	osWindows       = "windows"
 )
+
+const (
+	maxRetryAttempts = 3
+	retryDelay       = 100 // milliseconds
+)

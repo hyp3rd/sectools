@@ -59,12 +59,14 @@ type SecureRemoveOptions struct {
 	AllowedRoots  []string
 	AllowAbsolute bool
 	AllowSymlinks bool
+	Wipe          bool
 }
 
 // SecureCopyOptions configures secure copy behavior.
 type SecureCopyOptions struct {
-	Read  SecureReadOptions
-	Write SecureWriteOptions
+	Read           SecureReadOptions
+	Write          SecureWriteOptions
+	VerifyChecksum bool
 }
 
 func toInternalReadOptions(opts SecureReadOptions) internalio.ReadOptions {
@@ -124,5 +126,6 @@ func toInternalRemoveOptions(opts SecureRemoveOptions) internalio.RemoveOptions 
 		AllowedRoots:  opts.AllowedRoots,
 		AllowAbsolute: opts.AllowAbsolute,
 		AllowSymlinks: opts.AllowSymlinks,
+		Wipe:          opts.Wipe,
 	}
 }

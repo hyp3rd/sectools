@@ -125,6 +125,7 @@
     "SBOM",
     "SBOMs",
     "SLSA",
+    "sha256",
     "TempDir",
     "TempFile",
     "TempPrefix",

@@ -37,4 +37,6 @@ var (
 	ErrPermissionsNotAllowed = internalio.ErrPermissionsNotAllowed
 	// ErrInvalidTempPrefix indicates a temp prefix was invalid.
 	ErrInvalidTempPrefix = internalio.ErrInvalidTempPrefix
+	// ErrChecksumMismatch indicates a checksum verification failure.
+	ErrChecksumMismatch = internalio.ErrChecksumMismatch
 )

@@ -44,3 +44,18 @@ func TestSecureCopyFileMaxSize(t *testing.T) {
 	require.Error(t, statErr)
 	require.True(t, os.IsNotExist(statErr))
 }
+
+func TestSecureCopyFileVerifyChecksum(t *testing.T) {
+	data := []byte("copy-verify")
+	_, relPath := createTempFile(t, data)
+
+	destName := filepath.Base(uniqueTempPath(t, "sectools-copy-verify-"))
+
+	err := SecureCopyFile(relPath, destName, SecureCopyOptions{
+		VerifyChecksum: true,
+	}, nil)
+	require.NoError(t, err)
+
+	destPath := filepath.Join(os.TempDir(), destName)
+	t.Cleanup(func() { _ = os.Remove(destPath) })
+}

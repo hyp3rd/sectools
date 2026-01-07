@@ -216,3 +216,15 @@ func TestZeroBytes(t *testing.T) {
 
 	ZeroBytes(nil) // Should not panic
 }
+
+func TestSecureBufferLockUnlockEmpty(t *testing.T) {
+	buf := NewSecureBuffer([]byte{})
+
+	if err := buf.Lock(); err != nil {
+		t.Fatalf("expected nil error on empty lock, got %v", err)
+	}
+
+	if err := buf.Unlock(); err != nil {
+		t.Fatalf("expected nil error on empty unlock, got %v", err)
+	}
+}
