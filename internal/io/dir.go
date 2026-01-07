@@ -49,6 +49,11 @@ func SecureReadDirWithOptions(path string, opts ReadOptions, log hyperlogger.Log
 		return nil, ErrPermissionsNotAllowed.WithMetadata(pathLabel, path)
 	}
 
+	err = validateOwnership(info, normalized.OwnerUID, normalized.OwnerGID, path)
+	if err != nil {
+		return nil, err
+	}
+
 	entries, err := dir.ReadDir(-1)
 	if err != nil {
 		return nil, ewrap.Wrap(err, "failed to read directory").WithMetadata(pathLabel, path)
@@ -142,6 +147,11 @@ func validateDirInfo(info os.FileInfo, opts DirOptions, originalPath string) err
 
 	if opts.DisallowPerms != 0 && info.Mode().Perm()&opts.DisallowPerms != 0 {
 		return ErrPermissionsNotAllowed.WithMetadata(pathLabel, originalPath)
+	}
+
+	err := validateOwnership(info, opts.OwnerUID, opts.OwnerGID, originalPath)
+	if err != nil {
+		return err
 	}
 
 	return nil

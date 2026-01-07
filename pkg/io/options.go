@@ -15,6 +15,8 @@ type SecureReadOptions struct {
 	AllowSymlinks   bool
 	AllowNonRegular bool
 	DisallowPerms   os.FileMode
+	OwnerUID        *int
+	OwnerGID        *int
 }
 
 // SecureWriteOptions configures secure write behavior.
@@ -30,6 +32,8 @@ type SecureWriteOptions struct {
 	AllowAbsolute   bool
 	AllowSymlinks   bool
 	EnforceFileMode bool
+	OwnerUID        *int
+	OwnerGID        *int
 }
 
 // SecureDirOptions configures secure directory behavior.
@@ -41,6 +45,8 @@ type SecureDirOptions struct {
 	AllowSymlinks bool
 	EnforceMode   bool
 	DisallowPerms os.FileMode
+	OwnerUID      *int
+	OwnerGID      *int
 }
 
 // SecureTempOptions configures secure temp file behavior.
@@ -51,6 +57,8 @@ type SecureTempOptions struct {
 	AllowAbsolute   bool
 	AllowSymlinks   bool
 	EnforceFileMode bool
+	OwnerUID        *int
+	OwnerGID        *int
 }
 
 // SecureRemoveOptions configures secure remove behavior.
@@ -60,6 +68,8 @@ type SecureRemoveOptions struct {
 	AllowAbsolute bool
 	AllowSymlinks bool
 	Wipe          bool
+	OwnerUID      *int
+	OwnerGID      *int
 }
 
 // SecureCopyOptions configures secure copy behavior.
@@ -78,6 +88,8 @@ func toInternalReadOptions(opts SecureReadOptions) internalio.ReadOptions {
 		AllowSymlinks:   opts.AllowSymlinks,
 		AllowNonRegular: opts.AllowNonRegular,
 		DisallowPerms:   opts.DisallowPerms,
+		OwnerUID:        opts.OwnerUID,
+		OwnerGID:        opts.OwnerGID,
 	}
 }
 
@@ -94,6 +106,8 @@ func toInternalWriteOptions(opts SecureWriteOptions) internalio.WriteOptions {
 		AllowAbsolute:   opts.AllowAbsolute,
 		AllowSymlinks:   opts.AllowSymlinks,
 		EnforceFileMode: opts.EnforceFileMode,
+		OwnerUID:        opts.OwnerUID,
+		OwnerGID:        opts.OwnerGID,
 	}
 }
 
@@ -106,6 +120,8 @@ func toInternalDirOptions(opts SecureDirOptions) internalio.DirOptions {
 		AllowSymlinks: opts.AllowSymlinks,
 		EnforceMode:   opts.EnforceMode,
 		DisallowPerms: opts.DisallowPerms,
+		OwnerUID:      opts.OwnerUID,
+		OwnerGID:      opts.OwnerGID,
 	}
 }
 
@@ -117,6 +133,8 @@ func toInternalTempOptions(opts SecureTempOptions) internalio.TempOptions {
 		AllowAbsolute:   opts.AllowAbsolute,
 		AllowSymlinks:   opts.AllowSymlinks,
 		EnforceFileMode: opts.EnforceFileMode,
+		OwnerUID:        opts.OwnerUID,
+		OwnerGID:        opts.OwnerGID,
 	}
 }
 
@@ -127,5 +145,7 @@ func toInternalRemoveOptions(opts SecureRemoveOptions) internalio.RemoveOptions 
 		AllowAbsolute: opts.AllowAbsolute,
 		AllowSymlinks: opts.AllowSymlinks,
 		Wipe:          opts.Wipe,
+		OwnerUID:      opts.OwnerUID,
+		OwnerGID:      opts.OwnerGID,
 	}
 }

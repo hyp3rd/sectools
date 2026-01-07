@@ -84,6 +84,8 @@ func readOptsFromWriteOptions(writeOpts WriteOptions, maxSize int64) ReadOptions
 		MaxSizeBytes:  maxSize,
 		AllowAbsolute: writeOpts.AllowAbsolute,
 		AllowSymlinks: writeOpts.AllowSymlinks,
+		OwnerUID:      writeOpts.OwnerUID,
+		OwnerGID:      writeOpts.OwnerGID,
 	}
 }
 

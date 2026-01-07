@@ -188,6 +188,11 @@ func validateFileInfo(info os.FileInfo, opts ReadOptions, path string) error {
 		return ErrPermissionsNotAllowed.WithMetadata(pathLabel, path)
 	}
 
+	err := validateOwnership(info, opts.OwnerUID, opts.OwnerGID, path)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

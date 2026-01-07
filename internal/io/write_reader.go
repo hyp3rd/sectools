@@ -140,6 +140,13 @@ func writeExclusiveFromReaderAllowSymlinks(
 		return err
 	}
 
+	err = validateFileOwnership(file, opts.OwnerUID, opts.OwnerGID, originalPath)
+	if err != nil {
+		removeFileOnDisk(path, originalPath, log)
+
+		return err
+	}
+
 	err = writeAndSyncFileFromReaderOnDisk(file, reader, opts, filepath.Dir(path), true, originalPath)
 	if err != nil {
 		if errors.Is(err, ErrFileTooLarge) {
@@ -171,6 +178,15 @@ func writeDirectFromReaderAllowSymlinks(
 
 	err = applyFileMode(file, opts.FileMode, needsChmod, created, opts.EnforceFileMode, originalPath)
 	if err != nil {
+		return err
+	}
+
+	err = validateFileOwnership(file, opts.OwnerUID, opts.OwnerGID, originalPath)
+	if err != nil {
+		if created {
+			removeFileOnDisk(path, originalPath, log)
+		}
+
 		return err
 	}
 
@@ -245,6 +261,13 @@ func writeExclusiveFromReader(
 		return err
 	}
 
+	err = validateFileOwnership(file, opts.OwnerUID, opts.OwnerGID, originalPath)
+	if err != nil {
+		removeFileInRoot(root, resolved.relPath, originalPath, log)
+
+		return err
+	}
+
 	err = writeAndSyncFileFromReader(file, reader, opts, root, resolved.relPath, true, originalPath)
 	if err != nil {
 		if errors.Is(err, ErrFileTooLarge) {
@@ -283,6 +306,15 @@ func writeDirectFromReader(
 
 	err = applyFileMode(file, opts.FileMode, needsChmod, created, opts.EnforceFileMode, originalPath)
 	if err != nil {
+		return err
+	}
+
+	err = validateFileOwnership(file, opts.OwnerUID, opts.OwnerGID, originalPath)
+	if err != nil {
+		if created {
+			removeFileInRoot(root, resolved.relPath, originalPath, log)
+		}
+
 		return err
 	}
 
@@ -348,7 +380,7 @@ func performAtomicWriteFromReader(
 	log hyperlogger.Logger,
 	originalPath string,
 ) (bool, error) {
-	err := applyTempPermissions(file, opts.FileMode, originalPath)
+	err := applyTempPermissions(file, opts.FileMode, opts.OwnerUID, opts.OwnerGID, originalPath)
 	if err != nil {
 		return false, err
 	}
@@ -391,7 +423,7 @@ func performAtomicWriteFromReaderOnDisk(
 	log hyperlogger.Logger,
 	originalPath string,
 ) (bool, error) {
-	err := applyTempPermissions(file, opts.FileMode, originalPath)
+	err := applyTempPermissions(file, opts.FileMode, opts.OwnerUID, opts.OwnerGID, originalPath)
 	if err != nil {
 		return false, err
 	}
