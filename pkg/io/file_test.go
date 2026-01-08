@@ -16,7 +16,8 @@ import (
 func TestSecureReadFileDefaultOptionsRelativePath(t *testing.T) {
 	absPath, relPath := createTempFile(t, []byte("secret"))
 
-	data, err := SecureReadFile(relPath, nil)
+	client := New()
+	data, err := client.ReadFile(relPath)
 	require.NoError(t, err)
 	assert.Equal(t, []byte("secret"), data)
 
@@ -26,7 +27,8 @@ func TestSecureReadFileDefaultOptionsRelativePath(t *testing.T) {
 func TestSecureOpenFileDefaultOptionsRelativePath(t *testing.T) {
 	absPath, relPath := createTempFile(t, []byte("stream"))
 
-	file, err := SecureOpenFile(relPath, SecureReadOptions{}, nil)
+	client := New()
+	file, err := client.OpenFile(relPath)
 	require.NoError(t, err)
 
 	data, err := io.ReadAll(file)
@@ -41,9 +43,10 @@ func TestSecureOpenFileDefaultOptionsRelativePath(t *testing.T) {
 func TestSecureOpenFileAllowAbsolute(t *testing.T) {
 	absPath, _ := createTempFile(t, []byte("stream"))
 
-	file, err := SecureOpenFile(absPath, SecureReadOptions{
-		AllowAbsolute: true,
-	}, nil)
+	client, err := NewWithOptions(WithAllowAbsolute(true))
+	require.NoError(t, err)
+
+	file, err := client.OpenFile(absPath)
 	require.NoError(t, err)
 
 	data, err := io.ReadAll(file)
@@ -56,7 +59,8 @@ func TestSecureOpenFileAllowAbsolute(t *testing.T) {
 func TestSecureReadFileDefaultOptionsAbsolutePathRejected(t *testing.T) {
 	absPath, _ := createTempFile(t, []byte("secret"))
 
-	_, err := SecureReadFile(absPath, nil)
+	client := New()
+	_, err := client.ReadFile(absPath)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "absolute")
 }
@@ -64,9 +68,10 @@ func TestSecureReadFileDefaultOptionsAbsolutePathRejected(t *testing.T) {
 func TestSecureReadFileWithOptionsAllowAbsolute(t *testing.T) {
 	absPath, _ := createTempFile(t, []byte("secret"))
 
-	data, err := SecureReadFileWithOptions(absPath, SecureReadOptions{
-		AllowAbsolute: true,
-	}, nil)
+	client, err := NewWithOptions(WithAllowAbsolute(true))
+	require.NoError(t, err)
+
+	data, err := client.ReadFile(absPath)
 	require.NoError(t, err)
 	assert.Equal(t, []byte("secret"), data)
 }
@@ -74,9 +79,10 @@ func TestSecureReadFileWithOptionsAllowAbsolute(t *testing.T) {
 func TestSecureReadFileWithOptionsMaxSize(t *testing.T) {
 	_, relPath := createTempFile(t, []byte("secret"))
 
-	_, err := SecureReadFileWithOptions(relPath, SecureReadOptions{
-		MaxSizeBytes: 3,
-	}, nil)
+	client, err := NewWithOptions(WithReadMaxSize(3))
+	require.NoError(t, err)
+
+	_, err = client.ReadFile(relPath)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "maximum")
 }
@@ -85,7 +91,10 @@ func TestSecureReadFileWithMaxSizeSuccess(t *testing.T) {
 	data := []byte("secret")
 	_, relPath := createTempFile(t, data)
 
-	read, err := SecureReadFileWithMaxSize(relPath, int64(len(data)), nil)
+	client, err := NewWithOptions(WithReadMaxSize(int64(len(data))))
+	require.NoError(t, err)
+
+	read, err := client.ReadFile(relPath)
 	require.NoError(t, err)
 	assert.Equal(t, data, read)
 }
@@ -93,26 +102,29 @@ func TestSecureReadFileWithMaxSizeSuccess(t *testing.T) {
 func TestSecureReadFileWithMaxSizeTooLarge(t *testing.T) {
 	_, relPath := createTempFile(t, []byte("secret"))
 
-	_, err := SecureReadFileWithMaxSize(relPath, 3, nil)
+	client, err := NewWithOptions(WithReadMaxSize(3))
+	require.NoError(t, err)
+
+	_, err = client.ReadFile(relPath)
 	require.ErrorIs(t, err, ErrFileTooLarge)
 }
 
 func TestSecureReadFileWithMaxSizeInvalid(t *testing.T) {
-	_, relPath := createTempFile(t, []byte("secret"))
-
-	_, err := SecureReadFileWithMaxSize(relPath, 0, nil)
+	_, err := NewWithOptions(WithReadMaxSize(0))
 	require.ErrorIs(t, err, ErrMaxSizeInvalid)
 }
 
 func TestSecureReadFileWithOptionsSymlinkPolicy(t *testing.T) {
 	targetAbs, linkAbs, linkRel := createTempSymlink(t, []byte("secret"))
 
-	_, err := SecureReadFileWithOptions(linkRel, SecureReadOptions{}, nil)
+	client := New()
+	_, err := client.ReadFile(linkRel)
 	require.Error(t, err)
 
-	data, err := SecureReadFileWithOptions(linkRel, SecureReadOptions{
-		AllowSymlinks: true,
-	}, nil)
+	client, err = NewWithOptions(WithAllowSymlinks(true))
+	require.NoError(t, err)
+
+	data, err := client.ReadFile(linkRel)
 	require.NoError(t, err)
 	assert.Equal(t, []byte("secret"), data)
 
@@ -123,7 +135,8 @@ func TestSecureReadFileWithOptionsSymlinkPolicy(t *testing.T) {
 func TestSecureReadFileWithOptionsNonRegular(t *testing.T) {
 	dirAbs, dirRel := createTempDir(t)
 
-	_, err := SecureReadFileWithOptions(dirRel, SecureReadOptions{}, nil)
+	client := New()
+	_, err := client.ReadFile(dirRel)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "non-regular")
 
@@ -133,7 +146,8 @@ func TestSecureReadFileWithOptionsNonRegular(t *testing.T) {
 func TestSecureReadFileWithSecureBufferDefaultOptions(t *testing.T) {
 	_, relPath := createTempFile(t, []byte("secret"))
 
-	buf, err := SecureReadFileWithSecureBuffer(relPath, nil)
+	client := New()
+	buf, err := client.ReadFileWithSecureBuffer(relPath)
 	require.NoError(t, err)
 	assert.Equal(t, []byte("secret"), buf.Bytes())
 
@@ -143,9 +157,10 @@ func TestSecureReadFileWithSecureBufferDefaultOptions(t *testing.T) {
 func TestSecureReadFileWithSecureBufferOptionsAllowAbsolute(t *testing.T) {
 	absPath, _ := createTempFile(t, []byte("secret"))
 
-	buf, err := SecureReadFileWithSecureBufferOptions(absPath, SecureReadOptions{
-		AllowAbsolute: true,
-	}, nil)
+	client, err := NewWithOptions(WithAllowAbsolute(true))
+	require.NoError(t, err)
+
+	buf, err := client.ReadFileWithSecureBuffer(absPath)
 	require.NoError(t, err)
 	assert.Equal(t, []byte("secret"), buf.Bytes())
 
@@ -155,9 +170,10 @@ func TestSecureReadFileWithSecureBufferOptionsAllowAbsolute(t *testing.T) {
 func TestSecureReadFileWithSecureBufferOptionsMaxSize(t *testing.T) {
 	_, relPath := createTempFile(t, []byte("secret"))
 
-	_, err := SecureReadFileWithSecureBufferOptions(relPath, SecureReadOptions{
-		MaxSizeBytes: 3,
-	}, nil)
+	client, err := NewWithOptions(WithReadMaxSize(3))
+	require.NoError(t, err)
+
+	_, err = client.ReadFileWithSecureBuffer(relPath)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "maximum")
 }
@@ -166,7 +182,8 @@ func TestSecureWriteFileDefaultOptions(t *testing.T) {
 	filename := filepath.Base(uniqueTempPath(t, "sectools-write-"))
 	data := []byte("write-test")
 
-	err := SecureWriteFile(filename, data, SecureWriteOptions{}, nil)
+	client := New()
+	err := client.WriteFile(filename, data)
 	require.NoError(t, err)
 
 	defer func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) }()
@@ -180,9 +197,10 @@ func TestSecureWriteFileDisableAtomic(t *testing.T) {
 	filename := filepath.Base(uniqueTempPath(t, "sectools-direct-"))
 	data := []byte("direct-write")
 
-	err := SecureWriteFile(filename, data, SecureWriteOptions{
-		DisableAtomic: true,
-	}, nil)
+	client, err := NewWithOptions(WithWriteDisableAtomic(true))
+	require.NoError(t, err)
+
+	err = client.WriteFile(filename, data)
 	require.NoError(t, err)
 
 	defer func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) }()
@@ -196,9 +214,10 @@ func TestSecureWriteFileDisableSync(t *testing.T) {
 	filename := filepath.Base(uniqueTempPath(t, "sectools-nosync-"))
 	data := []byte("no-sync")
 
-	err := SecureWriteFile(filename, data, SecureWriteOptions{
-		DisableSync: true,
-	}, nil)
+	client, err := NewWithOptions(WithWriteDisableSync(true))
+	require.NoError(t, err)
+
+	err = client.WriteFile(filename, data)
 	require.NoError(t, err)
 
 	defer func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) }()
@@ -214,9 +233,10 @@ func TestSecureWriteFileSyncDir(t *testing.T) {
 
 	t.Cleanup(func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) })
 
-	err := SecureWriteFile(filename, data, SecureWriteOptions{
-		SyncDir: true,
-	}, nil)
+	client, err := NewWithOptions(WithWriteSyncDir(true))
+	require.NoError(t, err)
+
+	err = client.WriteFile(filename, data)
 	if errors.Is(err, ErrSyncDirUnsupported) {
 		t.Skip("directory sync not supported on this platform/filesystem")
 	}
@@ -231,7 +251,8 @@ func TestSecureWriteFileSyncDir(t *testing.T) {
 func TestSecureWriteFileAbsolutePathRejected(t *testing.T) {
 	path := uniqueTempPath(t, "sectools-abs-")
 
-	err := SecureWriteFile(path, []byte("data"), SecureWriteOptions{}, nil)
+	client := New()
+	err := client.WriteFile(path, []byte("data"))
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "absolute")
 }
@@ -239,9 +260,10 @@ func TestSecureWriteFileAbsolutePathRejected(t *testing.T) {
 func TestSecureWriteFileCreateExclusive(t *testing.T) {
 	absPath, relPath := createTempFile(t, []byte("existing"))
 
-	err := SecureWriteFile(relPath, []byte("new"), SecureWriteOptions{
-		CreateExclusive: true,
-	}, nil)
+	client, err := NewWithOptions(WithWriteCreateExclusive(true))
+	require.NoError(t, err)
+
+	err = client.WriteFile(relPath, []byte("new"))
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "exists")
 
@@ -251,7 +273,8 @@ func TestSecureWriteFileCreateExclusive(t *testing.T) {
 func TestSecureWriteFileSymlinkRejected(t *testing.T) {
 	_, linkAbs, linkRel := createTempSymlink(t, []byte("secret"))
 
-	err := SecureWriteFile(linkRel, []byte("data"), SecureWriteOptions{}, nil)
+	client := New()
+	err := client.WriteFile(linkRel, []byte("data"))
 	require.Error(t, err)
 
 	_ = linkAbs
@@ -261,7 +284,8 @@ func TestSecureWriteFromReaderDefaultOptions(t *testing.T) {
 	filename := filepath.Base(uniqueTempPath(t, "sectools-reader-"))
 	data := "reader-data"
 
-	err := SecureWriteFromReader(filename, strings.NewReader(data), SecureWriteOptions{}, nil)
+	client := New()
+	err := client.WriteFromReader(filename, strings.NewReader(data))
 	require.NoError(t, err)
 
 	t.Cleanup(func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) })
@@ -274,9 +298,10 @@ func TestSecureWriteFromReaderDefaultOptions(t *testing.T) {
 func TestSecureWriteFromReaderMaxSize(t *testing.T) {
 	filename := filepath.Base(uniqueTempPath(t, "sectools-reader-max-"))
 
-	err := SecureWriteFromReader(filename, strings.NewReader("secret"), SecureWriteOptions{
-		MaxSizeBytes: 3,
-	}, nil)
+	client, err := NewWithOptions(WithWriteMaxSize(3))
+	require.NoError(t, err)
+
+	err = client.WriteFromReader(filename, strings.NewReader("secret"))
 	require.ErrorIs(t, err, ErrFileTooLarge)
 
 	_, statErr := os.Stat(filepath.Join(os.TempDir(), filename))
@@ -293,9 +318,10 @@ func TestSecureReadFileWithOptionsDisallowPerms(t *testing.T) {
 
 	require.NoError(t, os.Chmod(absPath, 0o644))
 
-	_, err := SecureReadFileWithOptions(relPath, SecureReadOptions{
-		DisallowPerms: 0o004,
-	}, nil)
+	client, err := NewWithOptions(WithReadDisallowPerms(0o004))
+	require.NoError(t, err)
+
+	_, err = client.ReadFile(relPath)
 	require.ErrorIs(t, err, ErrPermissionsNotAllowed)
 }
 

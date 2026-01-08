@@ -4,13 +4,13 @@ This checklist is a quick reference for teams using sectools in production.
 
 ## File I/O
 
-- Set `AllowedRoots` and avoid `AllowAbsolute` unless you control the full path.
-- Keep `AllowSymlinks` disabled unless you must support symlinked paths.
-- Use `MaxSizeBytes` for any untrusted file input or stream.
-- Use `DisallowPerms` to reject world-readable or group-writable files when appropriate.
-- Use `EnforceFileMode` to avoid umask weakening newly created file permissions.
-- Use `SecureWriteFromReader` for streaming data to prevent oversized writes.
-- Prefer `SecureCopyFile` with `VerifyChecksum` for sensitive copies.
+- Set `WithAllowedRoots` and avoid `WithAllowAbsolute(true)` unless you control the full path.
+- Keep `WithAllowSymlinks(true)` disabled unless you must support symlinked paths.
+- Use `WithReadMaxSize`/`WithWriteMaxSize` for any untrusted file input or stream.
+- Use `WithReadDisallowPerms`/`WithDirDisallowPerms` to reject world-readable or group-writable files when appropriate.
+- Use `WithWriteEnforceFileMode` to avoid umask weakening newly created file permissions.
+- Use `WriteFromReader` for streaming data to prevent oversized writes.
+- Prefer `CopyFile` with `WithCopyVerifyChecksum(true)` for sensitive copies.
 
 ## Sensitive Data
 
@@ -21,8 +21,8 @@ This checklist is a quick reference for teams using sectools in production.
 
 ## Cleanup
 
-- Use `SecureRemove`/`SecureRemoveAll` to enforce root scoping.
-- When deleting sensitive files, set `Wipe: true` for best-effort overwrite before delete.
+- Use `Remove`/`RemoveAll` to enforce root scoping.
+- When deleting sensitive files, configure `WithRemoveWipe(true)` for best-effort overwrite before delete.
 
 ## CI and Dependency Hygiene
 

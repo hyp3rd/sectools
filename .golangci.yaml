@@ -169,6 +169,10 @@ linters:
           disabled: false
           exclude: [""]
 
+        - name: confusing-naming
+          severity: warning
+          disabled: true
+
     wrapcheck:
       # An array of strings that specify globs of packages to ignore.
       # Default: []

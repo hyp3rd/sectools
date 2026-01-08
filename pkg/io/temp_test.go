@@ -10,7 +10,8 @@ import (
 )
 
 func TestSecureTempFileDefaultOptions(t *testing.T) {
-	file, err := SecureTempFile("sectools-temp-", SecureTempOptions{}, nil)
+	client := New()
+	file, err := client.TempFile("sectools-temp-")
 	require.NoError(t, err)
 	require.NotNil(t, file)
 
@@ -21,7 +22,8 @@ func TestSecureTempFileDefaultOptions(t *testing.T) {
 }
 
 func TestSecureTempDirDefaultOptions(t *testing.T) {
-	dir, err := SecureTempDir("sectools-tempdir-", SecureDirOptions{}, nil)
+	client := New()
+	dir, err := client.TempDir("sectools-tempdir-")
 	require.NoError(t, err)
 
 	t.Cleanup(func() { _ = os.RemoveAll(dir) })
@@ -34,6 +36,7 @@ func TestSecureTempDirDefaultOptions(t *testing.T) {
 }
 
 func TestSecureTempFileInvalidPrefix(t *testing.T) {
-	_, err := SecureTempFile(filepath.Join("bad", "prefix"), SecureTempOptions{}, nil)
+	client := New()
+	_, err := client.TempFile(filepath.Join("bad", "prefix"))
 	require.ErrorIs(t, err, ErrInvalidTempPrefix)
 }
