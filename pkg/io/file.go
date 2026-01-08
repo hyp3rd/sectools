@@ -6,93 +6,52 @@ import (
 	"io"
 	"os"
 
-	"github.com/hyp3rd/hyperlogger"
-
 	internalio "github.com/hyp3rd/sectools/internal/io"
 	"github.com/hyp3rd/sectools/pkg/memory"
 )
 
-// SecureReadFile reads a file securely and returns the contents as a byte slice.
-// The file contents are read into memory and should be handled carefully.
-func SecureReadFile(file string, log hyperlogger.Logger) ([]byte, error) {
-	if log != nil {
-		log.WithField("file", file).Debug("Reading file securely")
+// ReadFile reads a file securely and returns the contents as a byte slice.
+func (c *Client) ReadFile(file string) ([]byte, error) {
+	if c.log != nil {
+		c.log.WithField("file", file).Debug("Reading file securely")
 	}
 
-	return internalio.SecureReadFile(file, log)
+	return internalio.SecureReadFileWithOptions(file, c.read, c.log)
 }
 
-// SecureReadFileWithOptions reads a file securely using the provided options.
-func SecureReadFileWithOptions(file string, opts SecureReadOptions, log hyperlogger.Logger) ([]byte, error) {
-	if log != nil {
-		log.WithField("file", file).Debug("Reading file securely with options")
+// OpenFile opens a file for streaming reads.
+func (c *Client) OpenFile(file string) (*os.File, error) {
+	if c.log != nil {
+		c.log.WithField("file", file).Debug("Opening file securely")
 	}
 
-	return internalio.SecureReadFileWithOptions(file, toInternalReadOptions(opts), log)
+	return internalio.SecureOpenFile(file, c.read, c.log)
 }
 
-// SecureReadFileWithMaxSize reads a file securely and rejects files larger than maxBytes.
-func SecureReadFileWithMaxSize(file string, maxBytes int64, log hyperlogger.Logger) ([]byte, error) {
-	if maxBytes <= 0 {
-		return nil, ErrMaxSizeInvalid
-	}
-
-	if log != nil {
-		log.WithField("file", file).Debug("Reading file securely with max size")
-	}
-
-	return internalio.SecureReadFileWithOptions(file, toInternalReadOptions(SecureReadOptions{
-		MaxSizeBytes: maxBytes,
-	}), log)
-}
-
-// SecureOpenFile opens a file for streaming reads using the provided options.
-func SecureOpenFile(file string, opts SecureReadOptions, log hyperlogger.Logger) (*os.File, error) {
-	if log != nil {
-		log.WithField("file", file).Debug("Opening file securely")
-	}
-
-	return internalio.SecureOpenFile(file, toInternalReadOptions(opts), log)
-}
-
-// SecureReadFileWithSecureBuffer reads a file securely and returns the contents
+// ReadFileWithSecureBuffer reads a file securely and returns the contents
 // in a SecureBuffer for better memory protection.
-func SecureReadFileWithSecureBuffer(filename string, log hyperlogger.Logger) (*memory.SecureBuffer, error) {
-	if log != nil {
-		log.WithField("file", filename).Debug("Reading file securely into secure buffer")
+func (c *Client) ReadFileWithSecureBuffer(filename string) (*memory.SecureBuffer, error) {
+	if c.log != nil {
+		c.log.WithField("file", filename).Debug("Reading file securely into secure buffer")
 	}
 
-	return internalio.SecureReadFileWithSecureBuffer(filename, log)
+	return internalio.SecureReadFileWithSecureBufferOptions(filename, c.read, c.log)
 }
 
-// SecureReadFileWithSecureBufferOptions reads a file securely using the provided options
-// and returns the contents in a SecureBuffer.
-func SecureReadFileWithSecureBufferOptions(
-	filename string,
-	opts SecureReadOptions,
-	log hyperlogger.Logger,
-) (*memory.SecureBuffer, error) {
-	if log != nil {
-		log.WithField("file", filename).Debug("Reading file securely into secure buffer with options")
+// WriteFile writes data to a file securely.
+func (c *Client) WriteFile(file string, data []byte) error {
+	if c.log != nil {
+		c.log.WithField("file", file).Debug("Writing file securely")
 	}
 
-	return internalio.SecureReadFileWithSecureBufferOptions(filename, toInternalReadOptions(opts), log)
+	return internalio.SecureWriteFile(file, data, c.write, c.log)
 }
 
-// SecureWriteFile writes data to a file securely using the provided options.
-func SecureWriteFile(file string, data []byte, opts SecureWriteOptions, log hyperlogger.Logger) error {
-	if log != nil {
-		log.WithField("file", file).Debug("Writing file securely")
+// WriteFromReader writes data from a reader to a file securely.
+func (c *Client) WriteFromReader(file string, reader io.Reader) error {
+	if c.log != nil {
+		c.log.WithField("file", file).Debug("Writing file securely from reader")
 	}
 
-	return internalio.SecureWriteFile(file, data, toInternalWriteOptions(opts), log)
-}
-
-// SecureWriteFromReader writes data from a reader to a file securely using the provided options.
-func SecureWriteFromReader(file string, reader io.Reader, opts SecureWriteOptions, log hyperlogger.Logger) error {
-	if log != nil {
-		log.WithField("file", file).Debug("Writing file securely from reader")
-	}
-
-	return internalio.SecureWriteFromReader(file, reader, toInternalWriteOptions(opts), log)
+	return internalio.SecureWriteFromReader(file, reader, c.write, c.log)
 }

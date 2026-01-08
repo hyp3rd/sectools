@@ -16,10 +16,13 @@ func TestSecureReadFileOwnershipMatch(t *testing.T) {
 	uid := os.Getuid()
 	gid := os.Getgid()
 
-	_, err := SecureReadFileWithOptions(relPath, SecureReadOptions{
-		OwnerUID: &uid,
-		OwnerGID: &gid,
-	}, nil)
+	client, err := NewWithOptions(
+		WithOwnerUID(uid),
+		WithOwnerGID(gid),
+	)
+	require.NoError(t, err)
+
+	_, err = client.ReadFile(relPath)
 	require.NoError(t, err)
 }
 
@@ -29,9 +32,10 @@ func TestSecureReadFileOwnershipMismatch(t *testing.T) {
 	uid := os.Getuid()
 	badUID := uid + 1
 
-	_, err := SecureReadFileWithOptions(relPath, SecureReadOptions{
-		OwnerUID: &badUID,
-	}, nil)
+	client, err := NewWithOptions(WithOwnerUID(badUID))
+	require.NoError(t, err)
+
+	_, err = client.ReadFile(relPath)
 	require.ErrorIs(t, err, ErrOwnershipNotAllowed)
 }
 
@@ -41,10 +45,13 @@ func TestSecureWriteFileOwnershipMismatch(t *testing.T) {
 
 	filename := filepath.Base(uniqueTempPath(t, "sectools-owner-"))
 
-	err := SecureWriteFile(filename, []byte("data"), SecureWriteOptions{
-		DisableAtomic: true,
-		OwnerUID:      &badUID,
-	}, nil)
+	client, err := NewWithOptions(
+		WithWriteDisableAtomic(true),
+		WithOwnerUID(badUID),
+	)
+	require.NoError(t, err)
+
+	err = client.WriteFile(filename, []byte("data"))
 	require.ErrorIs(t, err, ErrOwnershipNotAllowed)
 
 	_, statErr := os.Stat(filepath.Join(os.TempDir(), filename))

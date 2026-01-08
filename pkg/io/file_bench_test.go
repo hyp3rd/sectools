@@ -36,8 +36,9 @@ func BenchmarkSecureReadFile(b *testing.B) {
 
 	b.SetBytes(int64(len(data)))
 
+	client := New()
 	for b.Loop() {
-		buf, err := SecureReadFile(relPath, nil)
+		buf, err := client.ReadFile(relPath)
 		if err != nil {
 			b.Fatalf("failed to read file: %v", err)
 		}
@@ -81,8 +82,9 @@ func BenchmarkSecureWriteFile(b *testing.B) {
 
 	b.SetBytes(int64(len(data)))
 
+	client := New()
 	for b.Loop() {
-		err := SecureWriteFile(relPath, data, SecureWriteOptions{}, nil)
+		err := client.WriteFile(relPath, data)
 		if err != nil {
 			b.Fatalf("failed to write file: %v", err)
 		}

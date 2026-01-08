@@ -1,25 +1,21 @@
 package io
 
-import (
-	"github.com/hyp3rd/hyperlogger"
+import internalio "github.com/hyp3rd/sectools/internal/io"
 
-	internalio "github.com/hyp3rd/sectools/internal/io"
-)
-
-// SecureRemove removes a file or empty directory securely using the provided options.
-func SecureRemove(path string, opts SecureRemoveOptions, log hyperlogger.Logger) error {
-	if log != nil {
-		log.WithField("path", path).Debug("Removing path securely")
+// Remove removes a file or empty directory securely.
+func (c *Client) Remove(path string) error {
+	if c.log != nil {
+		c.log.WithField("path", path).Debug("Removing path securely")
 	}
 
-	return internalio.SecureRemove(path, toInternalRemoveOptions(opts), log)
+	return internalio.SecureRemove(path, c.remove, c.log)
 }
 
-// SecureRemoveAll removes a directory tree securely using the provided options.
-func SecureRemoveAll(path string, opts SecureRemoveOptions, log hyperlogger.Logger) error {
-	if log != nil {
-		log.WithField("path", path).Debug("Removing path tree securely")
+// RemoveAll removes a directory tree securely.
+func (c *Client) RemoveAll(path string) error {
+	if c.log != nil {
+		c.log.WithField("path", path).Debug("Removing path tree securely")
 	}
 
-	return internalio.SecureRemoveAll(path, toInternalRemoveOptions(opts), log)
+	return internalio.SecureRemoveAll(path, c.remove, c.log)
 }

@@ -11,7 +11,8 @@ import (
 func TestSecureRemoveDefaultOptions(t *testing.T) {
 	_, relPath := createTempFile(t, []byte("remove-me"))
 
-	err := SecureRemove(relPath, SecureRemoveOptions{}, nil)
+	client := New()
+	err := client.Remove(relPath)
 	require.NoError(t, err)
 
 	_, statErr := os.Stat(filepath.Join(os.TempDir(), relPath))
@@ -25,7 +26,8 @@ func TestSecureRemoveAllDefaultOptions(t *testing.T) {
 	err := os.WriteFile(filepath.Join(dirAbs, "nested.txt"), []byte("data"), 0o600)
 	require.NoError(t, err)
 
-	err = SecureRemoveAll(dirRel, SecureRemoveOptions{}, nil)
+	client := New()
+	err = client.RemoveAll(dirRel)
 	require.NoError(t, err)
 
 	_, statErr := os.Stat(dirAbs)
@@ -36,7 +38,8 @@ func TestSecureRemoveAllDefaultOptions(t *testing.T) {
 func TestSecureRemoveAbsolutePathRejected(t *testing.T) {
 	absPath, _ := createTempFile(t, []byte("abs"))
 
-	err := SecureRemove(absPath, SecureRemoveOptions{}, nil)
+	client := New()
+	err := client.Remove(absPath)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "absolute")
 }
@@ -44,9 +47,10 @@ func TestSecureRemoveAbsolutePathRejected(t *testing.T) {
 func TestSecureRemoveWithWipe(t *testing.T) {
 	_, relPath := createTempFile(t, []byte("wipe-me"))
 
-	err := SecureRemove(relPath, SecureRemoveOptions{
-		Wipe: true,
-	}, nil)
+	client, err := NewWithOptions(WithRemoveWipe(true))
+	require.NoError(t, err)
+
+	err = client.Remove(relPath)
 	require.NoError(t, err)
 
 	_, statErr := os.Stat(filepath.Join(os.TempDir(), relPath))

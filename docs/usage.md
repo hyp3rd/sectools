@@ -1,6 +1,7 @@
 # Usage
 
-This document describes the public API and key behaviors of sectools. It is based on the current code in `pkg/` and supporting implementations in `internal/`.
+This document describes the public API and key behaviors of sectools. It is based on the current code in `pkg/` and
+supporting implementations in `internal/`.
 
 ## Packages
 
@@ -11,271 +12,190 @@ This document describes the public API and key behaviors of sectools. It is base
 
 ## pkg/io
 
-### SecureReadFile
+### Client
 
 ```go
-func SecureReadFile(file string, log hyperlogger.Logger) ([]byte, error)
+func New() *Client
+func NewWithOptions(opts ...Option) (*Client, error)
+```
+
+`New` returns a client with defaults. `NewWithOptions` applies functional options and validates them. It returns an
+error when options conflict or are invalid (for example: invalid permission masks, negative size limits, or base
+directories not contained in allowed roots).
+
+Common configuration options:
+
+- `WithLogger(log)`
+- `WithBaseDir(path)`
+- `WithAllowedRoots(roots...)`
+- `WithAllowAbsolute(bool)`
+- `WithAllowSymlinks(bool)`
+- `WithOwnerUID(uid)` / `WithOwnerGID(gid)`
+- `WithReadMaxSize(bytes)`
+- `WithReadAllowNonRegular(bool)`
+- `WithReadDisallowPerms(mask)`
+- `WithWriteMaxSize(bytes)`
+- `WithWriteFileMode(mode)`
+- `WithWriteCreateExclusive(bool)`
+- `WithWriteDisableAtomic(bool)`
+- `WithWriteDisableSync(bool)`
+- `WithWriteSyncDir(bool)`
+- `WithWriteEnforceFileMode(bool)`
+- `WithDirMode(mode)`
+- `WithDirEnforceMode(bool)`
+- `WithDirDisallowPerms(mask)`
+- `WithTempFileMode(mode)`
+- `WithTempEnforceFileMode(bool)`
+- `WithRemoveWipe(bool)`
+- `WithCopyVerifyChecksum(bool)`
+
+Example:
+
+```go
+import sectio "github.com/hyp3rd/sectools/pkg/io"
+
+client, err := sectio.NewWithOptions(
+ sectio.WithAllowAbsolute(true),
+ sectio.WithReadMaxSize(10<<20),
+)
+if err != nil {
+ panic(err)
+}
+```
+
+### ReadFile
+
+```go
+func (c *Client) ReadFile(file string) ([]byte, error)
 ```
 
 Behavior:
 
-- Validates the path via `internal/io.SecurePath`.
+- Validates the path and enforces root scoping.
 - Rejects empty paths and traversal segments (`..`).
-- If the path is relative, it is resolved under `os.TempDir()`.
-- Absolute paths are rejected by default; use `SecureReadFileWithOptions` with `AllowAbsolute` to permit.
-- Symlinks are rejected by default; use `SecureReadFileWithOptions` with `AllowSymlinks` to permit.
-- Non-regular files are rejected by default.
+- If the path is relative, it is resolved under `os.TempDir()` unless `WithBaseDir`/`WithAllowedRoots` are configured.
+- Absolute paths are rejected by default; use `WithAllowAbsolute` to permit.
+- Symlinks are rejected by default; use `WithAllowSymlinks` to permit.
+- Non-regular files are rejected by default; use `WithReadAllowNonRegular(true)` to permit.
 - Uses `os.OpenRoot` on the resolved root and `root.Open(relPath)` to scope file access to allowed roots when
   symlinks are disallowed.
 - When `AllowSymlinks` is true, files are opened via resolved paths after symlink checks and may be subject to
   TOCTOU risks.
 - When symlinks are allowed, paths that resolve outside the allowed root are rejected.
 - Reads the file into a byte slice sized to the file, using `io.ReadFull`.
-- `SecureReadFile` does not set a default size cap; use `SecureReadFileWithMaxSize` or `SecureReadFileWithOptions`
-  with `MaxSizeBytes` when file size is untrusted.
 - Zeroes the buffer before returning an error on a read failure.
 - Close errors are logged only when `log` is non-nil.
 
-Example:
+### OpenFile
 
 ```go
-package main
-
-import (
- "os"
- "path/filepath"
-
- sectools "github.com/hyp3rd/sectools/pkg/io"
-)
-
-func main() {
- path := filepath.Join(os.TempDir(), "example.txt")
- _ = os.WriteFile(path, []byte("secret"), 0o600)
-
- data, err := sectools.SecureReadFile(filepath.Base(path), nil)
- if err != nil {
-  panic(err)
- }
-
- _ = data
-}
+func (c *Client) OpenFile(file string) (*os.File, error)
 ```
 
-### SecureReadFileWithOptions
+Opens a file for streaming reads while enforcing the same path validation rules as `ReadFile`.
+
+### ReadFileWithSecureBuffer
 
 ```go
-func SecureReadFileWithOptions(file string, opts SecureReadOptions, log hyperlogger.Logger) ([]byte, error)
-```
-
-Options:
-
-- `BaseDir`: defaults to `os.TempDir()`.
-- `AllowedRoots`: optional list of allowed root directories.
-- `MaxSizeBytes`: when set, rejects files larger than this size.
-- `AllowAbsolute`: defaults to false.
-- `AllowSymlinks`: defaults to false.
-- `AllowNonRegular`: defaults to false.
-- `DisallowPerms`: when set, rejects files with any of these permission bits.
-- `OwnerUID`: when set, requires the file to be owned by this UID (Unix-only).
-- `OwnerGID`: when set, requires the file to be owned by this GID (Unix-only).
-
-### SecureReadFileWithMaxSize
-
-```go
-func SecureReadFileWithMaxSize(file string, maxBytes int64, log hyperlogger.Logger) ([]byte, error)
+func (c *Client) ReadFileWithSecureBuffer(filename string) (*memory.SecureBuffer, error)
 ```
 
 Behavior:
 
-- Uses the same defaults as `SecureReadFile` while enforcing `MaxSizeBytes = maxBytes`.
-- Returns `ErrMaxSizeInvalid` when `maxBytes` is zero or negative.
-
-### SecureOpenFile
-
-```go
-func SecureOpenFile(file string, opts SecureReadOptions, log hyperlogger.Logger) (*os.File, error)
-```
-
-Opens a file for streaming reads while enforcing the same path validation rules as
-`SecureReadFileWithOptions`.
-
-### SecureReadFileWithSecureBuffer
-
-```go
-func SecureReadFileWithSecureBuffer(filename string, log hyperlogger.Logger) (*memory.SecureBuffer, error)
-```
-
-Behavior:
-
-- Calls `SecureReadFile` and then wraps the data in a `SecureBuffer`.
+- Calls `ReadFile` and then wraps the data in a `SecureBuffer`.
 - The original byte slice is zeroed after the secure buffer is created.
 - Call `SecureBuffer.Clear()` when the data is no longer needed.
 
-### SecureReadFileWithSecureBufferOptions
+### WriteFile
 
 ```go
-func SecureReadFileWithSecureBufferOptions(filename string, opts SecureReadOptions, log hyperlogger.Logger) (*memory.SecureBuffer, error)
+func (c *Client) WriteFile(file string, data []byte) error
 ```
 
 Behavior:
 
-- Calls `SecureReadFileWithOptions` and then wraps the data in a `SecureBuffer`.
-- The original byte slice is zeroed after the secure buffer is created.
-- Call `SecureBuffer.Clear()` when the data is no longer needed.
+- Validates the path and enforces root scoping.
+- Streams data to a temp file and atomically replaces the target by default.
+- Uses `WithWriteMaxSize` to enforce max size; defaults to no limit.
+- Uses `WithWriteCreateExclusive` to fail if the target exists.
+- Uses `WithWriteDisableAtomic` to write directly (no temp file).
+- Uses `WithWriteDisableSync` to skip fsync for higher throughput at the cost of durability.
+- Uses `WithWriteSyncDir` to fsync the parent directory after creation/rename.
+- Uses `WithWriteEnforceFileMode` to apply file mode after creation to override umask reductions.
 
-Example:
-
-```go
-package main
-
-import (
- "os"
- "path/filepath"
-
- sectools "github.com/hyp3rd/sectools/pkg/io"
-)
-
-func main() {
- path := filepath.Join(os.TempDir(), "example.txt")
- _ = os.WriteFile(path, []byte("secret"), 0o600)
-
- buf, err := sectools.SecureReadFileWithSecureBuffer(filepath.Base(path), nil)
- if err != nil {
-  panic(err)
- }
- defer buf.Clear()
-
- _ = buf.Bytes()
-}
-```
-
-### SecureWriteFile
+### WriteFromReader
 
 ```go
-func SecureWriteFile(file string, data []byte, opts SecureWriteOptions, log hyperlogger.Logger) error
-```
-
-Options:
-
-- `BaseDir`: defaults to `os.TempDir()`.
-- `AllowedRoots`: optional list of allowed root directories.
-- `MaxSizeBytes`: when set, rejects writes larger than this size.
-- `FileMode`: defaults to `0o600` when zero.
-- `CreateExclusive`: when true, fails if the file already exists.
-- `DisableAtomic`: when true, writes directly to the target file (no temp file + rename).
-- `DisableSync`: when true, skips fsync for higher throughput at the cost of durability.
-- `SyncDir`: when true, fsyncs the parent directory after atomic rename or new-file creation.
-- `AllowAbsolute`: defaults to false.
-- `AllowSymlinks`: defaults to false.
-- `EnforceFileMode`: when true, applies `FileMode` after creation to override umask reductions.
-- `OwnerUID`: when set, requires the file to be owned by this UID (Unix-only).
-- `OwnerGID`: when set, requires the file to be owned by this GID (Unix-only).
-
-### SecureWriteFromReader
-
-```go
-func SecureWriteFromReader(file string, reader io.Reader, opts SecureWriteOptions, log hyperlogger.Logger) error
+func (c *Client) WriteFromReader(file string, reader io.Reader) error
 ```
 
 Behavior:
 
-- Validates the path and enforces the same root/symlink policies as `SecureWriteFile`.
-- Streams data from the reader with optional size limiting using `MaxSizeBytes`.
-- Uses atomic replace by default; direct writes are available with `DisableAtomic`.
+- Validates the path and enforces the same root/symlink policies as `WriteFile`.
+- Streams data from the reader with optional size limiting using `WithWriteMaxSize`.
+- Uses atomic replace by default; direct writes are available with `WithWriteDisableAtomic`.
 
-### SecureReadDir
+### ReadDir
 
 ```go
-func SecureReadDir(path string, log hyperlogger.Logger) ([]os.DirEntry, error)
+func (c *Client) ReadDir(path string) ([]os.DirEntry, error)
 ```
 
 Behavior:
 
 - Validates the directory path using the same root and symlink rules as file reads.
 - Rejects non-directory paths.
-- Applies `DisallowPerms` when set.
+- Applies `WithReadDisallowPerms` when set.
 
-### SecureReadDirWithOptions
-
-```go
-func SecureReadDirWithOptions(path string, opts SecureReadOptions, log hyperlogger.Logger) ([]os.DirEntry, error)
-```
-
-### SecureMkdirAll
+### MkdirAll
 
 ```go
-func SecureMkdirAll(path string, opts SecureDirOptions, log hyperlogger.Logger) error
+func (c *Client) MkdirAll(path string) error
 ```
 
-Options:
+Creates a directory securely using the configured directory options.
 
-- `BaseDir`: defaults to `os.TempDir()`.
-- `AllowedRoots`: optional list of allowed root directories.
-- `DirMode`: defaults to `0o700` when zero.
-- `AllowAbsolute`: defaults to false.
-- `AllowSymlinks`: defaults to false.
-- `EnforceMode`: when true, applies `DirMode` after creation to override umask reductions.
-- `DisallowPerms`: when set, rejects directories with any of these permission bits.
-- `OwnerUID`: when set, requires the directory to be owned by this UID (Unix-only).
-- `OwnerGID`: when set, requires the directory to be owned by this GID (Unix-only).
-
-### SecureTempFile
+### TempFile
 
 ```go
-func SecureTempFile(prefix string, opts SecureTempOptions, log hyperlogger.Logger) (*os.File, error)
+func (c *Client) TempFile(prefix string) (*os.File, error)
 ```
 
-Options:
+Creates a temp file securely using the configured temp file options.
 
-- `BaseDir`: defaults to `os.TempDir()`.
-- `AllowedRoots`: optional list of allowed root directories.
-- `FileMode`: defaults to `0o600` when zero.
-- `AllowAbsolute`: defaults to false.
-- `AllowSymlinks`: defaults to false.
-- `EnforceFileMode`: when true, applies `FileMode` after creation to override umask reductions.
-- `OwnerUID`: when set, requires the file to be owned by this UID (Unix-only).
-- `OwnerGID`: when set, requires the file to be owned by this GID (Unix-only).
-
-### SecureTempDir
+### TempDir
 
 ```go
-func SecureTempDir(prefix string, opts SecureDirOptions, log hyperlogger.Logger) (string, error)
+func (c *Client) TempDir(prefix string) (string, error)
 ```
 
-### SecureRemove
+Creates a temp directory securely using the configured directory options.
+
+### Remove
 
 ```go
-func SecureRemove(path string, opts SecureRemoveOptions, log hyperlogger.Logger) error
+func (c *Client) Remove(path string) error
 ```
 
-Options:
+Removes a file or empty directory securely. Use `WithRemoveWipe(true)` to attempt a best-effort zero overwrite for
+regular files before removal. `WithRemoveWipe` is ignored for `RemoveAll`.
 
-- `BaseDir`: defaults to `os.TempDir()`.
-- `AllowedRoots`: optional list of allowed root directories.
-- `AllowAbsolute`: defaults to false.
-- `AllowSymlinks`: defaults to false.
-- `Wipe`: when true, attempts a best-effort zero overwrite for regular files before removal.
-  `Wipe` is ignored for `SecureRemoveAll`.
-- `OwnerUID`: when set, requires the path to be owned by this UID (Unix-only).
-- `OwnerGID`: when set, requires the path to be owned by this GID (Unix-only).
-
-### SecureRemoveAll
+### RemoveAll
 
 ```go
-func SecureRemoveAll(path string, opts SecureRemoveOptions, log hyperlogger.Logger) error
+func (c *Client) RemoveAll(path string) error
 ```
 
-### SecureCopyFile
+### CopyFile
 
 ```go
-func SecureCopyFile(src string, dest string, opts SecureCopyOptions, log hyperlogger.Logger) error
+func (c *Client) CopyFile(src string, dest string) error
 ```
 
-Options:
+Behavior:
 
-- `Read`: `SecureReadOptions` applied to the source file.
-- `Write`: `SecureWriteOptions` applied to the destination file.
-- `VerifyChecksum`: when true, verifies source and destination checksums (SHA-256).
+- Uses the configured read/write options for source and destination.
+- Use `WithCopyVerifyChecksum(true)` to verify source and destination checksums (SHA-256).
 
 ### Platform caveats
 
@@ -284,11 +204,11 @@ but rejects those that resolve outside the root. It does not prevent crossing fi
 `/proc`-style special files, or access to Unix device files. On `GOOS=js`, `os.Root` is vulnerable to TOCTOU
 symlink checks and cannot guarantee containment. See the Go `os.Root` docs for platform details.
 
-Directory fsync behavior: when `SyncDir` is enabled and `DisableSync` is false, sectools attempts to fsync the parent
-directory for durability. Some platforms or filesystems do not support directory fsync; in that case the operation
-returns `ErrSyncDirUnsupported`.
+Directory fsync behavior: when `WithWriteSyncDir(true)` is enabled and `WithWriteDisableSync(false)` is not set,
+sectools attempts to fsync the parent directory for durability. Some platforms or filesystems do not support directory
+fsync; in that case the operation returns `ErrSyncDirUnsupported`.
 
-Ownership checks (`OwnerUID`/`OwnerGID`) are supported on Unix platforms. On other platforms they return
+Ownership checks (`WithOwnerUID`/`WithOwnerGID`) are supported on Unix platforms. On other platforms they return
 `ErrOwnershipUnsupported`.
 
 ## pkg/memory

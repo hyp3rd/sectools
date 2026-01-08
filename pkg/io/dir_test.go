@@ -15,7 +15,8 @@ func TestSecureReadDirDefaultOptions(t *testing.T) {
 	err := os.WriteFile(filepath.Join(dirAbs, "file.txt"), []byte("data"), 0o600)
 	require.NoError(t, err)
 
-	entries, err := SecureReadDir(dirRel, nil)
+	client := New()
+	entries, err := client.ReadDir(dirRel)
 	require.NoError(t, err)
 	require.NotEmpty(t, entries)
 
@@ -30,14 +31,16 @@ func TestSecureReadDirDefaultOptions(t *testing.T) {
 func TestSecureReadDirNotDirectory(t *testing.T) {
 	_, relPath := createTempFile(t, []byte("data"))
 
-	_, err := SecureReadDir(relPath, nil)
+	client := New()
+	_, err := client.ReadDir(relPath)
 	require.ErrorIs(t, err, ErrNotDirectory)
 }
 
 func TestSecureMkdirAllDefaultOptions(t *testing.T) {
 	dirName := filepath.Base(uniqueTempPath(t, "sectools-mkdir-"))
 
-	err := SecureMkdirAll(dirName, SecureDirOptions{}, nil)
+	client := New()
+	err := client.MkdirAll(dirName)
 	require.NoError(t, err)
 
 	dirPath := filepath.Join(os.TempDir(), dirName)

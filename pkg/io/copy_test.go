@@ -14,7 +14,8 @@ func TestSecureCopyFileDefaultOptions(t *testing.T) {
 
 	destName := filepath.Base(uniqueTempPath(t, "sectools-copy-"))
 
-	err := SecureCopyFile(relPath, destName, SecureCopyOptions{}, nil)
+	client := New()
+	err := client.CopyFile(relPath, destName)
 	require.NoError(t, err)
 
 	destPath := filepath.Join(os.TempDir(), destName)
@@ -32,11 +33,10 @@ func TestSecureCopyFileMaxSize(t *testing.T) {
 
 	destName := filepath.Base(uniqueTempPath(t, "sectools-copy-max-"))
 
-	err := SecureCopyFile(relPath, destName, SecureCopyOptions{
-		Write: SecureWriteOptions{
-			MaxSizeBytes: 3,
-		},
-	}, nil)
+	client, err := NewWithOptions(WithWriteMaxSize(3))
+	require.NoError(t, err)
+
+	err = client.CopyFile(relPath, destName)
 	require.ErrorIs(t, err, ErrFileTooLarge)
 
 	destPath := filepath.Join(os.TempDir(), destName)
@@ -51,9 +51,10 @@ func TestSecureCopyFileVerifyChecksum(t *testing.T) {
 
 	destName := filepath.Base(uniqueTempPath(t, "sectools-copy-verify-"))
 
-	err := SecureCopyFile(relPath, destName, SecureCopyOptions{
-		VerifyChecksum: true,
-	}, nil)
+	client, err := NewWithOptions(WithCopyVerifyChecksum(true))
+	require.NoError(t, err)
+
+	err = client.CopyFile(relPath, destName)
 	require.NoError(t, err)
 
 	destPath := filepath.Join(os.TempDir(), destName)

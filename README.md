@@ -44,7 +44,8 @@ func main() {
  path := filepath.Join(os.TempDir(), "example.txt")
  _ = os.WriteFile(path, []byte("secret"), 0o600)
 
- data, err := sectools.SecureReadFile(filepath.Base(path), nil)
+ client := sectools.New()
+ data, err := client.ReadFile(filepath.Base(path))
  if err != nil {
   panic(err)
  }
@@ -69,7 +70,8 @@ func main() {
  path := filepath.Join(os.TempDir(), "example.txt")
  _ = os.WriteFile(path, []byte("secret"), 0o600)
 
- buf, err := sectools.SecureReadFileWithSecureBuffer(filepath.Base(path), nil)
+ client := sectools.New()
+ buf, err := client.ReadFileWithSecureBuffer(filepath.Base(path))
  if err != nil {
   panic(err)
  }
@@ -106,10 +108,14 @@ import (
 )
 
 func main() {
- err := sectools.SecureWriteFile("example.txt", []byte("secret"), sectools.SecureWriteOptions{
-  DisableAtomic: false,
-  DisableSync:   false,
- }, nil)
+ client, err := sectools.NewWithOptions(
+  sectools.WithWriteSyncDir(true),
+ )
+ if err != nil {
+  panic(err)
+ }
+
+ err = client.WriteFile("example.txt", []byte("secret"))
  if err != nil {
   panic(err)
  }
@@ -118,15 +124,15 @@ func main() {
 
 ## Security and behavior notes
 
-- `SecureReadFile` only permits relative paths under `os.TempDir()` by default. Use `SecureReadFileWithOptions` to allow absolute paths or alternate roots.
+- `ReadFile` only permits relative paths under `os.TempDir()` by default. Use `NewWithOptions` with `WithAllowAbsolute` to allow absolute paths or alternate roots.
 - Paths containing `..` are rejected to prevent directory traversal.
-- `SecureReadFile` has no default size cap; use `SecureReadFileWithMaxSize` or `SecureReadFileWithOptions` with `MaxSizeBytes` when file size is untrusted.
+- `ReadFile` has no default size cap; use `WithReadMaxSize` when file size is untrusted.
 - Symlinks are rejected by default; when allowed, paths that resolve outside the allowed roots are rejected.
 - File access is scoped with `os.OpenRoot` on the resolved root when symlinks are disallowed. When symlinks are
   allowed, files are opened via resolved paths after symlink checks. See the Go `os.Root` docs for platform-specific
   caveats.
-- `SecureWriteFile` uses atomic replace and fsync by default; set `DisableAtomic` or `DisableSync` only if you accept durability risks. Set `SyncDir` to fsync the parent directory after atomic rename for stronger durability guarantees (may be unsupported on some platforms/filesystems).
-- Optional ownership checks are available via `OwnerUID`/`OwnerGID` on Unix platforms.
+- `WriteFile` uses atomic replace and fsync by default; set `WithWriteDisableAtomic` or `WithWriteDisableSync` only if you accept durability risks. Set `WithWriteSyncDir` to fsync the parent directory after atomic rename for stronger durability guarantees (may be unsupported on some platforms/filesystems).
+- Optional ownership checks are available via `WithOwnerUID`/`WithOwnerGID` on Unix platforms.
 - `SecureBuffer` zeroizes memory on `Clear()` and uses a finalizer as a best-effort fallback; call `Clear()` when done.
 
 ## Documentation

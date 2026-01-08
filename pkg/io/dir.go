@@ -3,34 +3,23 @@ package io
 import (
 	"os"
 
-	"github.com/hyp3rd/hyperlogger"
-
 	internalio "github.com/hyp3rd/sectools/internal/io"
 )
 
-// SecureReadDir reads a directory securely with default options.
-func SecureReadDir(path string, log hyperlogger.Logger) ([]os.DirEntry, error) {
-	if log != nil {
-		log.WithField("path", path).Debug("Reading directory securely")
+// ReadDir reads a directory securely.
+func (c *Client) ReadDir(path string) ([]os.DirEntry, error) {
+	if c.log != nil {
+		c.log.WithField("path", path).Debug("Reading directory securely")
 	}
 
-	return internalio.SecureReadDir(path, log)
+	return internalio.SecureReadDirWithOptions(path, c.read, c.log)
 }
 
-// SecureReadDirWithOptions reads a directory securely using the provided options.
-func SecureReadDirWithOptions(path string, opts SecureReadOptions, log hyperlogger.Logger) ([]os.DirEntry, error) {
-	if log != nil {
-		log.WithField("path", path).Debug("Reading directory securely with options")
+// MkdirAll creates a directory securely.
+func (c *Client) MkdirAll(path string) error {
+	if c.log != nil {
+		c.log.WithField("path", path).Debug("Creating directory securely")
 	}
 
-	return internalio.SecureReadDirWithOptions(path, toInternalReadOptions(opts), log)
-}
-
-// SecureMkdirAll creates a directory securely using the provided options.
-func SecureMkdirAll(path string, opts SecureDirOptions, log hyperlogger.Logger) error {
-	if log != nil {
-		log.WithField("path", path).Debug("Creating directory securely")
-	}
-
-	return internalio.SecureMkdirAll(path, toInternalDirOptions(opts), log)
+	return internalio.SecureMkdirAll(path, c.dir, c.log)
 }
