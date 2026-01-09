@@ -2,7 +2,7 @@
 
 [![lint](https://github.com/hyp3rd/sectools/actions/workflows/lint.yml/badge.svg)](https://github.com/hyp3rd/sectools/actions/workflows/lint.yml) [![test](https://github.com/hyp3rd/sectools/actions/workflows/test.yml/badge.svg)](https://github.com/hyp3rd/sectools/actions/workflows/test.yml) [![security](https://github.com/hyp3rd/sectools/actions/workflows/security.yml/badge.svg)](https://github.com/hyp3rd/sectools/actions/workflows/security.yml)
 
-Security-focused Go helpers for file I/O, in-memory handling of sensitive data, and safe numeric conversions.
+Security-focused Go helpers for file I/O, in-memory handling of sensitive data, auth tokens, password hashing, and safe numeric conversions.
 
 ## Features
 
@@ -14,6 +14,8 @@ Security-focused Go helpers for file I/O, in-memory handling of sensitive data, 
 - Secure remove and copy helpers with root scoping
 - Symlink checks and root-scoped file access using `os.OpenRoot`
 - Secure in-memory buffers with best-effort zeroization
+- JWT/PASETO helpers with strict validation and safe defaults
+- Password hashing presets for argon2id/bcrypt with rehash detection
 - Safe integer conversion helpers with overflow/negative guards
 
 ## Requirements
@@ -119,6 +121,82 @@ func main() {
  if err != nil {
   panic(err)
  }
+}
+```
+
+### JWT sign/verify
+
+```go
+package main
+
+import (
+ "time"
+
+ "github.com/golang-jwt/jwt/v5"
+
+ sectauth "github.com/hyp3rd/sectools/pkg/auth"
+)
+
+func main() {
+ signer, err := sectauth.NewJWTSigner(
+  sectauth.WithJWTSigningAlgorithm("HS256"),
+  sectauth.WithJWTSigningKey([]byte("secret")),
+ )
+ if err != nil {
+  panic(err)
+ }
+
+ verifier, err := sectauth.NewJWTVerifier(
+  sectauth.WithJWTAllowedAlgorithms("HS256"),
+  sectauth.WithJWTVerificationKey([]byte("secret")),
+  sectauth.WithJWTIssuer("sectools"),
+  sectauth.WithJWTAudience("apps"),
+ )
+ if err != nil {
+  panic(err)
+ }
+
+ claims := jwt.RegisteredClaims{
+  Issuer:    "sectools",
+  Audience:  jwt.ClaimStrings{"apps"},
+  ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+ }
+
+ token, err := signer.Sign(claims)
+ if err != nil {
+  panic(err)
+ }
+
+ _ = verifier.Verify(token, &jwt.RegisteredClaims{})
+}
+```
+
+### Password hashing
+
+```go
+package main
+
+import (
+ "github.com/hyp3rd/sectools/pkg/password"
+)
+
+func main() {
+ hasher, err := password.NewArgon2id(password.Argon2idBalanced())
+ if err != nil {
+  panic(err)
+ }
+
+ hash, err := hasher.Hash([]byte("secret"))
+ if err != nil {
+  panic(err)
+ }
+
+ ok, needsRehash, err := hasher.Verify([]byte("secret"), hash)
+ if err != nil {
+  panic(err)
+ }
+
+ _, _ = ok, needsRehash
 }
 ```
 

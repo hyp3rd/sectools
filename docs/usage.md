@@ -6,6 +6,8 @@ supporting implementations in `internal/`.
 ## Packages
 
 - `pkg/io`: secure file read/write helpers.
+- `pkg/auth`: JWT and PASETO helpers with strict validation.
+- `pkg/password`: password hashing helpers.
 - `pkg/memory`: secure in-memory buffers.
 - `pkg/converters`: safe numeric conversions.
 - `internal/io`: implementation details; not part of the public API contract.
@@ -210,6 +212,67 @@ fsync; in that case the operation returns `ErrSyncDirUnsupported`.
 
 Ownership checks (`WithOwnerUID`/`WithOwnerGID`) are supported on Unix platforms. On other platforms they return
 `ErrOwnershipUnsupported`.
+
+## pkg/auth
+
+### JWT
+
+```go
+func NewJWTSigner(opts ...JWTSignerOption) (*JWTSigner, error)
+func NewJWTVerifier(opts ...JWTVerifierOption) (*JWTVerifier, error)
+func (s *JWTSigner) Sign(claims jwt.Claims) (string, error)
+func (v *JWTVerifier) Verify(token string, claims jwt.Claims) error
+func (v *JWTVerifier) VerifyMap(token string) (jwt.MapClaims, error)
+```
+
+Behavior:
+
+- Signing requires an `exp` claim by default; use `WithJWTSignerAllowMissingExpiration` to opt out.
+- Verification requires allowed algorithms, issuer, and audience, and rejects the `none` algorithm.
+- Use `WithJWTVerificationKeys` to enforce `kid`-based key lookup; `WithJWTRequireKeyID` forces `kid` even for single keys.
+- `WithJWTClock` and `WithJWTLeeway` control time-based validation.
+
+### PASETO v4
+
+```go
+func NewPasetoLocal(opts ...PasetoLocalOption) (*PasetoLocal, error)
+func (p *PasetoLocal) Encrypt(token *paseto.Token) (string, error)
+func (p *PasetoLocal) Decrypt(token string) (*paseto.Token, error)
+
+func NewPasetoPublicSigner(opts ...PasetoPublicSignerOption) (*PasetoPublicSigner, error)
+func (p *PasetoPublicSigner) Sign(token *paseto.Token) (string, error)
+func NewPasetoPublicVerifier(opts ...PasetoPublicVerifierOption) (*PasetoPublicVerifier, error)
+func (p *PasetoPublicVerifier) Verify(token string) (*paseto.Token, error)
+```
+
+Behavior:
+
+- Local (symmetric) and public (asymmetric) v4 helpers with optional issuer/audience/subject rules.
+- Expiration is required by default; use `WithPasetoLocalAllowMissingExpiration`, `WithPasetoPublicSignerAllowMissingExpiration`, or `WithPasetoPublicAllowMissingExpiration` to opt out.
+- `WithPasetoLocalClock` and `WithPasetoPublicClock` control time-based validation.
+
+## pkg/password
+
+```go
+func NewArgon2id(params Argon2idParams) (*Argon2idHasher, error)
+func Argon2idInteractive() Argon2idParams
+func Argon2idBalanced() Argon2idParams
+func Argon2idHighSecurity() Argon2idParams
+func (h *Argon2idHasher) Hash(password []byte) (string, error)
+func (h *Argon2idHasher) Verify(password []byte, encoded string) (ok bool, needsRehash bool, err error)
+
+func NewBcrypt(cost int) (*BcryptHasher, error)
+func (h *BcryptHasher) Hash(password []byte) (string, error)
+func (h *BcryptHasher) Verify(password []byte, encoded string) (ok bool, needsRehash bool, err error)
+
+func ConstantTimeCompare(a, b []byte) bool
+```
+
+Behavior:
+
+- Argon2id hashes are encoded in PHC format and include parameters.
+- `Verify` returns `needsRehash` when parameters or cost drift from the current preset.
+- Bcrypt rejects passwords longer than 72 bytes to avoid silent truncation.
 
 ## pkg/memory
 
