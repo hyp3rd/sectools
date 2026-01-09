@@ -137,25 +137,66 @@ func main() {
 
 ## Documentation
 
-- Detailed usage and behavior notes: `docs/usage.md`
-- Security checklist: `docs/security-checklist.md`
+- Detailed usage and behavior notes: [Usage](docs/usage.md)
+- A quick reference for teams using sectools in production: [Security checklist](docs/security-checklist.md)
 
 ## Development
 
-```bash
-make test
-make lint
-make sec
-```
+### Quick Start
 
-## Contributing
+1. Clone and set your module name
 
-See `CONTRIBUTING.md` for guidelines.
+    ```bash
+    git clone https://github.com/hyp3rd/starter.git my-new-project
+    cd my-new-project
+    ./setup-project.sh --module github.com/your/module
+    ```
 
-## Code of Conduct
+1. Install toolchain (core). Proto tools stay optional.
 
-See `CODE_OF_CONDUCT.md`.
+    ```bash
+    make prepare-toolchain
+    # If you need proto/gRPC/OpenAPI
+    PROTO_ENABLED=true make prepare-proto-tools
+    ```
+
+1. Run quality gates and sample app
+
+    ```bash
+    make lint
+    make test
+    make run   # serves /health on HOSTNAME:PORT (defaults localhost:8000)
+    ```
+
+1. Optional: Docker and Compose
+
+    ```bash
+    cp .env.example .env   # shared runtime config for compose/requests
+    docker build -t starter-app .
+    docker compose up --build
+    ```
+
+### Make Targets (high level)
+
+- `prepare-toolchain` — install core tools (gci, gofumpt, golangci-lint, staticcheck, govulncheck, gosec)
+- `prepare-proto-tools` — install buf + protoc plugins (optional, controlled by PROTO_ENABLED)
+- `init` — run setup-project.sh with current module and install tooling (respects PROTO_ENABLED)
+- `lint` — gci, gofumpt, staticcheck, golangci-lint
+- `test` / `test-race` / `bench`
+- `vet`, `sec`, `proto`, `run`, `run-container`, `update-deps`, `update-toolchain`
+
+## Contribution Notes
+
+- Tests required for changes; run `make lint test` before PRs.
+- Suggested branch naming: `feat/<scope>`, `fix/<scope>`, `chore/<scope>`.
+- Update docs when altering tooling, Make targets, or setup steps.
+
+Follow the [contributing guidelines](./CONTRIBUTING.md).
+
+### Code of Conduct
+
+Make sure you [observe the Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License
 
-GPL-3.0. See `LICENSE` for details.
+GPL-3.0. See [LICENSE](./LICENSE) for details.
