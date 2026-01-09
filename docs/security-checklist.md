@@ -19,6 +19,18 @@ This checklist is a quick reference for teams using sectools in production.
 - Avoid `UnsafeString()` for secrets (strings cannot be zeroized).
 - Use `Lock()`/`Unlock()` on supported platforms for best-effort memory locking.
 
+## Auth Tokens
+
+- Require `iss`/`aud` checks for JWT verification and keep `WithJWTAllowedAlgorithms` tight.
+- Use `WithJWTVerificationKeys` with `kid` for key rotation and enforce short expirations.
+- Prefer PASETO v4 local/public helpers for new tokens and keep issuer/audience rules consistent.
+
+## Passwords
+
+- Use Argon2id presets unless you need bcrypt compatibility.
+- Rehash stored passwords when `needsRehash` is true.
+- Enforce bcrypt's 72-byte limit to avoid silent truncation.
+
 ## Cleanup
 
 - Use `Remove`/`RemoveAll` to enforce root scoping.
