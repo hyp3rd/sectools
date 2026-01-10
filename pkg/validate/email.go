@@ -376,6 +376,7 @@ func isDotAtom(local string) bool {
 	if len(local) == 0 {
 		return false
 	}
+
 	if local[0] == '.' || local[len(local)-1] == '.' {
 		return false
 	}
