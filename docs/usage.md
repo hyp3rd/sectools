@@ -8,6 +8,7 @@ supporting implementations in `internal/`.
 - `pkg/io`: secure file read/write helpers.
 - `pkg/auth`: JWT and PASETO helpers with strict validation.
 - `pkg/password`: password hashing helpers.
+- `pkg/validate`: email and URL validation helpers.
 - `pkg/memory`: secure in-memory buffers.
 - `pkg/converters`: safe numeric conversions.
 - `internal/io`: implementation details; not part of the public API contract.
@@ -273,6 +274,37 @@ Behavior:
 - Argon2id hashes are encoded in PHC format and include parameters.
 - `Verify` returns `needsRehash` when parameters or cost drift from the current preset.
 - Bcrypt rejects passwords longer than 72 bytes to avoid silent truncation.
+
+## pkg/validate
+
+### Email validation
+
+```go
+func NewEmailValidator(opts ...EmailOption) (*EmailValidator, error)
+func (v *EmailValidator) Validate(ctx context.Context, input string) (EmailResult, error)
+```
+
+Behavior:
+
+- Rejects display names by default; use `WithEmailAllowDisplayName(true)` to permit.
+- Validates local part syntax (dot-atom by default); quoted local parts are optional.
+- Validates domain labels and length; IDN domains require `WithEmailAllowIDN(true)`.
+- Optional DNS verification with `WithEmailVerifyDomain(true)` using MX and optional A/AAAA fallback.
+
+### URL validation
+
+```go
+func NewURLValidator(opts ...URLOption) (*URLValidator, error)
+func (v *URLValidator) Validate(ctx context.Context, raw string) (URLResult, error)
+```
+
+Behavior:
+
+- Enforces `https` only; non-https schemes are rejected (including if configured).
+- Rejects userinfo by default; use `WithURLAllowUserInfo(true)` to permit.
+- Blocks private/loopback IPs by default; use `WithURLAllowPrivateIP(true)` to permit.
+- Optional redirect checks with `WithURLCheckRedirects` and an HTTP client.
+- Optional reputation checks with `WithURLReputationChecker`.
 
 ## pkg/memory
 
