@@ -16,6 +16,7 @@ Security-focused Go helpers for file I/O, in-memory handling of sensitive data, 
 - Secure in-memory buffers with best-effort zeroization
 - JWT/PASETO helpers with strict validation and safe defaults
 - Password hashing presets for argon2id/bcrypt with rehash detection
+- Email and URL validation with optional DNS/redirect/reputation checks
 - Safe integer conversion helpers with overflow/negative guards
 
 ## Requirements
@@ -197,6 +198,38 @@ func main() {
  }
 
  _, _ = ok, needsRehash
+}
+```
+
+### Input validation
+
+```go
+package main
+
+import (
+ "context"
+
+ "github.com/hyp3rd/sectools/pkg/validate"
+)
+
+func main() {
+ emailValidator, err := validate.NewEmailValidator(
+  validate.WithEmailVerifyDomain(true),
+ )
+ if err != nil {
+  panic(err)
+ }
+
+ _, _ = emailValidator.Validate(context.Background(), "user@example.com")
+
+ urlValidator, err := validate.NewURLValidator(
+  validate.WithURLCheckRedirects(3),
+ )
+ if err != nil {
+  panic(err)
+ }
+
+ _, _ = urlValidator.Validate(context.Background(), "https://example.com")
 }
 ```
 

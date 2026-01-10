@@ -31,6 +31,12 @@ This checklist is a quick reference for teams using sectools in production.
 - Rehash stored passwords when `needsRehash` is true.
 - Enforce bcrypt's 72-byte limit to avoid silent truncation.
 
+## Input Validation
+
+- Use `pkg/validate` for email/URL parsing instead of ad-hoc regexes.
+- Enable DNS verification only when you can tolerate network lookups and timeouts.
+- Keep URL schemes restricted and avoid enabling private IPs unless required.
+
 ## Cleanup
 
 - Use `Remove`/`RemoveAll` to enforce root scoping.
