@@ -2,7 +2,7 @@
 
 [![lint](https://github.com/hyp3rd/sectools/actions/workflows/lint.yml/badge.svg)](https://github.com/hyp3rd/sectools/actions/workflows/lint.yml) [![test](https://github.com/hyp3rd/sectools/actions/workflows/test.yml/badge.svg)](https://github.com/hyp3rd/sectools/actions/workflows/test.yml) [![security](https://github.com/hyp3rd/sectools/actions/workflows/security.yml/badge.svg)](https://github.com/hyp3rd/sectools/actions/workflows/security.yml)
 
-Security-focused Go helpers for file I/O, in-memory handling of sensitive data, auth tokens, password hashing, and safe numeric conversions.
+Security-focused Go helpers for file I/O, in-memory handling of sensitive data, auth tokens, password hashing, input validation/sanitization, and safe numeric conversions.
 
 ## Features
 
@@ -17,6 +17,7 @@ Security-focused Go helpers for file I/O, in-memory handling of sensitive data, 
 - JWT/PASETO helpers with strict validation and safe defaults
 - Password hashing presets for argon2id/bcrypt with rehash detection
 - Email and URL validation with optional DNS/redirect/reputation checks
+- HTML/Markdown sanitization, SQL input guards, and filename sanitizers
 - Safe integer conversion helpers with overflow/negative guards
 
 ## Requirements
@@ -230,6 +231,37 @@ func main() {
  }
 
  _, _ = urlValidator.Validate(context.Background(), "https://example.com")
+}
+```
+
+### Sanitization
+
+```go
+package main
+
+import (
+ "github.com/hyp3rd/sectools/pkg/sanitize"
+)
+
+func main() {
+ htmlSanitizer, err := sanitize.NewHTMLSanitizer()
+ if err != nil {
+  panic(err)
+ }
+
+ safeHTML, _ := htmlSanitizer.Sanitize("<b>hello</b>")
+
+ sqlSanitizer, err := sanitize.NewSQLSanitizer(
+  sanitize.WithSQLMode(sanitize.SQLModeIdentifier),
+  sanitize.WithSQLAllowQualifiedIdentifiers(true),
+ )
+ if err != nil {
+  panic(err)
+ }
+
+ safeIdentifier, _ := sqlSanitizer.Sanitize("public.users")
+
+ _, _ = safeHTML, safeIdentifier
 }
 ```
 
