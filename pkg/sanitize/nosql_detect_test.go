@@ -35,3 +35,15 @@ func TestNoSQLInjectionDetectorCustomOperators(t *testing.T) {
 		t.Fatalf("expected ErrNoSQLInjectionDetected, got %v", err)
 	}
 }
+
+func TestNoSQLInjectionDetectorMaxLength(t *testing.T) {
+	detector, err := NewNoSQLInjectionDetector(WithNoSQLDetectMaxLength(1))
+	if err != nil {
+		t.Fatalf("expected detector, got %v", err)
+	}
+
+	err = detector.Detect("ab")
+	if err != ErrNoSQLInputTooLong {
+		t.Fatalf("expected ErrNoSQLInputTooLong, got %v", err)
+	}
+}
