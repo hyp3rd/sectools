@@ -37,6 +37,12 @@ This checklist is a quick reference for teams using sectools in production.
 - Enable DNS verification only when you can tolerate network lookups and timeouts.
 - Keep URL schemes restricted and avoid enabling private IPs unless required.
 
+## Sanitization
+
+- Use `pkg/sanitize` for HTML/Markdown sanitization instead of ad-hoc escaping.
+- Prefer parameterized SQL queries; use `SQLSanitizer` only for identifiers or literals when needed.
+- Use `SQLInjectionDetector` as a heuristic guard for untrusted input before query composition.
+
 ## Cleanup
 
 - Use `Remove`/`RemoveAll` to enforce root scoping.

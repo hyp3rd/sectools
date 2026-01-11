@@ -9,6 +9,7 @@ supporting implementations in `internal/`.
 - `pkg/auth`: JWT and PASETO helpers with strict validation.
 - `pkg/password`: password hashing helpers.
 - `pkg/validate`: email and URL validation helpers.
+- `pkg/sanitize`: HTML/Markdown sanitizers, SQL input guards, and filename sanitizers.
 - `pkg/memory`: secure in-memory buffers.
 - `pkg/converters`: safe numeric conversions.
 - `internal/io`: implementation details; not part of the public API contract.
@@ -305,6 +306,72 @@ Behavior:
 - Blocks private/loopback IPs by default; use `WithURLAllowPrivateIP(true)` to permit.
 - Optional redirect checks with `WithURLCheckRedirects` and an HTTP client.
 - Optional reputation checks with `WithURLReputationChecker`.
+
+## pkg/sanitize
+
+### HTML sanitization
+
+```go
+func NewHTMLSanitizer(opts ...HTMLOption) (*HTMLSanitizer, error)
+func (s *HTMLSanitizer) Sanitize(input string) (string, error)
+```
+
+Behavior:
+
+- Escapes HTML by default (`HTMLSanitizeEscape`).
+- Supports stripping tags to plain text with `WithHTMLMode(HTMLSanitizeStrip)`.
+- Allows custom policies via `WithHTMLPolicy`.
+
+### Markdown sanitization
+
+```go
+func NewMarkdownSanitizer(opts ...MarkdownOption) (*MarkdownSanitizer, error)
+func (s *MarkdownSanitizer) Sanitize(input string) (string, error)
+```
+
+Behavior:
+
+- Escapes raw HTML by default.
+- Allows raw HTML with `WithMarkdownAllowRawHTML(true)`.
+
+### SQL sanitization
+
+```go
+func NewSQLSanitizer(opts ...SQLOption) (*SQLSanitizer, error)
+func (s *SQLSanitizer) Sanitize(input string) (string, error)
+```
+
+Behavior:
+
+- Identifier mode rejects unsafe characters and can allow dotted identifiers.
+- Literal mode escapes single quotes using SQL-standard doubling.
+- LIKE mode escapes `%`/`_` and the configured escape character.
+- Always prefer parameterized queries; sanitization is a safety net.
+
+### SQL injection detection
+
+```go
+func NewSQLInjectionDetector(opts ...SQLDetectOption) (*SQLInjectionDetector, error)
+func (d *SQLInjectionDetector) Detect(input string) error
+```
+
+Behavior:
+
+- Flags common SQL injection patterns (comments, statement separators, tautologies).
+- The detector is heuristic; tune patterns if your input includes SQL-like content.
+
+### Filename sanitization
+
+```go
+func NewFilenameSanitizer(opts ...FilenameOption) (*FilenameSanitizer, error)
+func (s *FilenameSanitizer) Sanitize(input string) (string, error)
+```
+
+Behavior:
+
+- Normalizes a single filename or path segment.
+- Replaces disallowed characters with a configurable replacement rune.
+- Rejects empty results and reserved dot segments.
 
 ## pkg/memory
 
