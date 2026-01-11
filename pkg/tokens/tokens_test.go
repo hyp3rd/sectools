@@ -79,6 +79,9 @@ func TestTokenValidateInsufficientEntropy(t *testing.T) {
 		t.Fatalf("expected validator, got %v", err)
 	}
 
+	// Note: make([]byte, 8) produces an all-zero token. This test exercises the
+	// length-based entropy check (8 bytes = 64 bits) rather than measuring actual
+	// randomness of the token bytes.
 	short := base64.RawURLEncoding.EncodeToString(make([]byte, 8))
 
 	_, err = validator.Validate(short)
