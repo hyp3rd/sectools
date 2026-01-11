@@ -1,6 +1,7 @@
 package tokens
 
 import (
+	"bytes"
 	"encoding/base64"
 	"errors"
 	"testing"
@@ -293,7 +294,7 @@ func TestTokenBytesRandomness(t *testing.T) {
 		t.Fatalf("expected bytes2, got %v", err)
 	}
 
-	if base64.RawURLEncoding.EncodeToString(bytes1) == base64.RawURLEncoding.EncodeToString(bytes2) {
+	if bytes.Equal(bytes1, bytes2) {
 		t.Fatalf("expected different byte sequences, got identical")
 	}
 }
