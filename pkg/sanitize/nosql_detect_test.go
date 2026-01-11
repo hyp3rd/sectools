@@ -174,14 +174,14 @@ func TestNoSQLInjectionDetectorEdgeCases(t *testing.T) {
 			input:     `{"$ne":1,"$gt":2}`,
 			wantError: true,
 		},
-		// Case sensitivity checks
+		// Case sensitivity checks - operators are normalized to lowercase
 		{
-			name:      "operator uppercase",
+			name:      "operator uppercase detected",
 			input:     "$NE",
 			wantError: true,
 		},
 		{
-			name:      "operator mixed case",
+			name:      "operator mixed case detected",
 			input:     "$Ne",
 			wantError: true,
 		},
