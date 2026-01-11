@@ -28,9 +28,11 @@ func TestArgon2idHashVerify(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected verify success, got error: %v", err)
 	}
+
 	if !ok {
 		t.Fatalf("expected password match")
 	}
+
 	if needsRehash {
 		t.Fatalf("expected no rehash with same params")
 	}
@@ -50,9 +52,11 @@ func TestArgon2idHashVerify(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected verify success, got error: %v", err)
 	}
+
 	if !ok {
 		t.Fatalf("expected password match")
 	}
+
 	if !needsRehash {
 		t.Fatalf("expected rehash for stronger params")
 	}

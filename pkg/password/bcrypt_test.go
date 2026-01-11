@@ -22,9 +22,11 @@ func TestBcryptHashVerify(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected verify success, got error: %v", err)
 	}
+
 	if !ok {
 		t.Fatalf("expected password match")
 	}
+
 	if needsRehash {
 		t.Fatalf("expected no rehash with same cost")
 	}
@@ -38,9 +40,11 @@ func TestBcryptHashVerify(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected verify success, got error: %v", err)
 	}
+
 	if !ok {
 		t.Fatalf("expected password match")
 	}
+
 	if !needsRehash {
 		t.Fatalf("expected rehash with higher cost")
 	}
@@ -53,6 +57,7 @@ func TestBcryptPasswordTooLong(t *testing.T) {
 	}
 
 	longPassword := make([]byte, bcryptMaxPasswordLength+1)
+
 	_, err = hasher.Hash(longPassword)
 	if !errors.Is(err, ErrPasswordTooLong) {
 		t.Fatalf("expected ErrPasswordTooLong, got %v", err)

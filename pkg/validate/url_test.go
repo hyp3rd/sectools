@@ -2,6 +2,7 @@ package validate
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -43,7 +44,7 @@ func TestURLRejectUserInfo(t *testing.T) {
 	}
 
 	_, err = validator.Validate(context.Background(), "https://user:pass@example.com")
-	if err != ErrURLUserInfoNotAllowed {
+	if !errors.Is(err, ErrURLUserInfoNotAllowed) {
 		t.Fatalf("expected ErrURLUserInfoNotAllowed, got %v", err)
 	}
 }
@@ -57,7 +58,7 @@ func TestURLRejectPrivateIP(t *testing.T) {
 	}
 
 	_, err = validator.Validate(context.Background(), "https://127.0.0.1")
-	if err != ErrURLPrivateIPNotAllowed {
+	if !errors.Is(err, ErrURLPrivateIPNotAllowed) {
 		t.Fatalf("expected ErrURLPrivateIPNotAllowed, got %v", err)
 	}
 }
@@ -120,13 +121,14 @@ func TestURLRedirectLoop(t *testing.T) {
 	}
 
 	_, err = validator.Validate(context.Background(), "https://example.com/loop")
-	if err != ErrURLRedirectLoop {
+	if !errors.Is(err, ErrURLRedirectLoop) {
 		t.Fatalf("expected ErrURLRedirectLoop, got %v", err)
 	}
 }
 
 func TestURLReputationBlock(t *testing.T) {
 	checker := NewStaticReputation(nil, []string{"example.com"})
+
 	validator, err := NewURLValidator(
 		WithURLReputationChecker(checker),
 	)
@@ -135,14 +137,14 @@ func TestURLReputationBlock(t *testing.T) {
 	}
 
 	_, err = validator.Validate(context.Background(), "https://example.com")
-	if err != ErrURLReputationBlocked {
+	if !errors.Is(err, ErrURLReputationBlocked) {
 		t.Fatalf("expected ErrURLReputationBlocked, got %v", err)
 	}
 }
 
 func TestURLRejectHTTPWithSchemesOption(t *testing.T) {
 	_, err := NewURLValidator(WithURLAllowedSchemes("http"))
-	if err != ErrInvalidURLConfig {
+	if !errors.Is(err, ErrInvalidURLConfig) {
 		t.Fatalf("expected ErrInvalidURLConfig, got %v", err)
 	}
 }

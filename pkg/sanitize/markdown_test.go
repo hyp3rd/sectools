@@ -1,6 +1,7 @@
 package sanitize
 
 import (
+	"errors"
 	"html"
 	"testing"
 )
@@ -12,6 +13,7 @@ func TestMarkdownSanitizeEscape(t *testing.T) {
 	}
 
 	input := "<b>hello</b>"
+
 	output, err := sanitizer.Sanitize(input)
 	if err != nil {
 		t.Fatalf("expected sanitized markdown, got %v", err)
@@ -30,6 +32,7 @@ func TestMarkdownAllowRawHTML(t *testing.T) {
 	}
 
 	input := "<b>hello</b>"
+
 	output, err := sanitizer.Sanitize(input)
 	if err != nil {
 		t.Fatalf("expected sanitized markdown, got %v", err)
@@ -47,7 +50,7 @@ func TestMarkdownMaxLength(t *testing.T) {
 	}
 
 	_, err = sanitizer.Sanitize("ab")
-	if err != ErrMarkdownTooLong {
+	if !errors.Is(err, ErrMarkdownTooLong) {
 		t.Fatalf("expected ErrMarkdownTooLong, got %v", err)
 	}
 }
