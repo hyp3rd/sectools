@@ -167,7 +167,7 @@ func TestNoSQLInjectionDetectorEdgeCases(t *testing.T) {
 
 		// Mixed cases - valid operators with surrounding noise
 		{
-			name:      "valid operator mid-word should not match",
+			name:      "operator-like substring mid-word",
 			input:     "test$nevalue",
 			shouldErr: false,
 		},
