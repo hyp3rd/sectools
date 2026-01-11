@@ -161,10 +161,6 @@ func (g *TokenGenerator) Generate() (string, error) {
 		return "", err
 	}
 
-	if len(token) > g.opts.maxLength {
-		return "", ErrTokenTooLong
-	}
-
 	return token, nil
 }
 
