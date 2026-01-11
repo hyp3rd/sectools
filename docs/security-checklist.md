@@ -25,6 +25,16 @@ This checklist is a quick reference for teams using sectools in production.
 - Use `WithJWTVerificationKeys` with `kid` for key rotation and enforce short expirations.
 - Prefer PASETO v4 local/public helpers for new tokens and keep issuer/audience rules consistent.
 
+## Random Tokens
+
+- Use `pkg/tokens` to generate API keys or reset tokens with sufficient entropy.
+- Set a max token length and reject tokens containing whitespace.
+
+## Encoding
+
+- Use `pkg/encoding` for base64/hex decoding with length caps.
+- Keep JSON decoding strict and set `WithJSONMaxBytes` for untrusted payloads.
+
 ## Passwords
 
 - Use Argon2id presets unless you need bcrypt compatibility.

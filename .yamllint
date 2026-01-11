@@ -12,6 +12,7 @@ rules:
 ignore: |
   .golangci.yaml
   .github/workflows/*
+  .github/FUNDING.yml
   buf.gen.yaml
   buf.yaml
   **/vendor/**
