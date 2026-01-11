@@ -38,11 +38,15 @@ type tokenOptions struct {
 }
 
 // TokenGenerator generates cryptographically secure tokens.
+// Instances of TokenGenerator contain only immutable configuration and can be safely
+// used concurrently by multiple goroutines.
 type TokenGenerator struct {
 	opts tokenOptions
 }
 
 // TokenValidator validates token strings.
+// Instances of TokenValidator contain only immutable configuration and can be safely
+// used concurrently by multiple goroutines.
 type TokenValidator struct {
 	opts tokenOptions
 }
