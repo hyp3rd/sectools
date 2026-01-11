@@ -42,6 +42,7 @@ This checklist is a quick reference for teams using sectools in production.
 - Use `pkg/sanitize` for HTML/Markdown sanitization instead of ad-hoc escaping.
 - Prefer parameterized SQL queries; use `SQLSanitizer` only for identifiers or literals when needed.
 - Use `SQLInjectionDetector` as a heuristic guard for untrusted input before query composition.
+- Use `NoSQLInjectionDetector` to flag operator injection in untrusted JSON-like input.
 
 ## Cleanup
 

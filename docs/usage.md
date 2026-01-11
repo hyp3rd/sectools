@@ -360,6 +360,18 @@ Behavior:
 - Flags common SQL injection patterns (comments, statement separators, tautologies).
 - The detector is heuristic; tune patterns if your input includes SQL-like content.
 
+### NoSQL injection detection
+
+```go
+func NewNoSQLInjectionDetector(opts ...NoSQLDetectOption) (*NoSQLInjectionDetector, error)
+func (d *NoSQLInjectionDetector) Detect(input string) error
+```
+
+Behavior:
+
+- Flags common NoSQL operator usage (`$ne`, `$where`, `$regex`).
+- The detector is heuristic; tune the operator list if your input includes JSON-like data.
+
 ### Filename sanitization
 
 ```go

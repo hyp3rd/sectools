@@ -17,7 +17,7 @@ Security-focused Go helpers for file I/O, in-memory handling of sensitive data, 
 - JWT/PASETO helpers with strict validation and safe defaults
 - Password hashing presets for argon2id/bcrypt with rehash detection
 - Email and URL validation with optional DNS/redirect/reputation checks
-- HTML/Markdown sanitization, SQL input guards, and filename sanitizers
+- HTML/Markdown sanitization, SQL/NoSQL input guards, and filename sanitizers
 - Safe integer conversion helpers with overflow/negative guards
 
 ## Requirements
@@ -260,6 +260,13 @@ func main() {
  }
 
  safeIdentifier, _ := sqlSanitizer.Sanitize("public.users")
+
+ detector, err := sanitize.NewNoSQLInjectionDetector()
+ if err != nil {
+  panic(err)
+ }
+
+ _ = detector.Detect(`{"username":{"$ne":null}}`)
 
  _, _ = safeHTML, safeIdentifier
 }
