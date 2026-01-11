@@ -9,6 +9,8 @@ var (
 	ErrInvalidMarkdownConfig = ewrap.New("invalid markdown sanitize config")
 	// ErrInvalidSQLConfig indicates an invalid SQL sanitizer configuration.
 	ErrInvalidSQLConfig = ewrap.New("invalid sql sanitize config")
+	// ErrInvalidNoSQLConfig indicates an invalid NoSQL detector configuration.
+	ErrInvalidNoSQLConfig = ewrap.New("invalid nosql detector config")
 	// ErrInvalidFilenameConfig indicates an invalid filename sanitizer configuration.
 	ErrInvalidFilenameConfig = ewrap.New("invalid filename sanitize config")
 
@@ -29,6 +31,10 @@ var (
 	ErrSQLLikeEscapeInvalid = ewrap.New("sql like escape invalid")
 	// ErrSQLInjectionDetected indicates the input matched SQL injection heuristics.
 	ErrSQLInjectionDetected = ewrap.New("sql injection detected")
+	// ErrNoSQLInputTooLong indicates the NoSQL input exceeds the configured limit.
+	ErrNoSQLInputTooLong = ewrap.New("nosql input too long")
+	// ErrNoSQLInjectionDetected indicates the input matched NoSQL injection heuristics.
+	ErrNoSQLInjectionDetected = ewrap.New("nosql injection detected")
 
 	// ErrFilenameEmpty indicates the filename is empty after sanitization.
 	ErrFilenameEmpty = ewrap.New("filename empty")
