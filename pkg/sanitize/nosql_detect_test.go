@@ -36,8 +36,8 @@ func TestNoSQLInjectionDetectorCustomOperators(t *testing.T) {
 	}
 }
 
-func TestNoSQLInjectionDetectorEdgeCases(t *testing.T) {
-	detector, err := NewNoSQLInjectionDetector()
+func TestNoSQLInjectionDetectorMaxLength(t *testing.T) {
+	detector, err := NewNoSQLInjectionDetector(WithNoSQLDetectMaxLength(1))
 	if err != nil {
 		t.Fatalf("expected detector, got %v", err)
 	}
