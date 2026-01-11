@@ -1,6 +1,9 @@
 package sanitize
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestSQLSanitizeIdentifier(t *testing.T) {
 	sanitizer, err := NewSQLSanitizer()
@@ -18,7 +21,7 @@ func TestSQLSanitizeIdentifier(t *testing.T) {
 	}
 
 	_, err = sanitizer.Sanitize("users;drop")
-	if err != ErrSQLIdentifierInvalid {
+	if !errors.Is(err, ErrSQLIdentifierInvalid) {
 		t.Fatalf("expected ErrSQLIdentifierInvalid, got %v", err)
 	}
 }
@@ -39,7 +42,7 @@ func TestSQLSanitizeQualifiedIdentifier(t *testing.T) {
 	}
 
 	_, err = sanitizer.Sanitize("public..users")
-	if err != ErrSQLIdentifierInvalid {
+	if !errors.Is(err, ErrSQLIdentifierInvalid) {
 		t.Fatalf("expected ErrSQLIdentifierInvalid, got %v", err)
 	}
 }
@@ -60,7 +63,7 @@ func TestSQLSanitizeLiteral(t *testing.T) {
 	}
 
 	_, err = sanitizer.Sanitize("bad\x00")
-	if err != ErrSQLLiteralInvalid {
+	if !errors.Is(err, ErrSQLLiteralInvalid) {
 		t.Fatalf("expected ErrSQLLiteralInvalid, got %v", err)
 	}
 }
@@ -88,7 +91,7 @@ func TestSQLInjectionDetector(t *testing.T) {
 	}
 
 	err = detector.Detect("1 OR 1=1; --")
-	if err != ErrSQLInjectionDetected {
+	if !errors.Is(err, ErrSQLInjectionDetected) {
 		t.Fatalf("expected ErrSQLInjectionDetected, got %v", err)
 	}
 

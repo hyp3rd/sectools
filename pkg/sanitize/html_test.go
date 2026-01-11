@@ -1,6 +1,7 @@
 package sanitize
 
 import (
+	"errors"
 	"html"
 	"testing"
 )
@@ -12,6 +13,7 @@ func TestHTMLSanitizeEscape(t *testing.T) {
 	}
 
 	input := `<script>alert("x")</script>`
+
 	output, err := sanitizer.Sanitize(input)
 	if err != nil {
 		t.Fatalf("expected sanitized html, got %v", err)
@@ -64,7 +66,7 @@ func TestHTMLSanitizeMaxLength(t *testing.T) {
 	}
 
 	_, err = sanitizer.Sanitize("ab")
-	if err != ErrHTMLTooLong {
+	if !errors.Is(err, ErrHTMLTooLong) {
 		t.Fatalf("expected ErrHTMLTooLong, got %v", err)
 	}
 }

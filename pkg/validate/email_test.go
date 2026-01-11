@@ -2,6 +2,7 @@ package validate
 
 import (
 	"context"
+	"errors"
 	"net"
 	"testing"
 
@@ -19,6 +20,7 @@ func (r *fakeResolver) LookupMX(_ context.Context, name string) ([]*net.MX, erro
 	if err, ok := r.mxErr[name]; ok {
 		return nil, err
 	}
+
 	return r.mxRecords[name], nil
 }
 
@@ -26,6 +28,7 @@ func (r *fakeResolver) LookupHost(_ context.Context, name string) ([]string, err
 	if err, ok := r.hostErr[name]; ok {
 		return nil, err
 	}
+
 	return r.hosts[name], nil
 }
 
@@ -52,7 +55,7 @@ func TestEmailRejectDisplayName(t *testing.T) {
 	}
 
 	_, err = validator.Validate(context.Background(), "Name <user@example.com>")
-	if err != ErrEmailDisplayName {
+	if !errors.Is(err, ErrEmailDisplayName) {
 		t.Fatalf("expected ErrEmailDisplayName, got %v", err)
 	}
 }
@@ -80,7 +83,7 @@ func TestEmailInvalidLocalPart(t *testing.T) {
 	}
 
 	_, err = validator.Validate(context.Background(), "user..dot@example.com")
-	if err != ErrEmailLocalPartInvalid {
+	if !errors.Is(err, ErrEmailLocalPartInvalid) {
 		t.Fatalf("expected ErrEmailLocalPartInvalid, got %v", err)
 	}
 }
@@ -92,7 +95,7 @@ func TestEmailRequireTLD(t *testing.T) {
 	}
 
 	_, err = validator.Validate(context.Background(), "user@localhost")
-	if err != ErrEmailDomainInvalid {
+	if !errors.Is(err, ErrEmailDomainInvalid) {
 		t.Fatalf("expected ErrEmailDomainInvalid, got %v", err)
 	}
 }
@@ -159,7 +162,7 @@ func TestEmailDomainVerificationUnverified(t *testing.T) {
 	}
 
 	_, err = validator.Validate(context.Background(), "user@example.com")
-	if err != ErrEmailDomainUnverified {
+	if !errors.Is(err, ErrEmailDomainUnverified) {
 		t.Fatalf("expected ErrEmailDomainUnverified, got %v", err)
 	}
 }
@@ -192,7 +195,7 @@ func TestEmailIPLiteralDisallowed(t *testing.T) {
 	}
 
 	_, err = validator.Validate(context.Background(), "user@[127.0.0.1]")
-	if err != ErrEmailIPLiteralNotAllowed {
+	if !errors.Is(err, ErrEmailIPLiteralNotAllowed) {
 		t.Fatalf("expected ErrEmailIPLiteralNotAllowed, got %v", err)
 	}
 }

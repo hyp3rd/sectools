@@ -1,6 +1,9 @@
 package sanitize
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestNoSQLInjectionDetectorDefault(t *testing.T) {
 	detector, err := NewNoSQLInjectionDetector()
@@ -9,12 +12,12 @@ func TestNoSQLInjectionDetectorDefault(t *testing.T) {
 	}
 
 	err = detector.Detect(`{"username":{"$ne":null}}`)
-	if err != ErrNoSQLInjectionDetected {
+	if !errors.Is(err, ErrNoSQLInjectionDetected) {
 		t.Fatalf("expected ErrNoSQLInjectionDetected, got %v", err)
 	}
 
 	err = detector.Detect(`{"$where":"sleep(1)"}`)
-	if err != ErrNoSQLInjectionDetected {
+	if !errors.Is(err, ErrNoSQLInjectionDetected) {
 		t.Fatalf("expected ErrNoSQLInjectionDetected, got %v", err)
 	}
 
@@ -31,7 +34,19 @@ func TestNoSQLInjectionDetectorCustomOperators(t *testing.T) {
 	}
 
 	err = detector.Detect(`{"$custom":true}`)
-	if err != ErrNoSQLInjectionDetected {
+	if !errors.Is(err, ErrNoSQLInjectionDetected) {
 		t.Fatalf("expected ErrNoSQLInjectionDetected, got %v", err)
+	}
+}
+
+func TestNoSQLInjectionDetectorMaxLength(t *testing.T) {
+	detector, err := NewNoSQLInjectionDetector(WithNoSQLDetectMaxLength(1))
+	if err != nil {
+		t.Fatalf("expected detector, got %v", err)
+	}
+
+	err = detector.Detect("ab")
+	if !errors.Is(err, ErrNoSQLInputTooLong) {
+		t.Fatalf("expected ErrNoSQLInputTooLong, got %v", err)
 	}
 }

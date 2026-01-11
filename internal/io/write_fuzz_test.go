@@ -15,7 +15,7 @@ func FuzzSecureWriteFromReader(f *testing.F) {
 	f.Add("link.txt", []byte("data"), int64(10), true, true, false)
 	f.Add("abs.txt", []byte("data"), int64(10), true, false, true)
 
-	f.Fuzz(func(t *testing.T, name string, data []byte, maxSize int64, allowSymlinks bool, useSymlink bool, makeAbsolute bool) {
+	f.Fuzz(func(t *testing.T, name string, data []byte, maxSize int64, allowSymlinks, useSymlink, makeAbsolute bool) {
 		if len(data) > 2048 {
 			data = data[:2048]
 		}
@@ -36,13 +36,18 @@ func FuzzSecureWriteFromReader(f *testing.F) {
 
 		if useSymlink {
 			targetPath := filepath.Join(baseDir, "target-"+safeName)
-			if err := os.WriteFile(targetPath, []byte("target"), 0o600); err != nil {
+
+			err := os.WriteFile(targetPath, []byte("target"), 0o600)
+			if err != nil {
 				t.Skipf("failed to create symlink target: %v", err)
 			}
 
 			linkName := "link-" + safeName
+
 			linkPath := filepath.Join(baseDir, linkName)
-			if err := os.Symlink(targetPath, linkPath); err != nil {
+
+			err = os.Symlink(targetPath, linkPath)
+			if err != nil {
 				t.Skipf("symlink not supported: %v", err)
 			}
 

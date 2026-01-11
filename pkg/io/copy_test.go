@@ -58,5 +58,6 @@ func TestSecureCopyFileVerifyChecksum(t *testing.T) {
 	require.NoError(t, err)
 
 	destPath := filepath.Join(os.TempDir(), destName)
+
 	t.Cleanup(func() { _ = os.Remove(destPath) })
 }

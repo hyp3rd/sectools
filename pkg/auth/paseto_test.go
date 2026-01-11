@@ -39,6 +39,7 @@ func TestPasetoLocalRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected parsed token, got error: %v", err)
 	}
+
 	if parsed == nil {
 		t.Fatalf("expected parsed token")
 	}
@@ -81,6 +82,7 @@ func TestPasetoPublicRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected parsed token, got error: %v", err)
 	}
+
 	if parsed == nil {
 		t.Fatalf("expected parsed token")
 	}
@@ -88,6 +90,7 @@ func TestPasetoPublicRoundTrip(t *testing.T) {
 
 func TestPasetoMissingExpiration(t *testing.T) {
 	key := paseto.NewV4SymmetricKey()
+
 	local, err := NewPasetoLocal(WithPasetoLocalKey(key))
 	if err != nil {
 		t.Fatalf("expected local helper, got error: %v", err)
@@ -99,6 +102,7 @@ func TestPasetoMissingExpiration(t *testing.T) {
 	}
 
 	secret := paseto.NewV4AsymmetricSecretKey()
+
 	signer, err := NewPasetoPublicSigner(WithPasetoPublicSecretKey(secret))
 	if err != nil {
 		t.Fatalf("expected signer, got error: %v", err)

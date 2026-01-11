@@ -1,6 +1,9 @@
 package sanitize
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestFilenameSanitizeBasic(t *testing.T) {
 	sanitizer, err := NewFilenameSanitizer()
@@ -57,7 +60,7 @@ func TestFilenameSanitizeEmpty(t *testing.T) {
 	}
 
 	_, err = sanitizer.Sanitize("   ")
-	if err != ErrFilenameEmpty {
+	if !errors.Is(err, ErrFilenameEmpty) {
 		t.Fatalf("expected ErrFilenameEmpty, got %v", err)
 	}
 }
@@ -69,7 +72,7 @@ func TestFilenameSanitizeMaxLength(t *testing.T) {
 	}
 
 	_, err = sanitizer.Sanitize("abcd")
-	if err != ErrFilenameTooLong {
+	if !errors.Is(err, ErrFilenameTooLong) {
 		t.Fatalf("expected ErrFilenameTooLong, got %v", err)
 	}
 }
