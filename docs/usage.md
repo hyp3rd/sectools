@@ -9,6 +9,7 @@ supporting implementations in `internal/`.
 - `pkg/auth`: JWT and PASETO helpers with strict validation.
 - `pkg/password`: password hashing helpers.
 - `pkg/validate`: email and URL validation helpers.
+- `pkg/tokens`: random token generation and validation helpers.
 - `pkg/sanitize`: HTML/Markdown sanitizers, SQL input guards, and filename sanitizers.
 - `pkg/memory`: secure in-memory buffers.
 - `pkg/converters`: safe numeric conversions.
@@ -306,6 +307,23 @@ Behavior:
 - Blocks private/loopback IPs by default; use `WithURLAllowPrivateIP(true)` to permit.
 - Optional redirect checks with `WithURLCheckRedirects` and an HTTP client.
 - Optional reputation checks with `WithURLReputationChecker`.
+
+## pkg/tokens
+
+### Token generation and validation
+
+```go
+func NewGenerator(opts ...TokenOption) (*TokenGenerator, error)
+func (g *TokenGenerator) Generate() (string, error)
+func NewValidator(opts ...TokenOption) (*TokenValidator, error)
+func (v *TokenValidator) Validate(token string) ([]byte, error)
+```
+
+Behavior:
+
+- Generates cryptographically secure random tokens (base64url by default).
+- Enforces minimum entropy (bits) and optional minimum byte length.
+- Rejects tokens over the configured max length or with whitespace.
 
 ## pkg/sanitize
 

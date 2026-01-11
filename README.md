@@ -17,6 +17,7 @@ Security-focused Go helpers for file I/O, in-memory handling of sensitive data, 
 - JWT/PASETO helpers with strict validation and safe defaults
 - Password hashing presets for argon2id/bcrypt with rehash detection
 - Email and URL validation with optional DNS/redirect/reputation checks
+- Random token generation and validation with entropy/length caps
 - HTML/Markdown sanitization, SQL/NoSQL input guards, and filename sanitizers
 - Safe integer conversion helpers with overflow/negative guards
 
@@ -231,6 +232,31 @@ func main() {
  }
 
  _, _ = urlValidator.Validate(context.Background(), "https://example.com")
+}
+```
+
+### Tokens
+
+```go
+package main
+
+import (
+ "github.com/hyp3rd/sectools/pkg/tokens"
+)
+
+func main() {
+ generator, err := tokens.NewGenerator()
+ if err != nil {
+  panic(err)
+ }
+
+ validator, err := tokens.NewValidator()
+ if err != nil {
+  panic(err)
+ }
+
+ token, _ := generator.Generate()
+ _, _ = validator.Validate(token)
 }
 ```
 
