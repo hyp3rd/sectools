@@ -18,6 +18,7 @@ Security-focused Go helpers for file I/O, in-memory handling of sensitive data, 
 - Password hashing presets for argon2id/bcrypt with rehash detection
 - Email and URL validation with optional DNS/redirect/reputation checks
 - Random token generation and validation with entropy/length caps
+- Bounded base64/hex encoding and strict JSON decoding
 - HTML/Markdown sanitization, SQL/NoSQL input guards, and filename sanitizers
 - Safe integer conversion helpers with overflow/negative guards
 
@@ -257,6 +258,27 @@ func main() {
 
  token, _ := generator.Generate()
  _, _ = validator.Validate(token)
+}
+```
+
+### Encoding
+
+```go
+package main
+
+import (
+ "github.com/hyp3rd/sectools/pkg/encoding"
+)
+
+func main() {
+ encoded, _ := encoding.EncodeBase64([]byte("secret"))
+ _, _ = encoding.DecodeBase64(encoded)
+
+ type payload struct {
+  Name string `json:"name"`
+ }
+
+ _ = encoding.DecodeJSON([]byte(`{"name":"alpha"}`), &payload{})
 }
 ```
 

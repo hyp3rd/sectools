@@ -10,6 +10,7 @@ supporting implementations in `internal/`.
 - `pkg/password`: password hashing helpers.
 - `pkg/validate`: email and URL validation helpers.
 - `pkg/tokens`: random token generation and validation helpers.
+- `pkg/encoding`: bounded encoding and decoding helpers.
 - `pkg/sanitize`: HTML/Markdown sanitizers, SQL input guards, and filename sanitizers.
 - `pkg/memory`: secure in-memory buffers.
 - `pkg/converters`: safe numeric conversions.
@@ -324,6 +325,37 @@ Behavior:
 - Generates cryptographically secure random tokens (base64url by default).
 - Enforces minimum entropy (bits) and optional minimum byte length.
 - Rejects tokens over the configured max length or with whitespace.
+
+## pkg/encoding
+
+### Base64/Hex encoding
+
+```go
+func EncodeBase64(data []byte, opts ...Base64Option) (string, error)
+func DecodeBase64(input string, opts ...Base64Option) ([]byte, error)
+func EncodeHex(data []byte, opts ...HexOption) (string, error)
+func DecodeHex(input string, opts ...HexOption) ([]byte, error)
+```
+
+Behavior:
+
+- Enforces max input length and rejects whitespace.
+- Uses base64url without padding by default.
+
+### JSON decoding
+
+```go
+func EncodeJSON(value any, opts ...JSONOption) ([]byte, error)
+func DecodeJSON(data []byte, value any, opts ...JSONOption) error
+func DecodeJSONReader(reader io.Reader, value any, opts ...JSONOption) error
+```
+
+Behavior:
+
+- Uses go-json under the hood for encoding/decoding.
+- Disallows unknown fields by default; can be toggled.
+- Rejects payloads larger than the configured max size.
+- Rejects trailing data after the first JSON value.
 
 ## pkg/sanitize
 

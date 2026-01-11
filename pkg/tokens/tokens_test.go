@@ -2,6 +2,7 @@ package tokens
 
 import (
 	"encoding/base64"
+	"errors"
 	"testing"
 )
 
@@ -67,7 +68,7 @@ func TestTokenValidateMaxLength(t *testing.T) {
 	}
 
 	_, err = validator.Validate("aaaaa")
-	if err != ErrTokenTooLong {
+	if !errors.Is(err, ErrTokenTooLong) {
 		t.Fatalf("expected ErrTokenTooLong, got %v", err)
 	}
 }
@@ -79,8 +80,9 @@ func TestTokenValidateInsufficientEntropy(t *testing.T) {
 	}
 
 	short := base64.RawURLEncoding.EncodeToString(make([]byte, 8))
+
 	_, err = validator.Validate(short)
-	if err != ErrTokenInsufficientEntropy {
+	if !errors.Is(err, ErrTokenInsufficientEntropy) {
 		t.Fatalf("expected ErrTokenInsufficientEntropy, got %v", err)
 	}
 }
@@ -92,8 +94,9 @@ func TestTokenValidateMinBytes(t *testing.T) {
 	}
 
 	short := base64.RawURLEncoding.EncodeToString(make([]byte, 16))
+
 	_, err = validator.Validate(short)
-	if err != ErrTokenTooShort {
+	if !errors.Is(err, ErrTokenTooShort) {
 		t.Fatalf("expected ErrTokenTooShort, got %v", err)
 	}
 }
@@ -105,7 +108,7 @@ func TestTokenValidateWhitespace(t *testing.T) {
 	}
 
 	_, err = validator.Validate("token with space")
-	if err != ErrTokenInvalid {
+	if !errors.Is(err, ErrTokenInvalid) {
 		t.Fatalf("expected ErrTokenInvalid, got %v", err)
 	}
 }
