@@ -19,6 +19,7 @@ Security-focused Go helpers for file I/O, in-memory handling of sensitive data, 
 - Email and URL validation with optional DNS/redirect/reputation checks
 - Random token generation and validation with entropy/length caps
 - Bounded base64/hex encoding and strict JSON decoding
+- Redaction helpers and secret detection heuristics for logs/config dumps
 - HTML/Markdown sanitization, SQL/NoSQL input guards, and filename sanitizers
 - Safe integer conversion helpers with overflow/negative guards
 
@@ -279,6 +280,33 @@ func main() {
  }
 
  _ = encoding.DecodeJSON([]byte(`{"name":"alpha"}`), &payload{})
+}
+```
+
+### Secrets
+
+```go
+package main
+
+import (
+ "github.com/hyp3rd/sectools/pkg/secrets"
+)
+
+func main() {
+ detector, err := secrets.NewSecretDetector()
+ if err != nil {
+  panic(err)
+ }
+
+ _ = detector.DetectAny("token=ghp_abcdefghijklmnopqrstuvwxyz1234567890")
+
+ redactor, err := secrets.NewRedactor(secrets.WithRedactionDetector(detector))
+ if err != nil {
+  panic(err)
+ }
+
+ fields := map[string]any{"password": "secret"}
+ _ = redactor.RedactFields(fields)
 }
 ```
 

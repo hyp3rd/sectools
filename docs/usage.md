@@ -11,6 +11,7 @@ supporting implementations in `internal/`.
 - `pkg/validate`: email and URL validation helpers.
 - `pkg/tokens`: random token generation and validation helpers.
 - `pkg/encoding`: bounded encoding and decoding helpers.
+- `pkg/secrets`: redaction and secret detection helpers.
 - `pkg/sanitize`: HTML/Markdown sanitizers, SQL input guards, and filename sanitizers.
 - `pkg/memory`: secure in-memory buffers.
 - `pkg/converters`: safe numeric conversions.
@@ -356,6 +357,36 @@ Behavior:
 - Disallows unknown fields by default; can be toggled.
 - Rejects payloads larger than the configured max size.
 - Rejects trailing data after the first JSON value.
+
+## pkg/secrets
+
+### Secret detection
+
+```go
+func NewSecretDetector(opts ...SecretDetectOption) (*SecretDetector, error)
+func (d *SecretDetector) Detect(input string) ([]SecretMatch, error)
+func (d *SecretDetector) DetectAny(input string) error
+func (d *SecretDetector) Redact(input string) (string, []SecretMatch, error)
+```
+
+Behavior:
+
+- Uses heuristic regex patterns for common secret formats.
+- Limits input size to prevent large payload scanning.
+- Can redact detected secrets using a configured mask.
+
+### Redaction helpers
+
+```go
+func NewRedactor(opts ...RedactorOption) (*Redactor, error)
+func (r *Redactor) RedactFields(fields map[string]any) map[string]any
+func (r *Redactor) RedactString(input string) string
+```
+
+Behavior:
+
+- Redacts sensitive keys like `password`, `token`, `authorization`.
+- Can use `SecretDetector` to redact secrets inside string values.
 
 ## pkg/sanitize
 
