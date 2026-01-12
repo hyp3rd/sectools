@@ -1,0 +1,2 @@
+# Allowlist for known test fixtures that look like secrets.
+ae0ffc5c3543e359a7989d093725ec7270060496:pkg/secrets/secrets_test.go:aws-access-token:11

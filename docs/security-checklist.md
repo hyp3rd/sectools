@@ -35,6 +35,11 @@ This checklist is a quick reference for teams using sectools in production.
 - Use `pkg/encoding` for base64/hex decoding with length caps.
 - Keep JSON decoding strict and set `WithJSONMaxBytes` for untrusted payloads.
 
+## Secrets
+
+- Redact structured logs with `pkg/secrets` before writing sensitive fields.
+- Scan config dumps with `SecretDetector` to catch leaked tokens.
+
 ## Passwords
 
 - Use Argon2id presets unless you need bcrypt compatibility.
