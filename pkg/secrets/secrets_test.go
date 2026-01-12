@@ -76,3 +76,58 @@ func TestRedactorDetector(t *testing.T) {
 		t.Fatalf("expected detector to redact note")
 	}
 }
+
+func TestWithRedactionKeysValidation(t *testing.T) {
+	t.Run("all whitespace keys should fail even with default keys", func(t *testing.T) {
+		// This test verifies the fix for the validation inconsistency.
+		// Even when cfg.keys has default keys, passing all-whitespace keys should fail.
+		_, err := NewRedactor(WithRedactionKeys("   ", "\t", "\n"))
+		if err != ErrInvalidRedactorConfig {
+			t.Fatalf("expected ErrInvalidRedactorConfig when all keys are whitespace, got %v", err)
+		}
+	})
+
+	t.Run("empty keys slice should fail", func(t *testing.T) {
+		_, err := NewRedactor(WithRedactionKeys())
+		if err != ErrInvalidRedactorConfig {
+			t.Fatalf("expected ErrInvalidRedactorConfig for empty keys, got %v", err)
+		}
+	})
+
+	t.Run("valid keys should succeed", func(t *testing.T) {
+		redactor, err := NewRedactor(WithRedactionKeys("custom_key"))
+		if err != nil {
+			t.Fatalf("expected redactor with valid key, got %v", err)
+		}
+
+		fields := map[string]any{
+			"custom_key": "secret",
+			"other":      "public",
+		}
+
+		redacted := redactor.RedactFields(fields)
+		if redacted["custom_key"] == "secret" {
+			t.Fatalf("expected custom_key to be redacted")
+		}
+		if redacted["other"] != "public" {
+			t.Fatalf("expected other field to remain unchanged")
+		}
+	})
+
+	t.Run("mix of valid and invalid keys should succeed", func(t *testing.T) {
+		// At least one valid key means the option should succeed
+		redactor, err := NewRedactor(WithRedactionKeys("   ", "valid_key", "\t"))
+		if err != nil {
+			t.Fatalf("expected redactor when at least one key is valid, got %v", err)
+		}
+
+		fields := map[string]any{
+			"valid_key": "secret",
+		}
+
+		redacted := redactor.RedactFields(fields)
+		if redacted["valid_key"] == "secret" {
+			t.Fatalf("expected valid_key to be redacted")
+		}
+	})
+}
