@@ -45,15 +45,3 @@ repos:
         entry: mdl
         language: ruby
         files: \.(md|mdown|markdown)$
-  - repo: local
-    hooks:
-      - id: go-verify
-        name: go-verify
-        language: system
-        entry: ./.pre-commit/go-mod-hook
-        require_serial: true
-      - id: gci
-        name: gci
-        language: system
-        entry: ./.pre-commit/gci-hook
-        require_serial: true
