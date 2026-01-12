@@ -40,6 +40,11 @@ This checklist is a quick reference for teams using sectools in production.
 - Redact structured logs with `pkg/secrets` before writing sensitive fields.
 - Scan config dumps with `SecretDetector` to catch leaked tokens.
 
+## TLS
+
+- Use `pkg/tlsconfig` to enforce TLS 1.2+ and strong cipher suites.
+- Enable mTLS with `WithClientAuth` and `WithClientCAs` when needed.
+
 ## Passwords
 
 - Use Argon2id presets unless you need bcrypt compatibility.

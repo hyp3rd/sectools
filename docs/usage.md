@@ -12,6 +12,7 @@ supporting implementations in `internal/`.
 - `pkg/tokens`: random token generation and validation helpers.
 - `pkg/encoding`: bounded encoding and decoding helpers.
 - `pkg/secrets`: redaction and secret detection helpers.
+- `pkg/tlsconfig`: opinionated TLS configuration helpers.
 - `pkg/sanitize`: HTML/Markdown sanitizers, SQL input guards, and filename sanitizers.
 - `pkg/memory`: secure in-memory buffers.
 - `pkg/converters`: safe numeric conversions.
@@ -387,6 +388,21 @@ Behavior:
 
 - Redacts sensitive keys like `password`, `token`, `authorization`.
 - Can use `SecretDetector` to redact secrets inside string values.
+
+## pkg/tlsconfig
+
+### TLS configs
+
+```go
+func NewClientConfig(opts ...Option) (*tls.Config, error)
+func NewServerConfig(opts ...Option) (*tls.Config, error)
+```
+
+Behavior:
+
+- Defaults to TLS 1.2+ with curated TLS 1.2 cipher suites.
+- Supports TLS 1.3 only mode via `WithTLS13Only`.
+- Supports mTLS through `WithClientAuth` and `WithClientCAs`.
 
 ## pkg/sanitize
 

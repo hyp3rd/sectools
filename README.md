@@ -20,6 +20,7 @@ Security-focused Go helpers for file I/O, in-memory handling of sensitive data, 
 - Random token generation and validation with entropy/length caps
 - Bounded base64/hex encoding and strict JSON decoding
 - Redaction helpers and secret detection heuristics for logs/config dumps
+- Opinionated TLS configs with TLS 1.2/1.3 defaults and mTLS options
 - HTML/Markdown sanitization, SQL/NoSQL input guards, and filename sanitizers
 - Safe integer conversion helpers with overflow/negative guards
 
@@ -307,6 +308,30 @@ func main() {
 
  fields := map[string]any{"password": "secret"}
  _ = redactor.RedactFields(fields)
+}
+```
+
+### TLS config
+
+```go
+package main
+
+import (
+ "crypto/tls"
+
+ "github.com/hyp3rd/sectools/pkg/tlsconfig"
+)
+
+func main() {
+ serverConfig, err := tlsconfig.NewServerConfig(
+  tlsconfig.WithCertificates(tls.Certificate{}),
+  tlsconfig.WithClientAuth(tls.RequireAndVerifyClientCert),
+ )
+ if err != nil {
+  panic(err)
+ }
+
+ _ = serverConfig
 }
 ```
 
