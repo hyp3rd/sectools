@@ -63,7 +63,18 @@ func WithRedactionMask(mask string) RedactorOption {
 	}
 }
 
-// WithRedactionKeys adds sensitive keys to redact.
+// WithRedactionKeys adds additional sensitive keys to redact.
+//
+// The provided keys are merged into the existing set of redaction keys,
+// which by default is initialized by NewRedactor with a set of common
+// sensitive field names. Keys are normalized via normalizeRedactionKey
+// (for example, lowercased and trimmed), so matching is case-insensitive
+// and ignores surrounding whitespace. Keys that normalize to an empty
+// string are ignored.
+//
+// If all provided keys normalize to empty strings and there are no
+// existing redaction keys configured, this option returns
+// ErrInvalidRedactorConfig.
 func WithRedactionKeys(keys ...string) RedactorOption {
 	return func(cfg *redactorOptions) error {
 		if len(keys) == 0 {
