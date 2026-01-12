@@ -93,8 +93,10 @@ func WithRedactionKeys(keys ...string) RedactorOption {
 				continue
 			}
 
-			cfg.keys[value] = struct{}{}
-			addedCount++
+			if _, exists := cfg.keys[value]; !exists {
+				cfg.keys[value] = struct{}{}
+				addedCount++
+			}
 		}
 
 		if addedCount == 0 {
