@@ -85,16 +85,21 @@ func WithRedactionKeys(keys ...string) RedactorOption {
 			cfg.keys = make(map[string]struct{})
 		}
 
+		addedCount := 0
+
 		for _, key := range keys {
 			value := normalizeRedactionKey(key)
 			if value == "" {
 				continue
 			}
 
-			cfg.keys[value] = struct{}{}
+			if _, exists := cfg.keys[value]; !exists {
+				cfg.keys[value] = struct{}{}
+				addedCount++
+			}
 		}
 
-		if len(cfg.keys) == 0 {
+		if addedCount == 0 {
 			return ErrInvalidRedactorConfig
 		}
 

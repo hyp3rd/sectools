@@ -154,6 +154,7 @@ func TestDecodeJSONReader(t *testing.T) {
 	reader := strings.NewReader(`{"name":"alpha"}`)
 
 	var result payload
+
 	err := DecodeJSONReader(reader, &result)
 	if err != nil {
 		t.Fatalf("expected decoded, got %v", err)

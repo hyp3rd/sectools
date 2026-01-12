@@ -8,10 +8,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  proto:
+  settings:
     runs-on: ubuntu-latest
-    env:
-      PROTO_ENABLED: true
+    outputs:
+      go_version: ${{ steps.settings.outputs.go_version }}
+      buf_version: ${{ steps.settings.outputs.buf_version }}
+      proto_enabled: ${{ steps.settings.outputs.proto_enabled }}
     steps:
       - uses: actions/checkout@v6
       - name: Load project settings
@@ -22,25 +24,27 @@ jobs:
           set +a
           echo "go_version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
           echo "buf_version=${BUF_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "PROTO_ENABLED=${PROTO_ENABLED:-true}" >> "$GITHUB_ENV"
+          echo "proto_enabled=${PROTO_ENABLED:-true}" >> "$GITHUB_OUTPUT"
+  proto:
+    runs-on: ubuntu-latest
+    needs: settings
+    if: needs.settings.outputs.proto_enabled == 'true'
+    steps:
+      - uses: actions/checkout@v6
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: "${{ steps.settings.outputs.go_version }}"
+          go-version: "${{ needs.settings.outputs.go_version }}"
           check-latest: true
       - name: Setup buf
         uses: bufbuild/buf-setup-action@v1
         with:
-          version: "${{ steps.settings.outputs.buf_version }}"
+          version: "${{ needs.settings.outputs.buf_version }}"
       - name: Lint protos
-        if: env.PROTO_ENABLED != 'false'
         run: buf lint
       - name: Format protos
-        if: env.PROTO_ENABLED != 'false'
         run: buf format -w
       - name: Generate protos
-        if: env.PROTO_ENABLED != 'false'
         run: buf generate
       - name: Check diff
-        if: env.PROTO_ENABLED != 'false'
         run: git diff --exit-code
