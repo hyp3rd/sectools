@@ -72,9 +72,9 @@ func WithRedactionMask(mask string) RedactorOption {
 // and ignores surrounding whitespace. Keys that normalize to an empty
 // string are ignored.
 //
-// If all provided keys normalize to empty strings and there are no
-// existing redaction keys configured, this option returns
-// ErrInvalidRedactorConfig.
+// If all provided keys normalize to empty strings (e.g., all whitespace),
+// this option returns ErrInvalidRedactorConfig, regardless of whether
+// existing redaction keys are already configured.
 func WithRedactionKeys(keys ...string) RedactorOption {
 	return func(cfg *redactorOptions) error {
 		if len(keys) == 0 {
