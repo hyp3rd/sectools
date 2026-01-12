@@ -175,6 +175,18 @@ func TestRedactorInvalidConfig(t *testing.T) {
 			name: "empty keys",
 			opts: []RedactorOption{WithRedactionKeys()},
 		},
+		{
+			name: "key already in defaults",
+			opts: []RedactorOption{WithRedactionKeys("password")},
+		},
+		{
+			name: "multiple keys already in defaults",
+			opts: []RedactorOption{WithRedactionKeys("password", "token", "secret")},
+		},
+		{
+			name: "mix of duplicate and default keys",
+			opts: []RedactorOption{WithRedactionKeys("password", "password", "token")},
+		},
 	}
 
 	for _, tt := range tests {
@@ -182,6 +194,62 @@ func TestRedactorInvalidConfig(t *testing.T) {
 			_, err := NewRedactor(tt.opts...)
 			if err == nil {
 				t.Fatalf("expected error for %s, got nil", tt.name)
+			}
+		})
+	}
+}
+
+// TestRedactorDuplicateKeys tests that duplicate keys are handled correctly.
+func TestRedactorDuplicateKeys(t *testing.T) {
+	tests := []struct {
+		name      string
+		opts      []RedactorOption
+		testKey   string
+		wantMatch bool
+	}{
+		{
+			name:      "duplicate keys in same call - first is added",
+			opts:      []RedactorOption{WithRedactionKeys("duplicate_key", "duplicate_key")},
+			testKey:   "duplicate_key",
+			wantMatch: true,
+		},
+		{
+			name:      "duplicate keys with different cases",
+			opts:      []RedactorOption{WithRedactionKeys("MyKey", "mykey", "MYKEY")},
+			testKey:   "mykey",
+			wantMatch: true,
+		},
+		{
+			name:      "new key plus default key",
+			opts:      []RedactorOption{WithRedactionKeys("custom_key", "password")},
+			testKey:   "custom_key",
+			wantMatch: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			redactor, err := NewRedactor(tt.opts...)
+			if err != nil {
+				t.Fatalf("expected no error, got %v", err)
+			}
+
+			// Test that the key is properly recognized
+			fields := map[string]any{
+				tt.testKey: "sensitive_value",
+				"other":    "non_sensitive",
+			}
+
+			redacted := redactor.RedactFields(fields)
+			
+			if tt.wantMatch {
+				if redacted[tt.testKey] != "[REDACTED]" {
+					t.Errorf("expected key %q to be redacted, got %v", tt.testKey, redacted[tt.testKey])
+				}
+			} else {
+				if redacted[tt.testKey] == "[REDACTED]" {
+					t.Errorf("expected key %q not to be redacted", tt.testKey)
+				}
 			}
 		})
 	}
