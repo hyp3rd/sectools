@@ -1,6 +1,7 @@
 package secrets
 
 import (
+	"errors"
 	"strings"
 	"testing"
 )
@@ -12,7 +13,7 @@ func TestSecretDetectorDetectAny(t *testing.T) {
 	}
 
 	err = detector.DetectAny("AKIA1234567890ABCD12")
-	if err != ErrSecretDetected {
+	if !errors.Is(err, ErrSecretDetected) {
 		t.Fatalf("expected ErrSecretDetected, got %v", err)
 	}
 }
@@ -24,6 +25,7 @@ func TestSecretDetectorRedact(t *testing.T) {
 	}
 
 	input := "token=ghp_abcdefghijklmnopqrstuvwxyz1234567890"
+
 	output, matches, err := detector.Redact(input)
 	if err != nil {
 		t.Fatalf("expected redacted, got %v", err)
@@ -80,7 +82,7 @@ func TestRedactorDetector(t *testing.T) {
 	}
 }
 
-// TestSecretDetectorInputTooLong tests ErrSecretInputTooLong error
+// TestSecretDetectorInputTooLong tests ErrSecretInputTooLong error.
 func TestSecretDetectorInputTooLong(t *testing.T) {
 	detector, err := NewSecretDetector(WithSecretMaxLength(10))
 	if err != nil {
@@ -88,23 +90,24 @@ func TestSecretDetectorInputTooLong(t *testing.T) {
 	}
 
 	longInput := strings.Repeat("a", 11)
+
 	_, err = detector.Detect(longInput)
-	if err != ErrSecretInputTooLong {
+	if !errors.Is(err, ErrSecretInputTooLong) {
 		t.Fatalf("expected ErrSecretInputTooLong, got %v", err)
 	}
 
 	err = detector.DetectAny(longInput)
-	if err != ErrSecretInputTooLong {
+	if !errors.Is(err, ErrSecretInputTooLong) {
 		t.Fatalf("expected ErrSecretInputTooLong for DetectAny, got %v", err)
 	}
 
 	_, _, err = detector.Redact(longInput)
-	if err != ErrSecretInputTooLong {
+	if !errors.Is(err, ErrSecretInputTooLong) {
 		t.Fatalf("expected ErrSecretInputTooLong for Redact, got %v", err)
 	}
 }
 
-// TestSecretDetectorInvalidConfig tests invalid detector configurations
+// TestSecretDetectorInvalidConfig tests invalid detector configurations.
 func TestSecretDetectorInvalidConfig(t *testing.T) {
 	tests := []struct {
 		name string
@@ -142,7 +145,7 @@ func TestSecretDetectorInvalidConfig(t *testing.T) {
 	}
 }
 
-// TestRedactorInvalidConfig tests invalid redactor configurations
+// TestRedactorInvalidConfig tests invalid redactor configurations.
 func TestRedactorInvalidConfig(t *testing.T) {
 	tests := []struct {
 		name string
@@ -184,7 +187,7 @@ func TestRedactorInvalidConfig(t *testing.T) {
 	}
 }
 
-// TestSecretDetectorEdgeCases tests edge cases like empty and nil values
+// TestSecretDetectorEdgeCases tests edge cases like empty and nil values.
 func TestSecretDetectorEdgeCases(t *testing.T) {
 	detector, err := NewSecretDetector()
 	if err != nil {
@@ -196,6 +199,7 @@ func TestSecretDetectorEdgeCases(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
+
 		if matches != nil {
 			t.Fatalf("expected nil matches, got %v", matches)
 		}
@@ -206,6 +210,7 @@ func TestSecretDetectorEdgeCases(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
+
 		if matches != nil {
 			t.Fatalf("expected nil matches, got %v", matches)
 		}
@@ -216,13 +221,14 @@ func TestSecretDetectorEdgeCases(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
+
 		if len(matches) != 0 {
 			t.Fatalf("expected no matches, got %v", matches)
 		}
 	})
 }
 
-// TestRedactorEdgeCases tests edge cases for redactor
+// TestRedactorEdgeCases tests edge cases for redactor.
 func TestRedactorEdgeCases(t *testing.T) {
 	redactor, err := NewRedactor()
 	if err != nil {
@@ -238,6 +244,7 @@ func TestRedactorEdgeCases(t *testing.T) {
 
 	t.Run("empty map", func(t *testing.T) {
 		fields := map[string]any{}
+
 		result := redactor.RedactFields(fields)
 		if len(result) != 0 {
 			t.Fatalf("expected empty map, got %v", result)
@@ -252,7 +259,7 @@ func TestRedactorEdgeCases(t *testing.T) {
 	})
 }
 
-// TestWithSecretPattern tests the WithSecretPattern option
+// TestWithSecretPattern tests the WithSecretPattern option.
 func TestWithSecretPattern(t *testing.T) {
 	detector, err := NewSecretDetector(
 		WithSecretPattern("custom-pattern", `custom-[0-9]{4}`),
@@ -262,15 +269,18 @@ func TestWithSecretPattern(t *testing.T) {
 	}
 
 	input := "My custom token is custom-1234"
+
 	matches, err := detector.Detect(input)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
 	found := false
+
 	for _, match := range matches {
 		if match.Pattern == "custom-pattern" && match.Value == "custom-1234" {
 			found = true
+
 			break
 		}
 	}
@@ -280,7 +290,7 @@ func TestWithSecretPattern(t *testing.T) {
 	}
 }
 
-// TestWithSecretPatterns tests the WithSecretPatterns option
+// TestWithSecretPatterns tests the WithSecretPatterns option.
 func TestWithSecretPatterns(t *testing.T) {
 	patterns := []SecretPattern{
 		{Name: "test-pattern-1", Pattern: `test-[0-9]{3}`},
@@ -293,6 +303,7 @@ func TestWithSecretPatterns(t *testing.T) {
 	}
 
 	input := "Found test-123 and secret-abc"
+
 	matches, err := detector.Detect(input)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -303,9 +314,10 @@ func TestWithSecretPatterns(t *testing.T) {
 	}
 }
 
-// TestWithSecretMaxLength tests the WithSecretMaxLength option
+// TestWithSecretMaxLength tests the WithSecretMaxLength option.
 func TestWithSecretMaxLength(t *testing.T) {
 	maxLen := 20
+
 	detector, err := NewSecretDetector(WithSecretMaxLength(maxLen))
 	if err != nil {
 		t.Fatalf("expected detector, got %v", err)
@@ -313,6 +325,7 @@ func TestWithSecretMaxLength(t *testing.T) {
 
 	t.Run("within limit", func(t *testing.T) {
 		input := "short text"
+
 		_, err := detector.Detect(input)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
@@ -321,22 +334,25 @@ func TestWithSecretMaxLength(t *testing.T) {
 
 	t.Run("exceeds limit", func(t *testing.T) {
 		input := strings.Repeat("a", maxLen+1)
+
 		_, err := detector.Detect(input)
-		if err != ErrSecretInputTooLong {
+		if !errors.Is(err, ErrSecretInputTooLong) {
 			t.Fatalf("expected ErrSecretInputTooLong, got %v", err)
 		}
 	})
 }
 
-// TestWithSecretMask tests the WithSecretMask option
+// TestWithSecretMask tests the WithSecretMask option.
 func TestWithSecretMask(t *testing.T) {
 	customMask := "***HIDDEN***"
+
 	detector, err := NewSecretDetector(WithSecretMask(customMask))
 	if err != nil {
 		t.Fatalf("expected detector, got %v", err)
 	}
 
 	input := "token=ghp_abcdefghijklmnopqrstuvwxyz1234567890"
+
 	output, matches, err := detector.Redact(input)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -351,7 +367,7 @@ func TestWithSecretMask(t *testing.T) {
 	}
 }
 
-// TestNestedStructureRedaction tests redaction of nested structures
+// TestNestedStructureRedaction tests redaction of nested structures.
 func TestNestedStructureRedaction(t *testing.T) {
 	detector, err := NewSecretDetector()
 	if err != nil {
@@ -458,7 +474,7 @@ func TestNestedStructureRedaction(t *testing.T) {
 	})
 }
 
-// TestWithRedactionKeys tests the WithRedactionKeys option
+// TestWithRedactionKeys tests the WithRedactionKeys option.
 func TestWithRedactionKeys(t *testing.T) {
 	t.Run("add custom keys", func(t *testing.T) {
 		redactor, err := NewRedactor(
@@ -519,7 +535,7 @@ func TestWithRedactionKeys(t *testing.T) {
 	})
 }
 
-// TestWithRedactionMaxDepth tests the WithRedactionMaxDepth option
+// TestWithRedactionMaxDepth tests the WithRedactionMaxDepth option.
 func TestWithRedactionMaxDepth(t *testing.T) {
 	t.Run("depth limit prevents deep redaction", func(t *testing.T) {
 		redactor, err := NewRedactor(WithRedactionMaxDepth(2))
