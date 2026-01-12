@@ -241,7 +241,7 @@ func TestRedactorDuplicateKeys(t *testing.T) {
 			}
 
 			redacted := redactor.RedactFields(fields)
-			
+
 			if tt.wantMatch {
 				if redacted[tt.testKey] != "[REDACTED]" {
 					t.Errorf("expected key %q to be redacted, got %v", tt.testKey, redacted[tt.testKey])
