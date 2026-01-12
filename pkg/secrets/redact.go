@@ -256,11 +256,13 @@ func (r *Redactor) redactStringValue(value string) string {
 	}
 
 	redacted, _, err := r.opts.detector.Redact(value)
-	if err == nil {
-		return redacted
+	if err != nil {
+		// If the detector fails, treat this as a failure condition rather than
+		// forcing full redaction. Return the original value unchanged.
+		return value
 	}
 
-	return r.RedactString(value)
+	return redacted
 }
 
 func (r *Redactor) isSensitiveKey(key string) bool {
