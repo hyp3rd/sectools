@@ -368,40 +368,6 @@ func main() {
 
 ## Development
 
-### Quick Start
-
-1. Clone and set your module name
-
-    ```bash
-    git clone https://github.com/hyp3rd/starter.git my-new-project
-    cd my-new-project
-    ./setup-project.sh --module github.com/your/module
-    ```
-
-1. Install toolchain (core). Proto tools stay optional.
-
-    ```bash
-    make prepare-toolchain
-    # If you need proto/gRPC/OpenAPI
-    PROTO_ENABLED=true make prepare-proto-tools
-    ```
-
-1. Run quality gates and sample app
-
-    ```bash
-    make lint
-    make test
-    make run   # serves /health on HOSTNAME:PORT (defaults localhost:8000)
-    ```
-
-1. Optional: Docker and Compose
-
-    ```bash
-    cp .env.example .env   # shared runtime config for compose/requests
-    docker build -t starter-app .
-    docker compose up --build
-    ```
-
 ### Make Targets (high level)
 
 - `prepare-toolchain` — install core tools (gci, gofumpt, golangci-lint, staticcheck, govulncheck, gosec)
