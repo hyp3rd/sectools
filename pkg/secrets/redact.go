@@ -134,12 +134,13 @@ func (r *Redactor) RedactFields(fields map[string]any) map[string]any {
 
 	value, _ := r.redactValue(fields, 0, "")
 
-	fields, ok := value.(map[string]any)
+	redactedFields, ok := value.(map[string]any)
 	if !ok {
+		// If the redacted value is not a map[string]any, fall back to the original fields.
 		return fields
 	}
 
-	return fields
+	return redactedFields
 }
 
 func (r *Redactor) redactValue(value any, depth int, key string) (any, bool) {
