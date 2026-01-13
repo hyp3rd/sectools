@@ -12,6 +12,7 @@ supporting implementations in `internal/`.
 - `pkg/tokens`: random token generation and validation helpers.
 - `pkg/encoding`: bounded encoding and decoding helpers.
 - `pkg/secrets`: redaction and secret detection helpers.
+- `pkg/tlsconfig`: opinionated TLS configuration helpers.
 - `pkg/sanitize`: HTML/Markdown sanitizers, SQL input guards, and filename sanitizers.
 - `pkg/memory`: secure in-memory buffers.
 - `pkg/converters`: safe numeric conversions.
@@ -387,6 +388,81 @@ Behavior:
 
 - Redacts sensitive keys like `password`, `token`, `authorization`.
 - Can use `SecretDetector` to redact secrets inside string values.
+
+## pkg/tlsconfig
+
+### TLS configs
+
+```go
+func NewClientConfig(opts ...Option) (*tls.Config, error)
+func NewServerConfig(opts ...Option) (*tls.Config, error)
+```
+
+Behavior:
+
+- Defaults to TLS 1.2+ with curated TLS 1.2 cipher suites.
+- Supports TLS 1.3 only mode via `WithTLS13Only`.
+- Supports hybrid post-quantum key exchange via `WithPostQuantumKeyExchange` (X25519MLKEM768).
+- Supports mTLS through `WithClientAuth` and `WithClientCAs`.
+
+Notes:
+
+- `WithPostQuantumKeyExchange` only applies to TLS 1.3 handshakes; peers without support will negotiate X25519.
+- Prefer `WithRootCAs` and `WithServerName` over `WithInsecureSkipVerify` in production.
+
+Examples:
+
+```go
+package main
+
+import (
+ "crypto/tls"
+
+ "github.com/hyp3rd/sectools/pkg/tlsconfig"
+)
+
+func main() {
+ cfg, err := tlsconfig.NewServerConfig(
+  tlsconfig.WithCertificates(tls.Certificate{}),
+  tlsconfig.WithPostQuantumKeyExchange(),
+  tlsconfig.WithClientAuth(tls.RequireAndVerifyClientCert),
+ )
+ if err != nil {
+  panic(err)
+ }
+
+ _ = cfg
+}
+```
+
+```go
+package main
+
+import (
+ "crypto/x509"
+
+ "github.com/hyp3rd/sectools/pkg/tlsconfig"
+)
+
+func main() {
+ roots, err := x509.SystemCertPool()
+ if err != nil {
+  panic(err)
+ }
+
+ cfg, err := tlsconfig.NewClientConfig(
+  tlsconfig.WithRootCAs(roots),
+  tlsconfig.WithServerName("api.example.com"),
+  tlsconfig.WithTLS13Only(),
+  tlsconfig.WithPostQuantumKeyExchange(),
+ )
+ if err != nil {
+  panic(err)
+ }
+
+ _ = cfg
+}
+```
 
 ## pkg/sanitize
 
