@@ -46,6 +46,23 @@ func TestClientConfigTLS13Only(t *testing.T) {
 	}
 }
 
+func TestClientConfigPostQuantum(t *testing.T) {
+	cfg, err := NewClientConfig(WithPostQuantumKeyExchange())
+	if err != nil {
+		t.Fatalf("expected config, got %v", err)
+	}
+
+	expected := []tls.CurveID{
+		tls.X25519MLKEM768,
+		tls.X25519,
+		tls.CurveP256,
+		tls.CurveP384,
+	}
+	if !curveSliceEqual(cfg.CurvePreferences, expected) {
+		t.Fatalf("unexpected post-quantum curve preferences")
+	}
+}
+
 func TestClientConfigRejectsWeakVersion(t *testing.T) {
 	_, err := NewClientConfig(WithMinVersion(tls.VersionTLS10))
 	if !errors.Is(err, ErrTLSVersionTooLow) {

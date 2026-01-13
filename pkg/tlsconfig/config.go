@@ -123,6 +123,16 @@ func WithTLS13Only() Option {
 	}
 }
 
+// WithPostQuantumKeyExchange enables hybrid post-quantum key exchange.
+// It prepends X25519MLKEM768 to the curve preferences for TLS 1.3 handshakes.
+func WithPostQuantumKeyExchange() Option {
+	return func(cfg *config) error {
+		cfg.curvePreferences = enablePostQuantumCurves(cfg.curvePreferences)
+
+		return nil
+	}
+}
+
 // WithCipherSuites sets the TLS 1.2 cipher suites.
 func WithCipherSuites(suites ...uint16) Option {
 	return func(cfg *config) error {
@@ -400,8 +410,26 @@ func defaultCurvePreferences() []tls.CurveID {
 
 func allowedCurvePreferences() map[tls.CurveID]struct{} {
 	return map[tls.CurveID]struct{}{
-		tls.X25519:    {},
-		tls.CurveP256: {},
-		tls.CurveP384: {},
+		tls.X25519MLKEM768: {},
+		tls.X25519:         {},
+		tls.CurveP256:      {},
+		tls.CurveP384:      {},
 	}
+}
+
+func enablePostQuantumCurves(curves []tls.CurveID) []tls.CurveID {
+	remaining := make([]tls.CurveID, 0, len(curves))
+	for _, existing := range curves {
+		if existing == tls.X25519MLKEM768 || existing == tls.X25519 {
+			continue
+		}
+
+		remaining = append(remaining, existing)
+	}
+
+	result := make([]tls.CurveID, 0, 2+len(remaining))
+	result = append(result, tls.X25519MLKEM768, tls.X25519)
+	result = append(result, remaining...)
+
+	return result
 }

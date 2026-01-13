@@ -44,6 +44,7 @@ This checklist is a quick reference for teams using sectools in production.
 
 - Use `pkg/tlsconfig` to enforce TLS 1.2+ and strong cipher suites.
 - Enable mTLS with `WithClientAuth` and `WithClientCAs` when needed.
+- Consider `WithPostQuantumKeyExchange` to enable hybrid post-quantum key exchange.
 
 ## Passwords
 

@@ -402,7 +402,67 @@ Behavior:
 
 - Defaults to TLS 1.2+ with curated TLS 1.2 cipher suites.
 - Supports TLS 1.3 only mode via `WithTLS13Only`.
+- Supports hybrid post-quantum key exchange via `WithPostQuantumKeyExchange` (X25519MLKEM768).
 - Supports mTLS through `WithClientAuth` and `WithClientCAs`.
+
+Notes:
+
+- `WithPostQuantumKeyExchange` only applies to TLS 1.3 handshakes; peers without support will negotiate X25519.
+- Prefer `WithRootCAs` and `WithServerName` over `WithInsecureSkipVerify` in production.
+
+Examples:
+
+```go
+package main
+
+import (
+ "crypto/tls"
+
+ "github.com/hyp3rd/sectools/pkg/tlsconfig"
+)
+
+func main() {
+ cfg, err := tlsconfig.NewServerConfig(
+  tlsconfig.WithCertificates(tls.Certificate{}),
+  tlsconfig.WithPostQuantumKeyExchange(),
+  tlsconfig.WithClientAuth(tls.RequireAndVerifyClientCert),
+ )
+ if err != nil {
+  panic(err)
+ }
+
+ _ = cfg
+}
+```
+
+```go
+package main
+
+import (
+ "crypto/x509"
+
+ "github.com/hyp3rd/sectools/pkg/tlsconfig"
+)
+
+func main() {
+ roots, err := x509.SystemCertPool()
+ if err != nil {
+  panic(err)
+ }
+
+ cfg, err := tlsconfig.NewClientConfig(
+  tlsconfig.WithRootCAs(roots),
+  tlsconfig.WithServerName("api.example.com"),
+  tlsconfig.WithTLS13Only(),
+  tlsconfig.WithPostQuantumKeyExchange(),
+ )
+ if err != nil {
+  panic(err)
+ }
+
+ _ = cfg
+}
+```
 
 ## pkg/sanitize
 

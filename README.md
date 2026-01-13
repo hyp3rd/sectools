@@ -20,7 +20,7 @@ Security-focused Go helpers for file I/O, in-memory handling of sensitive data, 
 - Random token generation and validation with entropy/length caps
 - Bounded base64/hex encoding and strict JSON decoding
 - Redaction helpers and secret detection heuristics for logs/config dumps
-- Opinionated TLS configs with TLS 1.2/1.3 defaults and mTLS options
+- Opinionated TLS configs with TLS 1.2/1.3 defaults, mTLS, and optional post-quantum key exchange
 - HTML/Markdown sanitization, SQL/NoSQL input guards, and filename sanitizers
 - Safe integer conversion helpers with overflow/negative guards
 
@@ -313,6 +313,9 @@ func main() {
 
 ### TLS config
 
+Hybrid post-quantum key exchange is optional and only negotiated in TLS 1.3.
+Peers that do not support it will fall back to X25519.
+
 ```go
 package main
 
@@ -325,6 +328,7 @@ import (
 func main() {
  serverConfig, err := tlsconfig.NewServerConfig(
   tlsconfig.WithCertificates(tls.Certificate{}),
+  tlsconfig.WithPostQuantumKeyExchange(),
   tlsconfig.WithClientAuth(tls.RequireAndVerifyClientCert),
  )
  if err != nil {
@@ -332,6 +336,35 @@ func main() {
  }
 
  _ = serverConfig
+}
+```
+
+```go
+package main
+
+import (
+ "crypto/x509"
+
+ "github.com/hyp3rd/sectools/pkg/tlsconfig"
+)
+
+func main() {
+ roots, err := x509.SystemCertPool()
+ if err != nil {
+  panic(err)
+ }
+
+ clientConfig, err := tlsconfig.NewClientConfig(
+  tlsconfig.WithRootCAs(roots),
+  tlsconfig.WithServerName("api.example.com"),
+  tlsconfig.WithTLS13Only(),
+  tlsconfig.WithPostQuantumKeyExchange(),
+ )
+ if err != nil {
+  panic(err)
+ }
+
+ _ = clientConfig
 }
 ```
 

@@ -9,8 +9,8 @@ require (
 	github.com/hyp3rd/ewrap v1.3.5
 	github.com/hyp3rd/hyperlogger v0.0.8
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/crypto v0.46.0
-	golang.org/x/net v0.48.0
+	golang.org/x/crypto v0.47.0
+	golang.org/x/net v0.49.0
 )
 
 require (
