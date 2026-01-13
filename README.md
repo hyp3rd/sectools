@@ -326,8 +326,13 @@ import (
 )
 
 func main() {
+ cert, err := tls.LoadX509KeyPair("server.crt", "server.key")
+ if err != nil {
+  panic(err)
+ }
+
  serverConfig, err := tlsconfig.NewServerConfig(
-  tlsconfig.WithCertificates(tls.Certificate{}),
+  tlsconfig.WithCertificates(cert),
   tlsconfig.WithPostQuantumKeyExchange(),
   tlsconfig.WithClientAuth(tls.RequireAndVerifyClientCert),
  )
