@@ -44,7 +44,7 @@ func NewClientConfig(opts ...Option) (*tls.Config, error) {
 	}
 
 	return &tls.Config{
-		MinVersion:           cfg.minVersion, // #nosec G402 -- validated against tls.VersionTLS12 in validateCommonConfig.
+		MinVersion:           cfg.minVersion, // #nosec G402 -- validated against tlsDefaultMinVersion in validateCommonConfig.
 		MaxVersion:           cfg.maxVersion,
 		CipherSuites:         cfg.cipherSuites,
 		CurvePreferences:     cfg.curvePreferences,
@@ -76,7 +76,7 @@ func NewServerConfig(opts ...Option) (*tls.Config, error) {
 	}
 
 	return &tls.Config{
-		MinVersion:       cfg.minVersion, // #nosec G402 -- validated against tls.VersionTLS12 in validateCommonConfig.
+		MinVersion:       cfg.minVersion, // #nosec G402 -- validated against tlsDefaultMinVersion in validateCommonConfig.
 		MaxVersion:       cfg.maxVersion,
 		CipherSuites:     cfg.cipherSuites,
 		CurvePreferences: cfg.curvePreferences,
