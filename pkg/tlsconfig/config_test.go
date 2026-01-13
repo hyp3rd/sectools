@@ -70,6 +70,28 @@ func TestClientConfigRejectsWeakVersion(t *testing.T) {
 	}
 }
 
+func TestClientConfigRejectsWeakMaxVersion(t *testing.T) {
+	_, err := NewClientConfig(WithMaxVersion(tls.VersionTLS10))
+	if !errors.Is(err, ErrTLSVersionTooLow) {
+		t.Fatalf("expected ErrTLSVersionTooLow, got %v", err)
+	}
+
+	_, err = NewClientConfig(WithMaxVersion(tls.VersionTLS12))
+	if !errors.Is(err, ErrTLSVersionTooLow) {
+		t.Fatalf("expected ErrTLSVersionTooLow, got %v", err)
+	}
+}
+
+func TestClientConfigRejectsInvalidVersionRange(t *testing.T) {
+	_, err := NewClientConfig(
+		WithMinVersion(tls.VersionTLS13),
+		WithMaxVersion(tls.VersionTLS10),
+	)
+	if !errors.Is(err, ErrTLSVersionTooLow) {
+		t.Fatalf("expected ErrTLSVersionTooLow, got %v", err)
+	}
+}
+
 func TestClientConfigRejectsWeakCipher(t *testing.T) {
 	_, err := NewClientConfig(WithCipherSuites(tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA))
 	if !errors.Is(err, ErrTLSInvalidCipherSuites) {

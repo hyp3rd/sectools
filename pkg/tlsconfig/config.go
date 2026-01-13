@@ -319,8 +319,13 @@ func validateCommonConfig(cfg config) error {
 		return ErrTLSVersionTooLow
 	}
 
-	if cfg.maxVersion != 0 && cfg.maxVersion < cfg.minVersion {
-		return ErrTLSVersionRange
+	if cfg.maxVersion != 0 {
+		if cfg.maxVersion < tlsDefaultMinVersion {
+			return ErrTLSVersionTooLow
+		}
+		if cfg.maxVersion < cfg.minVersion {
+			return ErrTLSVersionRange
+		}
 	}
 
 	// Cipher suite configuration is only relevant for TLS versions below 1.3.
