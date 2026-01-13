@@ -85,6 +85,8 @@ func NewServerConfig(opts ...Option) (*tls.Config, error) {
 		GetCertificate:           cfg.getCertificate,
 		ClientAuth:               cfg.clientAuth,
 		ClientCAs:                cfg.clientCAs,
+		// PreferServerCipherSuites is deprecated in Go 1.17+ and ignored for TLS 1.3,
+		// but we keep it enabled for TLS 1.2 compatibility.
 		PreferServerCipherSuites: true,
 		KeyLogWriter:             cfg.keyLogWriter,
 	}, nil
