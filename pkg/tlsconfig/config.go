@@ -323,8 +323,14 @@ func validateCommonConfig(cfg config) error {
 		return ErrTLSVersionRange
 	}
 
-	if len(cfg.cipherSuites) == 0 || !areCipherSuitesAllowed(cfg.cipherSuites) {
-		return ErrTLSInvalidCipherSuites
+	// Cipher suite configuration is only relevant for TLS versions below 1.3.
+	// When TLS 1.3 is used exclusively (minVersion >= tls.VersionTLS13),
+	// cipher suites cannot be configured and are ignored by crypto/tls, so
+	// we skip this validation in that case.
+	if cfg.minVersion < tls.VersionTLS13 {
+		if len(cfg.cipherSuites) == 0 || !areCipherSuitesAllowed(cfg.cipherSuites) {
+			return ErrTLSInvalidCipherSuites
+		}
 	}
 
 	if len(cfg.curvePreferences) == 0 || !areCurvesAllowed(cfg.curvePreferences) {
