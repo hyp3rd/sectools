@@ -8,28 +8,27 @@ import (
 )
 
 const (
-	tlsDefaultMinVersion = tls.VersionTLS12
+	tlsDefaultMinVersion = tls.VersionTLS13
 )
 
 // Option configures TLS settings.
 type Option func(*config) error
 
 type config struct {
-	minVersion               uint16
-	maxVersion               uint16
-	cipherSuites             []uint16
-	curvePreferences         []tls.CurveID
-	nextProtos               []string
-	serverName               string
-	rootCAs                  *x509.CertPool
-	clientCAs                *x509.CertPool
-	certificates             []tls.Certificate
-	getCertificate           func(*tls.ClientHelloInfo) (*tls.Certificate, error)
-	getClientCertificate     func(*tls.CertificateRequestInfo) (*tls.Certificate, error)
-	clientAuth               tls.ClientAuthType
-	insecureSkipVerify       bool
-	keyLogWriter             io.Writer
-	preferServerCipherSuites bool
+	minVersion           uint16
+	maxVersion           uint16
+	cipherSuites         []uint16
+	curvePreferences     []tls.CurveID
+	nextProtos           []string
+	serverName           string
+	rootCAs              *x509.CertPool
+	clientCAs            *x509.CertPool
+	certificates         []tls.Certificate
+	getCertificate       func(*tls.ClientHelloInfo) (*tls.Certificate, error)
+	getClientCertificate func(*tls.CertificateRequestInfo) (*tls.Certificate, error)
+	clientAuth           tls.ClientAuthType
+	insecureSkipVerify   bool
+	keyLogWriter         io.Writer
 }
 
 // NewClientConfig returns a TLS client config with safe defaults.
@@ -43,9 +42,9 @@ func NewClientConfig(opts ...Option) (*tls.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	//nolint:gosec
+
 	return &tls.Config{
-		MinVersion:           cfg.minVersion,
+		MinVersion:           cfg.minVersion, // #nosec G402 -- validated against tls.VersionTLS12 in validateCommonConfig.
 		MaxVersion:           cfg.maxVersion,
 		CipherSuites:         cfg.cipherSuites,
 		CurvePreferences:     cfg.curvePreferences,
@@ -54,7 +53,7 @@ func NewClientConfig(opts ...Option) (*tls.Config, error) {
 		RootCAs:              cfg.rootCAs,
 		Certificates:         cfg.certificates,
 		GetClientCertificate: cfg.getClientCertificate,
-		InsecureSkipVerify:   cfg.insecureSkipVerify,
+		InsecureSkipVerify:   cfg.insecureSkipVerify, // #nosec G402 -- explicit opt-in for local/testing use.
 		KeyLogWriter:         cfg.keyLogWriter,
 	}, nil
 }
@@ -75,9 +74,9 @@ func NewServerConfig(opts ...Option) (*tls.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	//nolint:gosec
+
 	return &tls.Config{
-		MinVersion:               cfg.minVersion,
+		MinVersion:               cfg.minVersion, // #nosec G402 -- validated against tls.VersionTLS12 in validateCommonConfig.
 		MaxVersion:               cfg.maxVersion,
 		CipherSuites:             cfg.cipherSuites,
 		CurvePreferences:         cfg.curvePreferences,
@@ -86,7 +85,7 @@ func NewServerConfig(opts ...Option) (*tls.Config, error) {
 		GetCertificate:           cfg.getCertificate,
 		ClientAuth:               cfg.clientAuth,
 		ClientCAs:                cfg.clientCAs,
-		PreferServerCipherSuites: cfg.preferServerCipherSuites,
+		PreferServerCipherSuites: true,
 		KeyLogWriter:             cfg.keyLogWriter,
 	}, nil
 }
@@ -294,10 +293,9 @@ func WithKeyLogWriter(writer io.Writer) Option {
 
 func applyOptions(opts []Option) (config, error) {
 	cfg := config{
-		minVersion:               tlsDefaultMinVersion,
-		cipherSuites:             defaultCipherSuites(),
-		curvePreferences:         defaultCurvePreferences(),
-		preferServerCipherSuites: true,
+		minVersion:       tlsDefaultMinVersion,
+		cipherSuites:     defaultCipherSuites(),
+		curvePreferences: defaultCurvePreferences(),
 	}
 
 	for _, opt := range opts {
