@@ -76,15 +76,15 @@ func NewServerConfig(opts ...Option) (*tls.Config, error) {
 	}
 
 	return &tls.Config{
-		MinVersion:               cfg.minVersion, // #nosec G402 -- validated against tls.VersionTLS12 in validateCommonConfig.
-		MaxVersion:               cfg.maxVersion,
-		CipherSuites:             cfg.cipherSuites,
-		CurvePreferences:         cfg.curvePreferences,
-		NextProtos:               cfg.nextProtos,
-		Certificates:             cfg.certificates,
-		GetCertificate:           cfg.getCertificate,
-		ClientAuth:               cfg.clientAuth,
-		ClientCAs:                cfg.clientCAs,
+		MinVersion:       cfg.minVersion, // #nosec G402 -- validated against tls.VersionTLS12 in validateCommonConfig.
+		MaxVersion:       cfg.maxVersion,
+		CipherSuites:     cfg.cipherSuites,
+		CurvePreferences: cfg.curvePreferences,
+		NextProtos:       cfg.nextProtos,
+		Certificates:     cfg.certificates,
+		GetCertificate:   cfg.getCertificate,
+		ClientAuth:       cfg.clientAuth,
+		ClientCAs:        cfg.clientCAs,
 		// PreferServerCipherSuites is deprecated in Go 1.17+ and ignored for TLS 1.3,
 		// but we keep it enabled for TLS 1.2 compatibility.
 		PreferServerCipherSuites: true,
