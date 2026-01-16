@@ -33,6 +33,7 @@ func TestTOTPGenerateAndVerify(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected verify, got %v", err)
 	}
+
 	if !ok {
 		t.Fatalf("expected valid code")
 	}
@@ -46,6 +47,7 @@ func TestTOTPGenerateAndVerify(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected mismatch without error, got %v", err)
 	}
+
 	if ok {
 		t.Fatalf("expected invalid code")
 	}
@@ -73,6 +75,7 @@ func TestTOTPVerifySkew(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected verify, got %v", err)
 	}
+
 	if !ok {
 		t.Fatalf("expected valid code within skew")
 	}

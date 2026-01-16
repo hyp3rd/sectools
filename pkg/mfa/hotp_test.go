@@ -19,6 +19,7 @@ func TestHOTPGenerateAndVerify(t *testing.T) {
 	}
 
 	counter := uint64(1)
+
 	code, err := helper.Generate(counter)
 	if err != nil {
 		t.Fatalf("expected code, got %v", err)
@@ -28,9 +29,11 @@ func TestHOTPGenerateAndVerify(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected verify, got %v", err)
 	}
+
 	if !ok {
 		t.Fatalf("expected valid code")
 	}
+
 	if next != counter+1 {
 		t.Fatalf("expected next counter %d, got %d", counter+1, next)
 	}
@@ -43,6 +46,7 @@ func TestHOTPVerifyWindow(t *testing.T) {
 	}
 
 	counter := uint64(5)
+
 	code, err := helper.Generate(counter + 1)
 	if err != nil {
 		t.Fatalf("expected code, got %v", err)
@@ -52,9 +56,11 @@ func TestHOTPVerifyWindow(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected verify, got %v", err)
 	}
+
 	if !ok {
 		t.Fatalf("expected valid code within window")
 	}
+
 	if next != counter+2 {
 		t.Fatalf("expected next counter %d, got %d", counter+2, next)
 	}
