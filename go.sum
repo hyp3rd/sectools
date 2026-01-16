@@ -10,8 +10,8 @@ github.com/golang-jwt/jwt/v5 v5.3.0 h1:pv4AsKCKKZuqlgs5sUmn4x8UlGa0kEVt/puTpKx9v
 github.com/golang-jwt/jwt/v5 v5.3.0/go.mod h1:fxCRLWMO43lRc8nhHWY6LGqRcf+1gQWArsqaEUEa5bE=
 github.com/hyp3rd/ewrap v1.3.5 h1:qXnWrmTQEt6zeSap5I/c047GSFlq3L8zIxiqdB1W7MU=
 github.com/hyp3rd/ewrap v1.3.5/go.mod h1:Nf6m8teevefjvr3ejK47ofL4F05cKpMMGxt3TFIC+B8=
-github.com/hyp3rd/hyperlogger v0.0.8 h1:BIbKUIw4e5yHX9MJksSvW533nDXs7Qic1PFx25jO+Ac=
-github.com/hyp3rd/hyperlogger v0.0.8/go.mod h1:bhPNxJhbLr4Efk9/ofp1YExAN37Y1CnPiDaydQw0vpU=
+github.com/hyp3rd/hyperlogger v0.0.9 h1:2DEMtF8pdIuFORwRo827Yd6kzDxVT8U1e2dt2IzOP3s=
+github.com/hyp3rd/hyperlogger v0.0.9/go.mod h1:Ef9w7T6RjtGyJJl6z8TrARvqs2uAj6DtRRKlZag279c=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.5.2 h1:xuMeJ0Sdp5ZMRXx/aWO6RZxdr3beISkG5/G/aIRr3pY=
