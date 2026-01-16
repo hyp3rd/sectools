@@ -25,6 +25,12 @@ This checklist is a quick reference for teams using sectools in production.
 - Use `WithJWTVerificationKeys` with `kid` for key rotation and enforce short expirations.
 - Prefer PASETO v4 local/public helpers for new tokens and keep issuer/audience rules consistent.
 
+## MFA
+
+- Use `pkg/mfa` for TOTP/HOTP with drift handling and validated secrets.
+- Keep TOTP skew and HOTP look-ahead windows small to reduce replay risk.
+- Store MFA secrets securely; avoid logging provisioning URLs or raw secrets.
+
 ## Random Tokens
 
 - Use `pkg/tokens` to generate API keys or reset tokens with sufficient entropy.

@@ -7,6 +7,7 @@ supporting implementations in `internal/`.
 
 - `pkg/io`: secure file read/write helpers.
 - `pkg/auth`: JWT and PASETO helpers with strict validation.
+- `pkg/mfa`: TOTP/HOTP helpers for multi-factor authentication.
 - `pkg/password`: password hashing helpers.
 - `pkg/validate`: email and URL validation helpers.
 - `pkg/tokens`: random token generation and validation helpers.
@@ -256,6 +257,59 @@ Behavior:
 - Local (symmetric) and public (asymmetric) v4 helpers with optional issuer/audience/subject rules.
 - Expiration is required by default; use `WithPasetoLocalAllowMissingExpiration`, `WithPasetoPublicSignerAllowMissingExpiration`, or `WithPasetoPublicAllowMissingExpiration` to opt out.
 - `WithPasetoLocalClock` and `WithPasetoPublicClock` control time-based validation.
+
+## pkg/mfa
+
+### TOTP and HOTP
+
+```go
+func GenerateTOTPKey(opts ...TOTPKeyOption) (*otp.Key, error)
+func NewTOTP(secret string, opts ...TOTPOption) (*TOTP, error)
+func (t *TOTP) Generate() (string, error)
+func (t *TOTP) Verify(code string) (bool, error)
+
+func GenerateHOTPKey(opts ...HOTPKeyOption) (*otp.Key, error)
+func NewHOTP(secret string, opts ...HOTPOption) (*HOTP, error)
+func (h *HOTP) Generate(counter uint64) (string, error)
+func (h *HOTP) Verify(code string, counter uint64) (bool, uint64, error)
+```
+
+Behavior:
+
+- TOTP defaults to a 30s period, 6 digits, HMAC-SHA1, and 1-step skew.
+- HOTP defaults to 6 digits, HMAC-SHA1, and a 3-step look-ahead window.
+- Secrets must be base32 and meet the minimum byte length (default 16 bytes).
+- `GenerateTOTPKey`/`GenerateHOTPKey` return provisioning keys with `otpauth://` URLs.
+- `otp.Key` exposes `URL()` and `Image()` for QR provisioning.
+- Store secrets securely and avoid logging provisioning URLs.
+- Update the HOTP counter only when `Verify` returns ok.
+
+Example:
+
+```go
+import "github.com/hyp3rd/sectools/pkg/mfa"
+
+key, err := mfa.GenerateTOTPKey(
+ mfa.WithTOTPKeyIssuer("sectools"),
+ mfa.WithTOTPKeyAccountName("user@example.com"),
+)
+if err != nil {
+ panic(err)
+}
+
+totp, err := mfa.NewTOTP(key.Secret())
+if err != nil {
+ panic(err)
+}
+
+ok, err := totp.Verify("123456")
+if err != nil {
+ panic(err)
+}
+if !ok {
+ panic("invalid code")
+}
+```
 
 ## pkg/password
 
