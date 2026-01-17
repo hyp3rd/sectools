@@ -23,3 +23,8 @@ const (
 	// DigitsEight uses 8-digit OTP codes.
 	DigitsEight = otp.DigitsEight
 )
+
+// RateLimiter enforces rate limiting for MFA verification attempts.
+type RateLimiter interface {
+	Allow() (bool, error)
+}

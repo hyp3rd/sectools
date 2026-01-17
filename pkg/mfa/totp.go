@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/pquerna/otp"
+	"github.com/pquerna/otp/hotp"
 	"github.com/pquerna/otp/totp"
 
 	"github.com/hyp3rd/sectools/pkg/converters"
@@ -28,6 +29,7 @@ type totpConfig struct {
 	skew           uint
 	minSecretBytes int
 	clock          func() time.Time
+	rateLimiter    RateLimiter
 }
 
 // NewTOTP constructs a TOTP helper using the provided base32 secret.
@@ -68,7 +70,15 @@ func (t *TOTP) Generate() (string, error) {
 
 // Verify checks whether the supplied TOTP code is valid for the current time.
 func (t *TOTP) Verify(code string) (bool, error) {
-	return t.verifyAt(code, t.opts.clock())
+	ok, _, err := t.verifyAtWithStep(code, t.opts.clock())
+
+	return ok, err
+}
+
+// VerifyWithStep checks a TOTP code and returns the matched time step.
+// Use the returned step to prevent replays by rejecting codes <= the last accepted step.
+func (t *TOTP) VerifyWithStep(code string) (bool, uint64, error) {
+	return t.verifyAtWithStep(code, t.opts.clock())
 }
 
 func (t *TOTP) generateAt(now time.Time) (string, error) {
@@ -85,23 +95,94 @@ func (t *TOTP) generateAt(now time.Time) (string, error) {
 	return code, nil
 }
 
-func (t *TOTP) verifyAt(code string, now time.Time) (bool, error) {
+func (t *TOTP) verifyAtWithStep(code string, now time.Time) (bool, uint64, error) {
+	err := checkRateLimiter(t.opts.rateLimiter)
+	if err != nil {
+		return false, 0, err
+	}
+
 	normalized, err := normalizeCode(code, t.opts.digits)
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
 
 	opts, err := t.validateOpts()
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
 
-	ok, err := totp.ValidateCustom(normalized, t.secret, now, opts)
+	baseCounter, ok, err := t.baseCounter(now)
 	if err != nil {
-		return false, fmt.Errorf(mfaWrapFormat, ErrInvalidMFAConfig, err)
+		return false, 0, err
 	}
 
-	return ok, nil
+	if !ok {
+		return false, 0, nil
+	}
+
+	return t.verifyWithSkew(normalized, baseCounter, opts)
+}
+
+func (t *TOTP) baseCounter(now time.Time) (int64, bool, error) {
+	stepSeconds := int64(t.opts.period / time.Second)
+	if stepSeconds <= 0 {
+		return 0, false, ErrInvalidMFAConfig
+	}
+
+	baseCounter := now.Unix() / stepSeconds
+	if baseCounter < 0 {
+		return 0, false, nil
+	}
+
+	return baseCounter, true, nil
+}
+
+func (t *TOTP) verifyWithSkew(normalized string, baseCounter int64, opts totp.ValidateOpts) (bool, uint64, error) {
+	hotpOpts := hotp.ValidateOpts{
+		Digits:    opts.Digits,
+		Algorithm: opts.Algorithm,
+	}
+
+	ok, step, err := t.verifyAtCounter(normalized, baseCounter, hotpOpts)
+	if err != nil || ok {
+		return ok, step, err
+	}
+
+	for offset := uint(1); offset <= opts.Skew; offset++ {
+		offsetValue, err := converters.SafeInt64FromUint64(uint64(offset))
+		if err != nil {
+			return false, 0, fmt.Errorf(mfaWrapFormat, ErrInvalidMFAConfig, err)
+		}
+
+		ok, step, err = t.verifyAtCounter(normalized, baseCounter+offsetValue, hotpOpts)
+		if err != nil || ok {
+			return ok, step, err
+		}
+
+		ok, step, err = t.verifyAtCounter(normalized, baseCounter-offsetValue, hotpOpts)
+		if err != nil || ok {
+			return ok, step, err
+		}
+	}
+
+	return false, 0, nil
+}
+
+func (t *TOTP) verifyAtCounter(normalized string, counter int64, opts hotp.ValidateOpts) (bool, uint64, error) {
+	if counter < 0 {
+		return false, 0, nil
+	}
+
+	codeCandidate, err := hotp.GenerateCodeCustom(t.secret, uint64(counter), opts)
+	if err != nil {
+		return false, 0, fmt.Errorf(mfaWrapFormat, ErrInvalidMFAConfig, err)
+	}
+
+	if constantTimeEquals(normalized, codeCandidate) {
+		return true, uint64(counter), nil
+	}
+
+	return false, 0, nil
 }
 
 func (t *TOTP) validateOpts() (totp.ValidateOpts, error) {
@@ -191,6 +272,19 @@ func WithTOTPClock(clock func() time.Time) TOTPOption {
 		}
 
 		cfg.clock = clock
+
+		return nil
+	}
+}
+
+// WithTOTPRateLimiter sets a rate limiter for TOTP verification.
+func WithTOTPRateLimiter(limiter RateLimiter) TOTPOption {
+	return func(cfg *totpConfig) error {
+		if limiter == nil {
+			return ErrInvalidMFAConfig
+		}
+
+		cfg.rateLimiter = limiter
 
 		return nil
 	}

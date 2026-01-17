@@ -267,11 +267,13 @@ func GenerateTOTPKey(opts ...TOTPKeyOption) (*otp.Key, error)
 func NewTOTP(secret string, opts ...TOTPOption) (*TOTP, error)
 func (t *TOTP) Generate() (string, error)
 func (t *TOTP) Verify(code string) (bool, error)
+func (t *TOTP) VerifyWithStep(code string) (bool, uint64, error)
 
 func GenerateHOTPKey(opts ...HOTPKeyOption) (*otp.Key, error)
 func NewHOTP(secret string, opts ...HOTPOption) (*HOTP, error)
 func (h *HOTP) Generate(counter uint64) (string, error)
 func (h *HOTP) Verify(code string, counter uint64) (bool, uint64, error)
+func (h *HOTP) Resync(code1 string, code2 string, counter uint64) (bool, uint64, error)
 ```
 
 Behavior:
@@ -283,6 +285,9 @@ Behavior:
 - `otp.Key` exposes `URL()` and `Image()` for QR provisioning.
 - Store secrets securely and avoid logging provisioning URLs.
 - Update the HOTP counter only when `Verify` returns ok.
+- Use `VerifyWithStep` to store the last accepted TOTP step and reject replays.
+- Use `Resync` with two consecutive HOTP codes to recover a drifting counter.
+- Configure rate limiting with `WithTOTPRateLimiter`, `WithHOTPRateLimiter`, and `WithBackupRateLimiter`.
 
 Example:
 
@@ -309,6 +314,47 @@ if err != nil {
 if !ok {
  panic("invalid code")
 }
+```
+
+### Backup codes
+
+```go
+func NewBackupCodeManager(opts ...BackupOption) (*BackupCodeManager, error)
+func (m *BackupCodeManager) Generate() (BackupCodeSet, error)
+func (m *BackupCodeManager) Verify(code string, hashes []string) (bool, []string, error)
+```
+
+Behavior:
+
+- Generates grouped codes for user display and hashed codes for storage.
+- Normalizes input by removing spaces/hyphens and uppercasing.
+- Uses Argon2id (balanced) for hashing by default; configurable via options.
+- `Verify` returns the remaining hashes with the matched entry removed.
+- Store only hashes; backup codes are one-time use.
+
+Example:
+
+```go
+import "github.com/hyp3rd/sectools/pkg/mfa"
+
+manager, err := mfa.NewBackupCodeManager()
+if err != nil {
+ panic(err)
+}
+
+set, err := manager.Generate()
+if err != nil {
+ panic(err)
+}
+
+// Persist set.Hashes and show set.Codes to the user once.
+ok, remaining, err := manager.Verify(set.Codes[0], set.Hashes)
+if err != nil {
+ panic(err)
+}
+
+_ = remaining
+_ = ok
 ```
 
 ## pkg/password

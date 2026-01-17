@@ -25,7 +25,9 @@ type hotpConfig struct {
 	digits         Digits
 	algorithm      Algorithm
 	lookAhead      uint
+	resyncWindow   uint
 	minSecretBytes int
+	rateLimiter    RateLimiter
 }
 
 // NewHOTP constructs an HOTP helper using the provided base32 secret.
@@ -61,17 +63,17 @@ func NewHOTP(secret string, opts ...HOTPOption) (*HOTP, error) {
 
 // Generate returns the HOTP code for the specified counter.
 func (h *HOTP) Generate(counter uint64) (string, error) {
-	code, err := hotp.GenerateCodeCustom(h.secret, counter, h.validateOpts())
-	if err != nil {
-		return "", fmt.Errorf(mfaWrapFormat, ErrInvalidMFAConfig, err)
-	}
-
-	return code, nil
+	return h.generateCode(counter)
 }
 
 // Verify checks whether the supplied HOTP code is valid for the counter window.
 // On success, it returns true and the next counter to persist.
 func (h *HOTP) Verify(code string, counter uint64) (bool, uint64, error) {
+	err := checkRateLimiter(h.opts.rateLimiter)
+	if err != nil {
+		return false, counter, err
+	}
+
 	normalized, err := normalizeCode(code, h.opts.digits)
 	if err != nil {
 		return false, counter, err
@@ -83,9 +85,9 @@ func (h *HOTP) Verify(code string, counter uint64) (bool, uint64, error) {
 			return false, counter, ErrMFAInvalidCounter
 		}
 
-		candidate, err := hotp.GenerateCodeCustom(h.secret, counter+offset, h.validateOpts())
+		candidate, err := h.generateCode(counter + offset)
 		if err != nil {
-			return false, counter, fmt.Errorf(mfaWrapFormat, ErrInvalidMFAConfig, err)
+			return false, counter, err
 		}
 
 		if constantTimeEquals(normalized, candidate) {
@@ -94,6 +96,86 @@ func (h *HOTP) Verify(code string, counter uint64) (bool, uint64, error) {
 	}
 
 	return false, counter, nil
+}
+
+// Resync verifies two consecutive HOTP codes to recover a drifting counter.
+// On success, it returns true and the next counter to persist.
+func (h *HOTP) Resync(code1, code2 string, counter uint64) (bool, uint64, error) {
+	err := checkRateLimiter(h.opts.rateLimiter)
+	if err != nil {
+		return false, counter, err
+	}
+
+	normalized1, err := normalizeCode(code1, h.opts.digits)
+	if err != nil {
+		return false, counter, err
+	}
+
+	normalized2, err := normalizeCode(code2, h.opts.digits)
+	if err != nil {
+		return false, counter, err
+	}
+
+	return h.resyncWithWindow(normalized1, normalized2, counter)
+}
+
+func (h *HOTP) resyncWithWindow(code1, code2 string, counter uint64) (bool, uint64, error) {
+	maxOffset := uint64(h.opts.resyncWindow)
+	for offset := zeroUint64; offset <= maxOffset; offset++ {
+		ok, next, err := h.resyncAtOffset(code1, code2, counter, offset)
+		if err != nil || ok {
+			return ok, next, err
+		}
+	}
+
+	return false, counter, nil
+}
+
+func (h *HOTP) resyncAtOffset(code1, code2 string, counter, offset uint64) (bool, uint64, error) {
+	if counter > math.MaxUint64-offset {
+		return false, counter, ErrMFAInvalidCounter
+	}
+
+	base := counter + offset
+
+	candidate1, err := h.generateCode(base)
+	if err != nil {
+		return false, counter, err
+	}
+
+	if !constantTimeEquals(code1, candidate1) {
+		return false, counter, nil
+	}
+
+	if base > math.MaxUint64-counterIncrement {
+		return false, counter, ErrMFAInvalidCounter
+	}
+
+	next := base + counterIncrement
+
+	candidate2, err := h.generateCode(next)
+	if err != nil {
+		return false, counter, err
+	}
+
+	if !constantTimeEquals(code2, candidate2) {
+		return false, counter, nil
+	}
+
+	if next > math.MaxUint64-counterIncrement {
+		return false, counter, ErrMFAInvalidCounter
+	}
+
+	return true, next + counterIncrement, nil
+}
+
+func (h *HOTP) generateCode(counter uint64) (string, error) {
+	code, err := hotp.GenerateCodeCustom(h.secret, counter, h.validateOpts())
+	if err != nil {
+		return "", fmt.Errorf(mfaWrapFormat, ErrInvalidMFAConfig, err)
+	}
+
+	return code, nil
 }
 
 func (h *HOTP) validateOpts() hotp.ValidateOpts {
@@ -142,6 +224,19 @@ func WithHOTPWindow(lookAhead uint) HOTPOption {
 	}
 }
 
+// WithHOTPResyncWindow sets the look-ahead window used for resync.
+func WithHOTPResyncWindow(resyncWindow uint) HOTPOption {
+	return func(cfg *hotpConfig) error {
+		if resyncWindow > hotpMaxResyncWindow {
+			return ErrInvalidMFAConfig
+		}
+
+		cfg.resyncWindow = resyncWindow
+
+		return nil
+	}
+}
+
 // WithHOTPSecretMinBytes sets the minimum secret length in bytes.
 func WithHOTPSecretMinBytes(minBytes int) HOTPOption {
 	return func(cfg *hotpConfig) error {
@@ -155,11 +250,25 @@ func WithHOTPSecretMinBytes(minBytes int) HOTPOption {
 	}
 }
 
+// WithHOTPRateLimiter sets a rate limiter for HOTP verification.
+func WithHOTPRateLimiter(limiter RateLimiter) HOTPOption {
+	return func(cfg *hotpConfig) error {
+		if limiter == nil {
+			return ErrInvalidMFAConfig
+		}
+
+		cfg.rateLimiter = limiter
+
+		return nil
+	}
+}
+
 func defaultHOTPConfig() hotpConfig {
 	return hotpConfig{
 		digits:         DigitsSix,
 		algorithm:      AlgorithmSHA1,
 		lookAhead:      hotpDefaultLookAhead,
+		resyncWindow:   hotpDefaultResyncWindow,
 		minSecretBytes: mfaDefaultMinSecret,
 	}
 }
@@ -170,6 +279,10 @@ func validateHOTPConfig(cfg hotpConfig) error {
 	}
 
 	if cfg.lookAhead > hotpMaxLookAhead {
+		return ErrInvalidMFAConfig
+	}
+
+	if cfg.resyncWindow > hotpMaxResyncWindow {
 		return ErrInvalidMFAConfig
 	}
 

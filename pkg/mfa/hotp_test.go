@@ -66,6 +66,61 @@ func TestHOTPVerifyWindow(t *testing.T) {
 	}
 }
 
+func TestHOTPResync(t *testing.T) {
+	helper, err := NewHOTP(hotpTestSecret, WithHOTPResyncWindow(3))
+	if err != nil {
+		t.Fatalf("expected hotp helper, got %v", err)
+	}
+
+	counter := uint64(5)
+	code1, err := helper.Generate(counter + 2)
+	if err != nil {
+		t.Fatalf("expected code, got %v", err)
+	}
+
+	code2, err := helper.Generate(counter + 3)
+	if err != nil {
+		t.Fatalf("expected code, got %v", err)
+	}
+
+	ok, next, err := helper.Resync(code1, code2, counter)
+	if err != nil {
+		t.Fatalf("expected resync, got %v", err)
+	}
+	if !ok {
+		t.Fatalf("expected valid resync")
+	}
+	if next != counter+4 {
+		t.Fatalf("expected next counter %d, got %d", counter+4, next)
+	}
+}
+
+func TestHOTPResyncRejectsNonConsecutive(t *testing.T) {
+	helper, err := NewHOTP(hotpTestSecret, WithHOTPResyncWindow(3))
+	if err != nil {
+		t.Fatalf("expected hotp helper, got %v", err)
+	}
+
+	counter := uint64(5)
+	code1, err := helper.Generate(counter + 1)
+	if err != nil {
+		t.Fatalf("expected code, got %v", err)
+	}
+
+	code2, err := helper.Generate(counter + 3)
+	if err != nil {
+		t.Fatalf("expected code, got %v", err)
+	}
+
+	ok, _, err := helper.Resync(code1, code2, counter)
+	if err != nil {
+		t.Fatalf("expected resync, got %v", err)
+	}
+	if ok {
+		t.Fatalf("expected resync to fail")
+	}
+}
+
 func TestHOTPInvalidCode(t *testing.T) {
 	helper, err := NewHOTP(hotpTestSecret)
 	if err != nil {
@@ -82,6 +137,35 @@ func TestHOTPSecretTooShort(t *testing.T) {
 	_, err := NewHOTP("AAAA")
 	if !errors.Is(err, ErrMFASecretTooShort) {
 		t.Fatalf("expected ErrMFASecretTooShort, got %v", err)
+	}
+}
+
+func TestHOTPInvalidOptions(t *testing.T) {
+	tests := []struct {
+		name string
+		opts []HOTPOption
+	}{
+		{
+			name: "invalid-digits",
+			opts: []HOTPOption{WithHOTPDigits(Digits(99))},
+		},
+		{
+			name: "invalid-algorithm",
+			opts: []HOTPOption{WithHOTPAlgorithm(Algorithm(99))},
+		},
+		{
+			name: "invalid-resync-window",
+			opts: []HOTPOption{WithHOTPResyncWindow(hotpMaxResyncWindow + 1)},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := NewHOTP(hotpTestSecret, tt.opts...)
+			if !errors.Is(err, ErrInvalidMFAConfig) {
+				t.Fatalf("expected ErrInvalidMFAConfig, got %v", err)
+			}
+		})
 	}
 }
 

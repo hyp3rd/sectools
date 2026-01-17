@@ -3,31 +3,34 @@ package mfa
 import (
 	"crypto/subtle"
 	"encoding/base32"
+	"fmt"
 	"strings"
 	"time"
 )
 
 const (
-	totpDefaultPeriod                    = 30 * time.Second
-	totpMinPeriod                        = 15 * time.Second
-	totpMaxPeriod                        = 5 * time.Minute
-	totpDefaultSkew                      = 1
-	totpMaxSkew                          = 3
-	hotpDefaultLookAhead                 = 3
-	hotpMaxLookAhead                     = 10
-	mfaDefaultSecretSize                 = 20
-	mfaDefaultMinSecret                  = 16
-	mfaAbsoluteMinSecret                 = 10
-	mfaMaxSecret                         = 64
-	digitsSixLength                      = 6
-	digitsEightLength                    = 8
-	secretPaddingCharacter               = "="
-	mfaWrapFormat                        = "%w: %w"
-	digitsInvalidLength    int           = 0
-	zeroDuration           time.Duration = 0
-	zeroUint64             uint64        = 0
-	counterIncrement       uint64        = 1
-	constantTimeMatch      int           = 1
+	totpDefaultPeriod                     = 30 * time.Second
+	totpMinPeriod                         = 15 * time.Second
+	totpMaxPeriod                         = 5 * time.Minute
+	totpDefaultSkew                       = 1
+	totpMaxSkew                           = 3
+	hotpDefaultLookAhead                  = 3
+	hotpMaxLookAhead                      = 10
+	hotpDefaultResyncWindow               = 10
+	hotpMaxResyncWindow                   = 20
+	mfaDefaultSecretSize                  = 20
+	mfaDefaultMinSecret                   = 16
+	mfaAbsoluteMinSecret                  = 10
+	mfaMaxSecret                          = 64
+	digitsSixLength                       = 6
+	digitsEightLength                     = 8
+	secretPaddingCharacter                = "="
+	mfaWrapFormat                         = "%w: %w"
+	digitsInvalidLength     int           = 0
+	zeroDuration            time.Duration = 0
+	zeroUint64              uint64        = 0
+	counterIncrement        uint64        = 1
+	constantTimeMatch       int           = 1
 )
 
 func isValidDigits(digits Digits) bool {
@@ -127,4 +130,21 @@ func constantTimeEquals(a, b string) bool {
 	}
 
 	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == constantTimeMatch
+}
+
+func checkRateLimiter(limiter RateLimiter) error {
+	if limiter == nil {
+		return nil
+	}
+
+	allowed, err := limiter.Allow()
+	if err != nil {
+		return fmt.Errorf(mfaWrapFormat, ErrMFARateLimited, err)
+	}
+
+	if !allowed {
+		return ErrMFARateLimited
+	}
+
+	return nil
 }
