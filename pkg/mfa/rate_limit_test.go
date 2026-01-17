@@ -14,6 +14,7 @@ type testRateLimiter struct {
 
 func (t *testRateLimiter) Allow() (bool, error) {
 	t.calls++
+
 	return t.allow, t.err
 }
 
@@ -29,6 +30,7 @@ func TestTOTPVerifyRateLimited(t *testing.T) {
 	if !errors.Is(err, ErrMFARateLimited) {
 		t.Fatalf("expected ErrMFARateLimited, got %v", err)
 	}
+
 	if limiter.calls != 1 {
 		t.Fatalf("expected limiter to be called")
 	}
@@ -46,6 +48,7 @@ func TestHOTPVerifyRateLimited(t *testing.T) {
 	if !errors.Is(err, ErrMFARateLimited) {
 		t.Fatalf("expected ErrMFARateLimited, got %v", err)
 	}
+
 	if limiter.calls != 1 {
 		t.Fatalf("expected limiter to be called")
 	}
@@ -63,6 +66,7 @@ func TestBackupVerifyRateLimited(t *testing.T) {
 	if !errors.Is(err, ErrMFARateLimited) {
 		t.Fatalf("expected ErrMFARateLimited, got %v", err)
 	}
+
 	if limiter.calls != 1 {
 		t.Fatalf("expected limiter to be called")
 	}

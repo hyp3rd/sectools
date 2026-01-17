@@ -73,6 +73,7 @@ func TestHOTPResync(t *testing.T) {
 	}
 
 	counter := uint64(5)
+
 	code1, err := helper.Generate(counter + 2)
 	if err != nil {
 		t.Fatalf("expected code, got %v", err)
@@ -87,9 +88,11 @@ func TestHOTPResync(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected resync, got %v", err)
 	}
+
 	if !ok {
 		t.Fatalf("expected valid resync")
 	}
+
 	if next != counter+4 {
 		t.Fatalf("expected next counter %d, got %d", counter+4, next)
 	}
@@ -102,6 +105,7 @@ func TestHOTPResyncRejectsNonConsecutive(t *testing.T) {
 	}
 
 	counter := uint64(5)
+
 	code1, err := helper.Generate(counter + 1)
 	if err != nil {
 		t.Fatalf("expected code, got %v", err)
@@ -116,6 +120,7 @@ func TestHOTPResyncRejectsNonConsecutive(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected resync, got %v", err)
 	}
+
 	if ok {
 		t.Fatalf("expected resync to fail")
 	}
