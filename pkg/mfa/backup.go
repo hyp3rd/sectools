@@ -433,7 +433,7 @@ func (m *BackupCodeManager) normalizeBackupCode(code string) (string, error) {
 		case ' ', '-':
 			continue
 		default:
-			// Continue normal validation for all other characters.
+			// No-op: non-separator characters are validated in the logic below.
 		}
 
 		if ch >= 'a' && ch <= 'z' {
