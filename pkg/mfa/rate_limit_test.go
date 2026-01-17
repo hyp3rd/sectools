@@ -4,6 +4,13 @@ import (
 	"errors"
 	"testing"
 	"time"
+
+	"github.com/hyp3rd/ewrap"
+)
+
+const (
+	errMsgExpectedTOTPHelper        = "expected totp helper, got %v"
+	errMsgExpectedErrMFARateLimited = "expected ErrMFARateLimited, got %v"
 )
 
 type testRateLimiter struct {
@@ -25,12 +32,12 @@ func TestTOTPVerifyRateLimited(t *testing.T) {
 
 	helper, err := NewTOTP(totpTestSecret, WithTOTPRateLimiter(limiter))
 	if err != nil {
-		t.Fatalf("expected totp helper, got %v", err)
+		t.Fatalf(errMsgExpectedTOTPHelper, err)
 	}
 
 	_, err = helper.Verify("123456")
 	if !errors.Is(err, ErrMFARateLimited) {
-		t.Fatalf("expected ErrMFARateLimited, got %v", err)
+		t.Fatalf(errMsgExpectedErrMFARateLimited, err)
 	}
 
 	if limiter.calls != 1 {
@@ -45,12 +52,12 @@ func TestHOTPVerifyRateLimited(t *testing.T) {
 
 	helper, err := NewHOTP(hotpTestSecret, WithHOTPRateLimiter(limiter))
 	if err != nil {
-		t.Fatalf("expected hotp helper, got %v", err)
+		t.Fatalf(errExpectedHelper, err)
 	}
 
 	_, _, err = helper.Verify("123456", 0)
 	if !errors.Is(err, ErrMFARateLimited) {
-		t.Fatalf("expected ErrMFARateLimited, got %v", err)
+		t.Fatalf(errMsgExpectedErrMFARateLimited, err)
 	}
 
 	if limiter.calls != 1 {
@@ -70,7 +77,7 @@ func TestBackupVerifyRateLimited(t *testing.T) {
 
 	_, _, err = manager.Verify("ABCD", nil)
 	if !errors.Is(err, ErrMFARateLimited) {
-		t.Fatalf("expected ErrMFARateLimited, got %v", err)
+		t.Fatalf(errMsgExpectedErrMFARateLimited, err)
 	}
 
 	if limiter.calls != 1 {
@@ -81,19 +88,19 @@ func TestBackupVerifyRateLimited(t *testing.T) {
 func TestRateLimiterErrorWraps(t *testing.T) {
 	t.Parallel()
 
-	limiter := &testRateLimiter{allow: false, err: errors.New("backend")}
+	limiter := &testRateLimiter{allow: false, err: ewrap.New("backend")}
 
 	helper, err := NewTOTP(
 		totpTestSecret,
 		WithTOTPRateLimiter(limiter),
-		WithTOTPClock(func() time.Time { return time.Now() }),
+		WithTOTPClock(time.Now),
 	)
 	if err != nil {
-		t.Fatalf("expected totp helper, got %v", err)
+		t.Fatalf(errMsgExpectedTOTPHelper, err)
 	}
 
 	_, err = helper.Verify("123456")
 	if err == nil || !errors.Is(err, ErrMFARateLimited) {
-		t.Fatalf("expected ErrMFARateLimited, got %v", err)
+		t.Fatalf(errMsgExpectedErrMFARateLimited, err)
 	}
 }

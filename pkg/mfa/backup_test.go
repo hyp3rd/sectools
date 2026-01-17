@@ -105,6 +105,7 @@ func TestBackupCodeInvalidAlphabet(t *testing.T) {
 	}
 }
 
+//nolint:revive
 func TestBackupCodeInvalidOptions(t *testing.T) {
 	t.Parallel()
 

@@ -22,8 +22,12 @@ func TestSecureCopyFileDefaultOptions(t *testing.T) {
 
 	destPath := filepath.Join(os.TempDir(), destName)
 
-	t.Cleanup(func() { _ = os.Remove(destPath) })
+	t.Cleanup(func() {
+		err = os.Remove(destPath)
+		require.NoError(t, err)
+	})
 
+	//nolint:gosec
 	readData, err := os.ReadFile(destPath)
 	require.NoError(t, err)
 	require.Equal(t, data, readData)
@@ -65,5 +69,8 @@ func TestSecureCopyFileVerifyChecksum(t *testing.T) {
 
 	destPath := filepath.Join(os.TempDir(), destName)
 
-	t.Cleanup(func() { _ = os.Remove(destPath) })
+	t.Cleanup(func() {
+		err = os.Remove(destPath)
+		require.NoError(t, err)
+	})
 }

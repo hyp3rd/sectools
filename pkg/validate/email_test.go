@@ -9,6 +9,12 @@ import (
 	"golang.org/x/net/idna"
 )
 
+const (
+	errMsgValidator  = "expected validator, got %v"
+	errMsgValidEmail = "expected valid email, got %v"
+	testEmail        = "user@example.com"
+)
+
 type fakeResolver struct {
 	mxRecords map[string][]*net.MX
 	hosts     map[string][]string
@@ -37,12 +43,12 @@ func TestEmailValidateBasic(t *testing.T) {
 
 	validator, err := NewEmailValidator()
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
-	result, err := validator.Validate(context.Background(), "user@example.com")
+	result, err := validator.Validate(context.Background(), testEmail)
 	if err != nil {
-		t.Fatalf("expected valid email, got %v", err)
+		t.Fatalf(errMsgValidEmail, err)
 	}
 
 	if result.DomainASCII != "example.com" {
@@ -55,7 +61,7 @@ func TestEmailRejectDisplayName(t *testing.T) {
 
 	validator, err := NewEmailValidator()
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	_, err = validator.Validate(context.Background(), "Name <user@example.com>")
@@ -69,15 +75,15 @@ func TestEmailAllowDisplayName(t *testing.T) {
 
 	validator, err := NewEmailValidator(WithEmailAllowDisplayName(true))
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	result, err := validator.Validate(context.Background(), "Name <user@example.com>")
 	if err != nil {
-		t.Fatalf("expected valid email, got %v", err)
+		t.Fatalf(errMsgValidEmail, err)
 	}
 
-	if result.Address != "user@example.com" {
+	if result.Address != testEmail {
 		t.Fatalf("expected normalized address, got %s", result.Address)
 	}
 }
@@ -87,7 +93,7 @@ func TestEmailInvalidLocalPart(t *testing.T) {
 
 	validator, err := NewEmailValidator()
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	_, err = validator.Validate(context.Background(), "user..dot@example.com")
@@ -101,7 +107,7 @@ func TestEmailRequireTLD(t *testing.T) {
 
 	validator, err := NewEmailValidator()
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	_, err = validator.Validate(context.Background(), "user@localhost")
@@ -124,16 +130,16 @@ func TestEmailDomainVerificationMX(t *testing.T) {
 		WithEmailDNSResolver(resolver),
 	)
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
-	result, err := validator.Validate(context.Background(), "user@example.com")
+	result, err := validator.Validate(context.Background(), testEmail)
 	if err != nil {
-		t.Fatalf("expected valid email, got %v", err)
+		t.Fatalf(errMsgValidEmail, err)
 	}
 
 	if !result.DomainVerified || !result.VerifiedByMX {
-		t.Fatalf("expected mx verification")
+		t.Fatal("expected mx verification")
 	}
 }
 
@@ -151,16 +157,16 @@ func TestEmailDomainVerificationFallback(t *testing.T) {
 		WithEmailDNSResolver(resolver),
 	)
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
-	result, err := validator.Validate(context.Background(), "user@example.com")
+	result, err := validator.Validate(context.Background(), testEmail)
 	if err != nil {
-		t.Fatalf("expected valid email, got %v", err)
+		t.Fatalf(errMsgValidEmail, err)
 	}
 
 	if !result.DomainVerified || !result.VerifiedByA {
-		t.Fatalf("expected A record verification")
+		t.Fatal("expected A record verification")
 	}
 }
 
@@ -174,10 +180,10 @@ func TestEmailDomainVerificationUnverified(t *testing.T) {
 		WithEmailDNSResolver(resolver),
 	)
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
-	_, err = validator.Validate(context.Background(), "user@example.com")
+	_, err = validator.Validate(context.Background(), testEmail)
 	if !errors.Is(err, ErrEmailDomainUnverified) {
 		t.Fatalf("expected ErrEmailDomainUnverified, got %v", err)
 	}
@@ -188,12 +194,12 @@ func TestEmailAllowIDN(t *testing.T) {
 
 	validator, err := NewEmailValidator(WithEmailAllowIDN(true))
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	result, err := validator.Validate(context.Background(), "user@bücher.example")
 	if err != nil {
-		t.Fatalf("expected valid email, got %v", err)
+		t.Fatalf(errMsgValidEmail, err)
 	}
 
 	ascii, err := idna.Lookup.ToASCII("bücher.example")
@@ -211,7 +217,7 @@ func TestEmailIPLiteralDisallowed(t *testing.T) {
 
 	validator, err := NewEmailValidator()
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	_, err = validator.Validate(context.Background(), "user@[127.0.0.1]")
@@ -225,7 +231,7 @@ func TestEmailIPLiteralAllowed(t *testing.T) {
 
 	validator, err := NewEmailValidator(WithEmailAllowIPLiteral(true))
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	_, err = validator.Validate(context.Background(), "user@[127.0.0.1]")

@@ -216,8 +216,13 @@ func TestSecureWriteFileDefaultOptions(t *testing.T) {
 	err := client.WriteFile(filename, data)
 	require.NoError(t, err)
 
-	defer func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) }()
-
+	defer func() {
+		err = os.Remove(filepath.Join(os.TempDir(), filename))
+		if err != nil {
+			t.Fatalf("failed to remove temp file: %v", err)
+		}
+	}()
+	//nolint:gosec
 	readData, err := os.ReadFile(filepath.Join(os.TempDir(), filename))
 	require.NoError(t, err)
 	assert.Equal(t, data, readData)
@@ -235,8 +240,13 @@ func TestSecureWriteFileDisableAtomic(t *testing.T) {
 	err = client.WriteFile(filename, data)
 	require.NoError(t, err)
 
-	defer func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) }()
-
+	defer func() {
+		err = os.Remove(filepath.Join(os.TempDir(), filename))
+		if err != nil {
+			t.Fatalf("failed to remove temp file: %v", err)
+		}
+	}()
+	//nolint:gosec
 	readData, err := os.ReadFile(filepath.Join(os.TempDir(), filename))
 	require.NoError(t, err)
 	assert.Equal(t, data, readData)
@@ -254,8 +264,13 @@ func TestSecureWriteFileDisableSync(t *testing.T) {
 	err = client.WriteFile(filename, data)
 	require.NoError(t, err)
 
-	defer func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) }()
-
+	defer func() {
+		err = os.Remove(filepath.Join(os.TempDir(), filename))
+		if err != nil {
+			t.Fatalf("failed to remove temp file: %v", err)
+		}
+	}()
+	//nolint:gosec
 	readData, err := os.ReadFile(filepath.Join(os.TempDir(), filename))
 	require.NoError(t, err)
 	assert.Equal(t, data, readData)
@@ -267,7 +282,12 @@ func TestSecureWriteFileSyncDir(t *testing.T) {
 	filename := filepath.Base(uniqueTempPath(t, "sectools-syncdir-"))
 	data := []byte("sync-dir")
 
-	t.Cleanup(func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) })
+	t.Cleanup(func() {
+		err := os.Remove(filepath.Join(os.TempDir(), filename))
+		if err != nil {
+			t.Fatalf("failed to remove temp file: %v", err)
+		}
+	})
 
 	client, err := NewWithOptions(WithWriteSyncDir(true))
 	require.NoError(t, err)
@@ -278,7 +298,7 @@ func TestSecureWriteFileSyncDir(t *testing.T) {
 	}
 
 	require.NoError(t, err)
-
+	//nolint:gosec
 	readData, err := os.ReadFile(filepath.Join(os.TempDir(), filename))
 	require.NoError(t, err)
 	assert.Equal(t, data, readData)
@@ -332,8 +352,13 @@ func TestSecureWriteFromReaderDefaultOptions(t *testing.T) {
 	err := client.WriteFromReader(filename, strings.NewReader(data))
 	require.NoError(t, err)
 
-	t.Cleanup(func() { _ = os.Remove(filepath.Join(os.TempDir(), filename)) })
-
+	t.Cleanup(func() {
+		err = os.Remove(filepath.Join(os.TempDir(), filename))
+		if err != nil {
+			t.Fatalf("failed to remove temp file: %v", err)
+		}
+	})
+	//nolint:gosec
 	readData, err := os.ReadFile(filepath.Join(os.TempDir(), filename))
 	require.NoError(t, err)
 	assert.Equal(t, []byte(data), readData)
@@ -363,7 +388,7 @@ func TestSecureReadFileWithOptionsDisallowPerms(t *testing.T) {
 	}
 
 	absPath, relPath := createTempFile(t, []byte("secret"))
-
+	//nolint:gosec
 	require.NoError(t, os.Chmod(absPath, 0o644))
 
 	client, err := NewWithOptions(WithReadDisallowPerms(0o004))
@@ -373,7 +398,7 @@ func TestSecureReadFileWithOptionsDisallowPerms(t *testing.T) {
 	require.ErrorIs(t, err, ErrPermissionsNotAllowed)
 }
 
-func createTempFile(t *testing.T, data []byte) (string, string) {
+func createTempFile(t *testing.T, data []byte) (filename, relPath string) {
 	t.Helper()
 
 	file, err := os.CreateTemp(t.TempDir(), "sectools-file-*")
@@ -385,24 +410,20 @@ func createTempFile(t *testing.T, data []byte) (string, string) {
 	require.NoError(t, file.Close())
 
 	t.Cleanup(func() {
+		//nolint:errcheck
 		_ = os.Remove(file.Name())
 	})
 
-	relPath, err := filepath.Rel(os.TempDir(), file.Name())
+	relPath, err = filepath.Rel(os.TempDir(), file.Name())
 	require.NoError(t, err)
 
 	return file.Name(), relPath
 }
 
-func createTempDir(t *testing.T) (string, string) {
+func createTempDir(t *testing.T) (dir, relPath string) {
 	t.Helper()
 
-	dir, err := os.MkdirTemp("", "sectools-dir-*")
-	require.NoError(t, err)
-
-	t.Cleanup(func() {
-		_ = os.RemoveAll(dir)
-	})
+	dir = t.TempDir()
 
 	relPath, err := filepath.Rel(os.TempDir(), dir)
 	require.NoError(t, err)
@@ -410,6 +431,7 @@ func createTempDir(t *testing.T) (string, string) {
 	return dir, relPath
 }
 
+//nolint:revive,unparam
 func createTempSymlink(t *testing.T, data []byte) (string, string, string) {
 	t.Helper()
 
@@ -422,7 +444,8 @@ func createTempSymlink(t *testing.T, data []byte) (string, string, string) {
 	}
 
 	t.Cleanup(func() {
-		_ = os.Remove(linkAbs)
+		err = os.Remove(linkAbs)
+		require.NoError(t, err)
 	})
 
 	return targetAbs, linkAbs, filepath.Base(linkAbs)

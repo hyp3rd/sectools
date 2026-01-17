@@ -84,14 +84,20 @@ func TestSecurePathSymlink(t *testing.T) {
 	validPath := filepath.Join(tempDir, "valid.txt")
 	symlinkPath := filepath.Join(tempDir, "symlink.txt")
 
-	err := os.WriteFile(validPath, []byte("test"), 0o644)
+	err := os.WriteFile(validPath, []byte("test"), 0o600)
 	require.NoError(t, err)
 
-	t.Cleanup(func() { _ = os.Remove(validPath) })
+	t.Cleanup(func() {
+		err = os.Remove(validPath)
+		require.NoError(t, err)
+	})
 
 	err = os.Symlink("/etc/hosts", symlinkPath)
 	if err == nil {
-		t.Cleanup(func() { _ = os.Remove(symlinkPath) })
+		t.Cleanup(func() {
+			err = os.Remove(symlinkPath)
+			require.NoError(t, err)
+		})
 
 		t.Run("symlink outside temp directory", func(t *testing.T) {
 			t.Parallel()

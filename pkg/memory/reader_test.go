@@ -5,7 +5,11 @@ import (
 	"errors"
 	"strings"
 	"testing"
+
+	"github.com/hyp3rd/ewrap"
 )
+
+const errMsgUnexpected = "unexpected error: %v"
 
 func TestNewSecureBufferFromReader(t *testing.T) {
 	t.Parallel()
@@ -14,7 +18,7 @@ func TestNewSecureBufferFromReader(t *testing.T) {
 
 	buf, err := NewSecureBufferFromReader(bytes.NewReader(input), int64(len(input)))
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	if got := buf.Bytes(); !bytes.Equal(got, input) {
@@ -54,7 +58,7 @@ func TestNewSecureBufferFromReaderNilReader(t *testing.T) {
 func TestNewSecureBufferFromReaderReadError(t *testing.T) {
 	t.Parallel()
 
-	readErr := errors.New("boom")
+	readErr := ewrap.New("boom")
 	reader := errorReader{err: readErr}
 
 	_, err := NewSecureBufferFromReader(reader, 10)
@@ -63,7 +67,7 @@ func TestNewSecureBufferFromReaderReadError(t *testing.T) {
 	}
 
 	if !strings.Contains(err.Error(), "failed to read data") {
-		t.Fatalf("unexpected error: %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 }
 

@@ -32,11 +32,11 @@ func TestArgon2idHashVerify(t *testing.T) {
 	}
 
 	if !ok {
-		t.Fatalf("expected password match")
+		t.Fatal("expected password match")
 	}
 
 	if needsRehash {
-		t.Fatalf("expected no rehash with same params")
+		t.Fatal("expected no rehash with same params")
 	}
 
 	stronger, err := NewArgon2id(Argon2idParams{
@@ -56,11 +56,11 @@ func TestArgon2idHashVerify(t *testing.T) {
 	}
 
 	if !ok {
-		t.Fatalf("expected password match")
+		t.Fatal("expected password match")
 	}
 
 	if !needsRehash {
-		t.Fatalf("expected rehash for stronger params")
+		t.Fatal("expected rehash for stronger params")
 	}
 }
 

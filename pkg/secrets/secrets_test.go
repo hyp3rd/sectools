@@ -6,12 +6,17 @@ import (
 	"testing"
 )
 
+const (
+	errMsgExpectedRedactor = "expected redactor, got %v"
+	errMsgDetector         = "expected detector, got %v"
+)
+
 func TestSecretDetectorDetectAny(t *testing.T) {
 	t.Parallel()
 
 	detector, err := NewSecretDetector()
 	if err != nil {
-		t.Fatalf("expected detector, got %v", err)
+		t.Fatalf(errMsgDetector, err)
 	}
 
 	err = detector.DetectAny("AKIA1234567890ABCD12")
@@ -25,7 +30,7 @@ func TestSecretDetectorRedact(t *testing.T) {
 
 	detector, err := NewSecretDetector()
 	if err != nil {
-		t.Fatalf("expected detector, got %v", err)
+		t.Fatalf(errMsgDetector, err)
 	}
 
 	input := "token=ghp_abcdefghijklmnopqrstuvwxyz1234567890"
@@ -49,7 +54,7 @@ func TestRedactorKeys(t *testing.T) {
 
 	redactor, err := NewRedactor()
 	if err != nil {
-		t.Fatalf("expected redactor, got %v", err)
+		t.Fatalf(errMsgExpectedRedactor, err)
 	}
 
 	fields := map[string]any{
@@ -72,12 +77,12 @@ func TestRedactorDetector(t *testing.T) {
 
 	detector, err := NewSecretDetector()
 	if err != nil {
-		t.Fatalf("expected detector, got %v", err)
+		t.Fatalf(errMsgDetector, err)
 	}
 
 	redactor, err := NewRedactor(WithRedactionDetector(detector))
 	if err != nil {
-		t.Fatalf("expected redactor, got %v", err)
+		t.Fatalf(errMsgExpectedRedactor, err)
 	}
 
 	fields := map[string]any{
@@ -96,7 +101,7 @@ func TestSecretDetectorInputTooLong(t *testing.T) {
 
 	detector, err := NewSecretDetector(WithSecretMaxLength(10))
 	if err != nil {
-		t.Fatalf("expected detector, got %v", err)
+		t.Fatalf(errMsgDetector, err)
 	}
 
 	longInput := strings.Repeat("a", 11)
@@ -283,7 +288,7 @@ func TestSecretDetectorEdgeCases(t *testing.T) {
 
 	detector, err := NewSecretDetector()
 	if err != nil {
-		t.Fatalf("expected detector, got %v", err)
+		t.Fatalf(errMsgDetector, err)
 	}
 
 	t.Run("empty string", func(t *testing.T) {
@@ -332,7 +337,7 @@ func TestRedactorEdgeCases(t *testing.T) {
 
 	redactor, err := NewRedactor()
 	if err != nil {
-		t.Fatalf("expected redactor, got %v", err)
+		t.Fatalf(errMsgExpectedRedactor, err)
 	}
 
 	t.Run("nil fields", func(t *testing.T) {
@@ -373,7 +378,7 @@ func TestWithSecretPattern(t *testing.T) {
 		WithSecretPattern("custom-pattern", `custom-[0-9]{4}`),
 	)
 	if err != nil {
-		t.Fatalf("expected detector, got %v", err)
+		t.Fatalf(errMsgDetector, err)
 	}
 
 	input := "My custom token is custom-1234"
@@ -409,7 +414,7 @@ func TestWithSecretPatterns(t *testing.T) {
 
 	detector, err := NewSecretDetector(WithSecretPatterns(patterns...))
 	if err != nil {
-		t.Fatalf("expected detector, got %v", err)
+		t.Fatalf(errMsgDetector, err)
 	}
 
 	input := "Found test-123 and secret-abc"
@@ -427,12 +432,12 @@ func TestWithSecretPatterns(t *testing.T) {
 // TestWithSecretMaxLength tests the WithSecretMaxLength option.
 func TestWithSecretMaxLength(t *testing.T) {
 	t.Parallel()
-
+	//nolint:revive
 	maxLen := 20
 
 	detector, err := NewSecretDetector(WithSecretMaxLength(maxLen))
 	if err != nil {
-		t.Fatalf("expected detector, got %v", err)
+		t.Fatalf(errMsgDetector, err)
 	}
 
 	t.Run("within limit", func(t *testing.T) {
@@ -466,7 +471,7 @@ func TestWithSecretMask(t *testing.T) {
 
 	detector, err := NewSecretDetector(WithSecretMask(customMask))
 	if err != nil {
-		t.Fatalf("expected detector, got %v", err)
+		t.Fatalf(errMsgDetector, err)
 	}
 
 	input := "token=ghp_abcdefghijklmnopqrstuvwxyz1234567890"
@@ -486,17 +491,19 @@ func TestWithSecretMask(t *testing.T) {
 }
 
 // TestNestedStructureRedaction tests redaction of nested structures.
+//
+//nolint:funlen
 func TestNestedStructureRedaction(t *testing.T) {
 	t.Parallel()
 
 	detector, err := NewSecretDetector()
 	if err != nil {
-		t.Fatalf("expected detector, got %v", err)
+		t.Fatalf(errMsgDetector, err)
 	}
 
 	redactor, err := NewRedactor(WithRedactionDetector(detector))
 	if err != nil {
-		t.Fatalf("expected redactor, got %v", err)
+		t.Fatalf(errMsgExpectedRedactor, err)
 	}
 
 	t.Run("maps within maps", func(t *testing.T) {
@@ -609,7 +616,7 @@ func TestWithRedactionKeys(t *testing.T) {
 			WithRedactionKeys("custom_secret", "private_data"),
 		)
 		if err != nil {
-			t.Fatalf("expected redactor, got %v", err)
+			t.Fatalf(errMsgExpectedRedactor, err)
 		}
 
 		fields := map[string]any{
@@ -640,7 +647,7 @@ func TestWithRedactionKeys(t *testing.T) {
 			WithRedactionKeys("MySecret"),
 		)
 		if err != nil {
-			t.Fatalf("expected redactor, got %v", err)
+			t.Fatalf(errMsgExpectedRedactor, err)
 		}
 
 		fields := map[string]any{
@@ -674,7 +681,7 @@ func TestWithRedactionMaxDepth(t *testing.T) {
 
 		redactor, err := NewRedactor(WithRedactionMaxDepth(2))
 		if err != nil {
-			t.Fatalf("expected redactor, got %v", err)
+			t.Fatalf(errMsgExpectedRedactor, err)
 		}
 
 		// Create a deeply nested structure (depth > 2)
@@ -716,7 +723,7 @@ func TestWithRedactionMaxDepth(t *testing.T) {
 
 		redactor, err := NewRedactor(WithRedactionMaxDepth(3))
 		if err != nil {
-			t.Fatalf("expected redactor, got %v", err)
+			t.Fatalf(errMsgExpectedRedactor, err)
 		}
 
 		fields := map[string]any{

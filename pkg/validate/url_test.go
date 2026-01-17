@@ -30,7 +30,7 @@ func TestURLValidateBasic(t *testing.T) {
 
 	validator, err := NewURLValidator()
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	_, err = validator.Validate(context.Background(), "https://example.com/path")
@@ -44,7 +44,7 @@ func TestURLRejectUserInfo(t *testing.T) {
 
 	validator, err := NewURLValidator()
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	_, err = validator.Validate(context.Background(), "https://user:pass@example.com")
@@ -60,7 +60,7 @@ func TestURLRejectPrivateIP(t *testing.T) {
 		WithURLAllowIPLiteral(true),
 	)
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	_, err = validator.Validate(context.Background(), "https://127.0.0.1")
@@ -94,7 +94,7 @@ func TestURLRedirectCheck(t *testing.T) {
 		WithURLHTTPClient(client),
 	)
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	result, err := validator.Validate(context.Background(), "https://example.com/start")
@@ -127,7 +127,7 @@ func TestURLRedirectLoop(t *testing.T) {
 		WithURLHTTPClient(client),
 	)
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	_, err = validator.Validate(context.Background(), "https://example.com/loop")
@@ -145,7 +145,7 @@ func TestURLReputationBlock(t *testing.T) {
 		WithURLReputationChecker(checker),
 	)
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	_, err = validator.Validate(context.Background(), "https://example.com")

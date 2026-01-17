@@ -10,12 +10,13 @@ import (
 const (
 	totpTestIssuer  = "sectools"
 	totpTestAccount = "user@example.com"
-	totpTestSecret  = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP" // cspell:disable-line
+	//nolint:gosec
+	totpTestSecret = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP" // cspell:disable-line
 )
 
 func TestTOTPGenerateAndVerify(t *testing.T) {
 	t.Parallel()
-
+	//nolint:revive
 	now := time.Date(2024, time.January, 2, 15, 4, 5, 0, time.UTC)
 	clock := func() time.Time {
 		return now
@@ -23,12 +24,12 @@ func TestTOTPGenerateAndVerify(t *testing.T) {
 
 	helper, err := NewTOTP(totpTestSecret, WithTOTPClock(clock))
 	if err != nil {
-		t.Fatalf("expected totp helper, got %v", err)
+		t.Fatalf(errMsgExpectedTOTPHelper, err)
 	}
 
 	code, err := helper.Generate()
 	if err != nil {
-		t.Fatalf("expected code, got %v", err)
+		t.Fatalf(errExpectedCode, err)
 	}
 
 	ok, err := helper.Verify(code)
@@ -57,7 +58,7 @@ func TestTOTPGenerateAndVerify(t *testing.T) {
 
 func TestTOTPVerifySkew(t *testing.T) {
 	t.Parallel()
-
+	//nolint:revive
 	now := time.Date(2024, time.January, 2, 15, 4, 5, 0, time.UTC)
 	clock := func() time.Time {
 		return now
@@ -65,12 +66,12 @@ func TestTOTPVerifySkew(t *testing.T) {
 
 	helper, err := NewTOTP(totpTestSecret, WithTOTPClock(clock), WithTOTPAllowedSkew(1))
 	if err != nil {
-		t.Fatalf("expected totp helper, got %v", err)
+		t.Fatalf(errMsgExpectedTOTPHelper, err)
 	}
 
 	code, err := helper.Generate()
 	if err != nil {
-		t.Fatalf("expected code, got %v", err)
+		t.Fatalf(errExpectedCode, err)
 	}
 
 	now = now.Add(totpDefaultPeriod)
@@ -87,7 +88,7 @@ func TestTOTPVerifySkew(t *testing.T) {
 
 func TestTOTPVerifyWithStep(t *testing.T) {
 	t.Parallel()
-
+	//nolint:revive
 	now := time.Date(2024, time.January, 2, 15, 4, 5, 0, time.UTC)
 	clock := func() time.Time {
 		return now
@@ -95,12 +96,12 @@ func TestTOTPVerifyWithStep(t *testing.T) {
 
 	helper, err := NewTOTP(totpTestSecret, WithTOTPClock(clock))
 	if err != nil {
-		t.Fatalf("expected totp helper, got %v", err)
+		t.Fatalf(errMsgExpectedTOTPHelper, err)
 	}
 
 	code, err := helper.Generate()
 	if err != nil {
-		t.Fatalf("expected code, got %v", err)
+		t.Fatalf(errExpectedCode, err)
 	}
 
 	ok, step, err := helper.VerifyWithStep(code)
@@ -111,7 +112,7 @@ func TestTOTPVerifyWithStep(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected valid code")
 	}
-
+	//nolint:gosec
 	expectedStep := uint64(now.Unix() / int64(totpDefaultPeriod/time.Second))
 	if step != expectedStep {
 		t.Fatalf("expected step %d, got %d", expectedStep, step)
@@ -123,7 +124,7 @@ func TestTOTPInvalidCode(t *testing.T) {
 
 	helper, err := NewTOTP(totpTestSecret)
 	if err != nil {
-		t.Fatalf("expected totp helper, got %v", err)
+		t.Fatalf(errMsgExpectedTOTPHelper, err)
 	}
 
 	_, err = helper.Verify("invalid")

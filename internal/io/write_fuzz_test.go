@@ -66,7 +66,10 @@ func FuzzSecureWriteFromReader(f *testing.F) {
 			AllowSymlinks: allowSymlinks,
 		}
 
-		_ = SecureWriteFromReader(path, bytes.NewReader(data), opts, nil)
+		err := SecureWriteFromReader(path, bytes.NewReader(data), opts, nil)
+		if err != nil {
+			t.Log("failed to write:", err)
+		}
 	})
 }
 

@@ -5,12 +5,16 @@ import (
 	"testing"
 )
 
+const (
+	errMsgDetector = "expected detector, got %v"
+)
+
 func TestNoSQLInjectionDetectorDefault(t *testing.T) {
 	t.Parallel()
 
 	detector, err := NewNoSQLInjectionDetector()
 	if err != nil {
-		t.Fatalf("expected detector, got %v", err)
+		t.Fatalf(errMsgDetector, err)
 	}
 
 	err = detector.Detect(`{"username":{"$ne":null}}`)
@@ -34,7 +38,7 @@ func TestNoSQLInjectionDetectorCustomOperators(t *testing.T) {
 
 	detector, err := NewNoSQLInjectionDetector(WithNoSQLDetectOperators("custom"))
 	if err != nil {
-		t.Fatalf("expected detector, got %v", err)
+		t.Fatalf(errMsgDetector, err)
 	}
 
 	err = detector.Detect(`{"$custom":true}`)
@@ -48,7 +52,7 @@ func TestNoSQLInjectionDetectorMaxLength(t *testing.T) {
 
 	detector, err := NewNoSQLInjectionDetector(WithNoSQLDetectMaxLength(1))
 	if err != nil {
-		t.Fatalf("expected detector, got %v", err)
+		t.Fatalf(errMsgDetector, err)
 	}
 
 	err = detector.Detect("ab")
