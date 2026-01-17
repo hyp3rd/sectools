@@ -18,6 +18,12 @@ const (
 	errExpectedHelper = "expected hotp helper, got %v"
 )
 
+const (
+	counter                 = uint64(5)
+	resyncNextCounterOffset = 4
+	hotpResyncWindow        = 3
+)
+
 func TestHOTPGenerateAndVerify(t *testing.T) {
 	t.Parallel()
 
@@ -55,8 +61,6 @@ func TestHOTPVerifyWindow(t *testing.T) {
 		t.Fatalf(errExpectedHelper, err)
 	}
 
-	counter := uint64(5)
-
 	code, err := helper.Generate(counter + 1)
 	if err != nil {
 		t.Fatalf(errExpectedCode, err)
@@ -79,12 +83,10 @@ func TestHOTPVerifyWindow(t *testing.T) {
 func TestHOTPResync(t *testing.T) {
 	t.Parallel()
 
-	helper, err := NewHOTP(hotpTestSecret, WithHOTPResyncWindow(3))
+	helper, err := NewHOTP(hotpTestSecret, WithHOTPResyncWindow(hotpResyncWindow))
 	if err != nil {
 		t.Fatalf(errExpectedHelper, err)
 	}
-
-	counter := uint64(5)
 
 	code1, err := helper.Generate(counter + 2)
 	if err != nil {
@@ -105,20 +107,18 @@ func TestHOTPResync(t *testing.T) {
 		t.Fatal("expected valid resync")
 	}
 
-	if next != counter+4 {
-		t.Fatalf("expected next counter %d, got %d", counter+4, next)
+	if next != counter+resyncNextCounterOffset {
+		t.Fatalf("expected next counter %d, got %d", counter+resyncNextCounterOffset, next)
 	}
 }
 
 func TestHOTPResyncRejectsNonConsecutive(t *testing.T) {
 	t.Parallel()
 
-	helper, err := NewHOTP(hotpTestSecret, WithHOTPResyncWindow(3))
+	helper, err := NewHOTP(hotpTestSecret, WithHOTPResyncWindow(hotpResyncWindow))
 	if err != nil {
 		t.Fatalf(errExpectedHelper, err)
 	}
-
-	counter := uint64(5)
 
 	code1, err := helper.Generate(counter + 1)
 	if err != nil {
@@ -172,11 +172,11 @@ func TestHOTPInvalidOptions(t *testing.T) {
 	}{
 		{
 			name: "invalid-digits",
-			opts: []HOTPOption{WithHOTPDigits(Digits(99))},
+			opts: []HOTPOption{WithHOTPDigits(Digits(invalidValue))},
 		},
 		{
 			name: "invalid-algorithm",
-			opts: []HOTPOption{WithHOTPAlgorithm(Algorithm(99))},
+			opts: []HOTPOption{WithHOTPAlgorithm(Algorithm(invalidValue))},
 		},
 		{
 			name: "invalid-resync-window",
@@ -208,7 +208,7 @@ func TestGenerateHOTPKey(t *testing.T) {
 	}
 
 	if key.Secret() == "" {
-		t.Fatalf("expected secret")
+		t.Fatal("expected secret")
 	}
 
 	if !strings.HasPrefix(key.URL(), "otpauth://hotp/") {

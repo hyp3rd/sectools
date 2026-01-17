@@ -8,11 +8,13 @@ import (
 	"github.com/hyp3rd/sectools/pkg/password"
 )
 
+const backupCodeCount = 3
+
 func TestBackupCodeGenerateAndVerify(t *testing.T) {
 	t.Parallel()
 
 	manager, err := NewBackupCodeManager(
-		WithBackupCodeCount(3),
+		WithBackupCodeCount(backupCodeCount),
 		WithBackupHasherBcrypt(password.BcryptInteractiveCost),
 	)
 	if err != nil {
@@ -24,8 +26,8 @@ func TestBackupCodeGenerateAndVerify(t *testing.T) {
 		t.Fatalf("expected codes, got %v", err)
 	}
 
-	if len(set.Codes) != 3 || len(set.Hashes) != 3 {
-		t.Fatal("expected 3 codes and hashes")
+	if len(set.Codes) != backupCodeCount || len(set.Hashes) != backupCodeCount {
+		t.Fatalf("expected %d codes and hashes", backupCodeCount)
 	}
 
 	code := set.Codes[0]

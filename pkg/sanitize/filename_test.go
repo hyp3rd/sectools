@@ -77,7 +77,7 @@ func TestFilenameSanitizeEmpty(t *testing.T) {
 
 func TestFilenameSanitizeMaxLength(t *testing.T) {
 	t.Parallel()
-
+	//nolint:revive
 	sanitizer, err := NewFilenameSanitizer(WithFilenameMaxLength(3))
 	if err != nil {
 		t.Fatalf(errMsgUnexpected, err)
