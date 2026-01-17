@@ -15,7 +15,7 @@ Security-focused Go helpers for file I/O, in-memory handling of sensitive data, 
 - Symlink checks and root-scoped file access using `os.OpenRoot`
 - Secure in-memory buffers with best-effort zeroization
 - JWT/PASETO helpers with strict validation and safe defaults
-- MFA helpers for TOTP/HOTP provisioning and verification
+- MFA helpers for TOTP/HOTP provisioning, verification, and backup codes
 - Password hashing presets for argon2id/bcrypt with rehash detection
 - Email and URL validation with optional DNS/redirect/reputation checks
 - Random token generation and validation with entropy/length caps
@@ -211,6 +211,29 @@ func main() {
  }
 
  _ = ok
+}
+```
+
+```go
+package main
+
+import (
+ "github.com/hyp3rd/sectools/pkg/mfa"
+)
+
+func main() {
+ manager, err := mfa.NewBackupCodeManager()
+ if err != nil {
+  panic(err)
+ }
+
+ set, err := manager.Generate()
+ if err != nil {
+  panic(err)
+ }
+
+ // Store set.Hashes and display set.Codes once.
+ _, _, _ = manager.Verify(set.Codes[0], set.Hashes)
 }
 ```
 

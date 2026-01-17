@@ -29,7 +29,9 @@ This checklist is a quick reference for teams using sectools in production.
 
 - Use `pkg/mfa` for TOTP/HOTP with drift handling and validated secrets.
 - Keep TOTP skew and HOTP look-ahead windows small to reduce replay risk.
+- Rate limit OTP and backup code verification attempts.
 - Store MFA secrets securely; avoid logging provisioning URLs or raw secrets.
+- Store only hashed backup codes and delete them after first use.
 
 ## Random Tokens
 

@@ -81,6 +81,37 @@ func TestTOTPVerifySkew(t *testing.T) {
 	}
 }
 
+func TestTOTPVerifyWithStep(t *testing.T) {
+	now := time.Date(2024, time.January, 2, 15, 4, 5, 0, time.UTC)
+	clock := func() time.Time {
+		return now
+	}
+
+	helper, err := NewTOTP(totpTestSecret, WithTOTPClock(clock))
+	if err != nil {
+		t.Fatalf("expected totp helper, got %v", err)
+	}
+
+	code, err := helper.Generate()
+	if err != nil {
+		t.Fatalf("expected code, got %v", err)
+	}
+
+	ok, step, err := helper.VerifyWithStep(code)
+	if err != nil {
+		t.Fatalf("expected verify, got %v", err)
+	}
+
+	if !ok {
+		t.Fatalf("expected valid code")
+	}
+
+	expectedStep := uint64(now.Unix() / int64(totpDefaultPeriod/time.Second))
+	if step != expectedStep {
+		t.Fatalf("expected step %d, got %d", expectedStep, step)
+	}
+}
+
 func TestTOTPInvalidCode(t *testing.T) {
 	helper, err := NewTOTP(totpTestSecret)
 	if err != nil {
@@ -97,6 +128,43 @@ func TestTOTPSecretTooShort(t *testing.T) {
 	_, err := NewTOTP("AAAA")
 	if !errors.Is(err, ErrMFASecretTooShort) {
 		t.Fatalf("expected ErrMFASecretTooShort, got %v", err)
+	}
+}
+
+func TestTOTPInvalidOptions(t *testing.T) {
+	tests := []struct {
+		name string
+		opts []TOTPOption
+	}{
+		{
+			name: "invalid-digits",
+			opts: []TOTPOption{WithTOTPDigits(Digits(99))},
+		},
+		{
+			name: "invalid-algorithm",
+			opts: []TOTPOption{WithTOTPAlgorithm(Algorithm(99))},
+		},
+		{
+			name: "period-too-short",
+			opts: []TOTPOption{WithTOTPPeriod(totpMinPeriod - time.Second)},
+		},
+		{
+			name: "period-not-second-aligned",
+			opts: []TOTPOption{WithTOTPPeriod(totpMinPeriod + time.Millisecond)},
+		},
+		{
+			name: "period-too-long",
+			opts: []TOTPOption{WithTOTPPeriod(totpMaxPeriod + time.Second)},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := NewTOTP(totpTestSecret, tt.opts...)
+			if !errors.Is(err, ErrInvalidMFAConfig) {
+				t.Fatalf("expected ErrInvalidMFAConfig, got %v", err)
+			}
+		})
 	}
 }
 
