@@ -8,6 +8,8 @@ import (
 )
 
 func TestNewSecureBufferFromReader(t *testing.T) {
+	t.Parallel()
+
 	input := []byte("secret")
 
 	buf, err := NewSecureBufferFromReader(bytes.NewReader(input), int64(len(input)))
@@ -23,6 +25,8 @@ func TestNewSecureBufferFromReader(t *testing.T) {
 }
 
 func TestNewSecureBufferFromReaderTooLarge(t *testing.T) {
+	t.Parallel()
+
 	_, err := NewSecureBufferFromReader(bytes.NewReader([]byte("secret")), 3)
 	if !errors.Is(err, ErrBufferTooLarge) {
 		t.Fatalf("expected ErrBufferTooLarge, got %v", err)
@@ -30,6 +34,8 @@ func TestNewSecureBufferFromReaderTooLarge(t *testing.T) {
 }
 
 func TestNewSecureBufferFromReaderInvalidMaxSize(t *testing.T) {
+	t.Parallel()
+
 	_, err := NewSecureBufferFromReader(bytes.NewReader([]byte("secret")), 0)
 	if !errors.Is(err, ErrMaxSizeInvalid) {
 		t.Fatalf("expected ErrMaxSizeInvalid, got %v", err)
@@ -37,6 +43,8 @@ func TestNewSecureBufferFromReaderInvalidMaxSize(t *testing.T) {
 }
 
 func TestNewSecureBufferFromReaderNilReader(t *testing.T) {
+	t.Parallel()
+
 	_, err := NewSecureBufferFromReader(nil, 10)
 	if !errors.Is(err, ErrNilReader) {
 		t.Fatalf("expected ErrNilReader, got %v", err)
@@ -44,6 +52,8 @@ func TestNewSecureBufferFromReaderNilReader(t *testing.T) {
 }
 
 func TestNewSecureBufferFromReaderReadError(t *testing.T) {
+	t.Parallel()
+
 	readErr := errors.New("boom")
 	reader := errorReader{err: readErr}
 

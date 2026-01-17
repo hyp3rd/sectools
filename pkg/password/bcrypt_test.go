@@ -8,6 +8,8 @@ import (
 )
 
 func TestBcryptHashVerify(t *testing.T) {
+	t.Parallel()
+
 	hasher, err := NewBcrypt(bcrypt.MinCost)
 	if err != nil {
 		t.Fatalf("expected hasher, got error: %v", err)
@@ -51,6 +53,8 @@ func TestBcryptHashVerify(t *testing.T) {
 }
 
 func TestBcryptPasswordTooLong(t *testing.T) {
+	t.Parallel()
+
 	hasher, err := NewBcrypt(bcrypt.MinCost)
 	if err != nil {
 		t.Fatalf("expected hasher, got error: %v", err)

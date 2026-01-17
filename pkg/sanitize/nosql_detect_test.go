@@ -6,6 +6,8 @@ import (
 )
 
 func TestNoSQLInjectionDetectorDefault(t *testing.T) {
+	t.Parallel()
+
 	detector, err := NewNoSQLInjectionDetector()
 	if err != nil {
 		t.Fatalf("expected detector, got %v", err)
@@ -28,6 +30,8 @@ func TestNoSQLInjectionDetectorDefault(t *testing.T) {
 }
 
 func TestNoSQLInjectionDetectorCustomOperators(t *testing.T) {
+	t.Parallel()
+
 	detector, err := NewNoSQLInjectionDetector(WithNoSQLDetectOperators("custom"))
 	if err != nil {
 		t.Fatalf("expected detector, got %v", err)
@@ -40,6 +44,8 @@ func TestNoSQLInjectionDetectorCustomOperators(t *testing.T) {
 }
 
 func TestNoSQLInjectionDetectorMaxLength(t *testing.T) {
+	t.Parallel()
+
 	detector, err := NewNoSQLInjectionDetector(WithNoSQLDetectMaxLength(1))
 	if err != nil {
 		t.Fatalf("expected detector, got %v", err)

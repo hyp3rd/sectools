@@ -6,6 +6,8 @@ import (
 )
 
 func TestArgon2idHashVerify(t *testing.T) {
+	t.Parallel()
+
 	params := Argon2idParams{
 		Memory:     8 * 1024,
 		Time:       1,
@@ -63,6 +65,8 @@ func TestArgon2idHashVerify(t *testing.T) {
 }
 
 func TestArgon2idInvalidHash(t *testing.T) {
+	t.Parallel()
+
 	hasher, err := NewArgon2id(Argon2idParams{
 		Memory:     8 * 1024,
 		Time:       1,

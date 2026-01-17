@@ -7,6 +7,8 @@ import (
 )
 
 func TestBase64EncodeDecode(t *testing.T) {
+	t.Parallel()
+
 	input := []byte("hello")
 
 	encoded, err := EncodeBase64(input)
@@ -25,6 +27,8 @@ func TestBase64EncodeDecode(t *testing.T) {
 }
 
 func TestBase64InvalidWhitespace(t *testing.T) {
+	t.Parallel()
+
 	_, err := DecodeBase64("a b")
 	if !errors.Is(err, ErrBase64Invalid) {
 		t.Fatalf("expected ErrBase64Invalid, got %v", err)
@@ -32,6 +36,8 @@ func TestBase64InvalidWhitespace(t *testing.T) {
 }
 
 func TestBase64MaxLength(t *testing.T) {
+	t.Parallel()
+
 	_, err := EncodeBase64([]byte("hello"), WithBase64MaxLength(4))
 	if !errors.Is(err, ErrBase64TooLong) {
 		t.Fatalf("expected ErrBase64TooLong, got %v", err)
@@ -39,6 +45,8 @@ func TestBase64MaxLength(t *testing.T) {
 }
 
 func TestHexEncodeDecode(t *testing.T) {
+	t.Parallel()
+
 	input := []byte("hello")
 
 	encoded, err := EncodeHex(input)
@@ -57,6 +65,8 @@ func TestHexEncodeDecode(t *testing.T) {
 }
 
 func TestHexInvalid(t *testing.T) {
+	t.Parallel()
+
 	_, err := DecodeHex("zz")
 	if !errors.Is(err, ErrHexInvalid) {
 		t.Fatalf("expected ErrHexInvalid, got %v", err)
@@ -64,6 +74,8 @@ func TestHexInvalid(t *testing.T) {
 }
 
 func TestHexMaxLength(t *testing.T) {
+	t.Parallel()
+
 	_, err := EncodeHex([]byte("hello"), WithHexMaxLength(4))
 	if !errors.Is(err, ErrHexTooLong) {
 		t.Fatalf("expected ErrHexTooLong, got %v", err)
@@ -71,6 +83,8 @@ func TestHexMaxLength(t *testing.T) {
 }
 
 func TestDecodeJSON(t *testing.T) {
+	t.Parallel()
+
 	type payload struct {
 		Name string `json:"name"`
 	}
@@ -91,6 +105,8 @@ func TestDecodeJSON(t *testing.T) {
 }
 
 func TestDecodeJSONUnknownField(t *testing.T) {
+	t.Parallel()
+
 	type payload struct {
 		Name string `json:"name"`
 	}
@@ -104,6 +120,8 @@ func TestDecodeJSONUnknownField(t *testing.T) {
 }
 
 func TestDecodeJSONAllowUnknown(t *testing.T) {
+	t.Parallel()
+
 	type payload struct {
 		Name string `json:"name"`
 	}
@@ -121,6 +139,8 @@ func TestDecodeJSONAllowUnknown(t *testing.T) {
 }
 
 func TestDecodeJSONTrailingData(t *testing.T) {
+	t.Parallel()
+
 	type payload struct {
 		Name string `json:"name"`
 	}
@@ -134,6 +154,8 @@ func TestDecodeJSONTrailingData(t *testing.T) {
 }
 
 func TestDecodeJSONMaxBytes(t *testing.T) {
+	t.Parallel()
+
 	type payload struct {
 		Name string `json:"name"`
 	}
@@ -147,6 +169,8 @@ func TestDecodeJSONMaxBytes(t *testing.T) {
 }
 
 func TestDecodeJSONReader(t *testing.T) {
+	t.Parallel()
+
 	type payload struct {
 		Name string `json:"name"`
 	}

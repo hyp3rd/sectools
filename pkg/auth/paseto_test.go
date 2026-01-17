@@ -9,6 +9,8 @@ import (
 )
 
 func TestPasetoLocalRoundTrip(t *testing.T) {
+	t.Parallel()
+
 	now := time.Date(2024, 10, 1, 12, 0, 0, 0, time.UTC)
 	key := paseto.NewV4SymmetricKey()
 
@@ -46,6 +48,8 @@ func TestPasetoLocalRoundTrip(t *testing.T) {
 }
 
 func TestPasetoPublicRoundTrip(t *testing.T) {
+	t.Parallel()
+
 	now := time.Date(2024, 10, 1, 12, 0, 0, 0, time.UTC)
 	secret := paseto.NewV4AsymmetricSecretKey()
 	public := secret.Public()
@@ -89,6 +93,8 @@ func TestPasetoPublicRoundTrip(t *testing.T) {
 }
 
 func TestPasetoMissingExpiration(t *testing.T) {
+	t.Parallel()
+
 	key := paseto.NewV4SymmetricKey()
 
 	local, err := NewPasetoLocal(WithPasetoLocalKey(key))

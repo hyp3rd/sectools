@@ -33,6 +33,8 @@ func (r *fakeResolver) LookupHost(_ context.Context, name string) ([]string, err
 }
 
 func TestEmailValidateBasic(t *testing.T) {
+	t.Parallel()
+
 	validator, err := NewEmailValidator()
 	if err != nil {
 		t.Fatalf("expected validator, got %v", err)
@@ -49,6 +51,8 @@ func TestEmailValidateBasic(t *testing.T) {
 }
 
 func TestEmailRejectDisplayName(t *testing.T) {
+	t.Parallel()
+
 	validator, err := NewEmailValidator()
 	if err != nil {
 		t.Fatalf("expected validator, got %v", err)
@@ -61,6 +65,8 @@ func TestEmailRejectDisplayName(t *testing.T) {
 }
 
 func TestEmailAllowDisplayName(t *testing.T) {
+	t.Parallel()
+
 	validator, err := NewEmailValidator(WithEmailAllowDisplayName(true))
 	if err != nil {
 		t.Fatalf("expected validator, got %v", err)
@@ -77,6 +83,8 @@ func TestEmailAllowDisplayName(t *testing.T) {
 }
 
 func TestEmailInvalidLocalPart(t *testing.T) {
+	t.Parallel()
+
 	validator, err := NewEmailValidator()
 	if err != nil {
 		t.Fatalf("expected validator, got %v", err)
@@ -89,6 +97,8 @@ func TestEmailInvalidLocalPart(t *testing.T) {
 }
 
 func TestEmailRequireTLD(t *testing.T) {
+	t.Parallel()
+
 	validator, err := NewEmailValidator()
 	if err != nil {
 		t.Fatalf("expected validator, got %v", err)
@@ -101,6 +111,8 @@ func TestEmailRequireTLD(t *testing.T) {
 }
 
 func TestEmailDomainVerificationMX(t *testing.T) {
+	t.Parallel()
+
 	resolver := &fakeResolver{
 		mxRecords: map[string][]*net.MX{
 			"example.com": {{Host: "mx.example.com."}},
@@ -126,6 +138,8 @@ func TestEmailDomainVerificationMX(t *testing.T) {
 }
 
 func TestEmailDomainVerificationFallback(t *testing.T) {
+	t.Parallel()
+
 	resolver := &fakeResolver{
 		hosts: map[string][]string{
 			"example.com": {"203.0.113.10"},
@@ -151,6 +165,8 @@ func TestEmailDomainVerificationFallback(t *testing.T) {
 }
 
 func TestEmailDomainVerificationUnverified(t *testing.T) {
+	t.Parallel()
+
 	resolver := &fakeResolver{}
 
 	validator, err := NewEmailValidator(
@@ -168,6 +184,8 @@ func TestEmailDomainVerificationUnverified(t *testing.T) {
 }
 
 func TestEmailAllowIDN(t *testing.T) {
+	t.Parallel()
+
 	validator, err := NewEmailValidator(WithEmailAllowIDN(true))
 	if err != nil {
 		t.Fatalf("expected validator, got %v", err)
@@ -189,6 +207,8 @@ func TestEmailAllowIDN(t *testing.T) {
 }
 
 func TestEmailIPLiteralDisallowed(t *testing.T) {
+	t.Parallel()
+
 	validator, err := NewEmailValidator()
 	if err != nil {
 		t.Fatalf("expected validator, got %v", err)
@@ -201,6 +221,8 @@ func TestEmailIPLiteralDisallowed(t *testing.T) {
 }
 
 func TestEmailIPLiteralAllowed(t *testing.T) {
+	t.Parallel()
+
 	validator, err := NewEmailValidator(WithEmailAllowIPLiteral(true))
 	if err != nil {
 		t.Fatalf("expected validator, got %v", err)

@@ -11,6 +11,8 @@ import (
 )
 
 func TestSecureReadFileOwnershipMatch(t *testing.T) {
+	t.Parallel()
+
 	_, relPath := createTempFile(t, []byte("owned"))
 
 	uid := os.Getuid()
@@ -27,6 +29,8 @@ func TestSecureReadFileOwnershipMatch(t *testing.T) {
 }
 
 func TestSecureReadFileOwnershipMismatch(t *testing.T) {
+	t.Parallel()
+
 	_, relPath := createTempFile(t, []byte("owned"))
 
 	uid := os.Getuid()
@@ -40,6 +44,8 @@ func TestSecureReadFileOwnershipMismatch(t *testing.T) {
 }
 
 func TestSecureWriteFileOwnershipMismatch(t *testing.T) {
+	t.Parallel()
+
 	uid := os.Getuid()
 	badUID := uid + 1
 

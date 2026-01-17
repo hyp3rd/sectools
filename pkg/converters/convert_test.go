@@ -6,6 +6,8 @@ import (
 )
 
 func TestSafeUint64FromInt(t *testing.T) {
+	t.Parallel()
+
 	value, err := SafeUint64FromInt(10)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -21,6 +23,8 @@ func TestSafeUint64FromInt(t *testing.T) {
 }
 
 func TestSafeUint64FromInt64(t *testing.T) {
+	t.Parallel()
+
 	value, err := SafeUint64FromInt64(42)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -36,6 +40,8 @@ func TestSafeUint64FromInt64(t *testing.T) {
 }
 
 func TestSafeIntFromInt64(t *testing.T) {
+	t.Parallel()
+
 	value, err := SafeIntFromInt64(123)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -55,6 +61,8 @@ func TestSafeIntFromInt64(t *testing.T) {
 }
 
 func TestSafeUintFromInt64(t *testing.T) {
+	t.Parallel()
+
 	value, err := SafeUintFromInt64(42)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -80,6 +88,8 @@ func TestSafeUintFromInt64(t *testing.T) {
 }
 
 func TestSafeUint32FromInt64(t *testing.T) {
+	t.Parallel()
+
 	value, err := SafeUint32FromInt64(42)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -99,6 +109,8 @@ func TestSafeUint32FromInt64(t *testing.T) {
 }
 
 func TestSafeUint16FromInt64(t *testing.T) {
+	t.Parallel()
+
 	value, err := SafeUint16FromInt64(42)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -118,6 +130,8 @@ func TestSafeUint16FromInt64(t *testing.T) {
 }
 
 func TestSafeUint8FromInt64(t *testing.T) {
+	t.Parallel()
+
 	value, err := SafeUint8FromInt64(42)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -137,6 +151,8 @@ func TestSafeUint8FromInt64(t *testing.T) {
 }
 
 func TestSafeIntFromUint64(t *testing.T) {
+	t.Parallel()
+
 	value, err := SafeIntFromUint64(123)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -153,6 +169,8 @@ func TestSafeIntFromUint64(t *testing.T) {
 }
 
 func TestSafeInt32FromInt64(t *testing.T) {
+	t.Parallel()
+
 	value, err := SafeInt32FromInt64(123)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -168,6 +186,8 @@ func TestSafeInt32FromInt64(t *testing.T) {
 }
 
 func TestSafeInt16FromInt64(t *testing.T) {
+	t.Parallel()
+
 	value, err := SafeInt16FromInt64(123)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -183,6 +203,8 @@ func TestSafeInt16FromInt64(t *testing.T) {
 }
 
 func TestSafeInt8FromInt64(t *testing.T) {
+	t.Parallel()
+
 	value, err := SafeInt8FromInt64(12)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -198,6 +220,8 @@ func TestSafeInt8FromInt64(t *testing.T) {
 }
 
 func TestSafeInt64FromUint64(t *testing.T) {
+	t.Parallel()
+
 	value, err := SafeInt64FromUint64(123)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -213,6 +237,8 @@ func TestSafeInt64FromUint64(t *testing.T) {
 }
 
 func TestSafeUint32FromUint64(t *testing.T) {
+	t.Parallel()
+
 	value, err := SafeUint32FromUint64(123)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -228,6 +254,8 @@ func TestSafeUint32FromUint64(t *testing.T) {
 }
 
 func TestToInt64(t *testing.T) {
+	t.Parallel()
+
 	value, err := ToInt64(int32(123))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -252,6 +280,8 @@ func TestToInt64(t *testing.T) {
 }
 
 func TestToInt32(t *testing.T) {
+	t.Parallel()
+
 	value, err := ToInt32(uint16(42))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -271,6 +301,8 @@ func TestToInt32(t *testing.T) {
 }
 
 func TestToInt(t *testing.T) {
+	t.Parallel()
+
 	value, err := ToInt(uint16(42))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -295,6 +327,8 @@ func TestToInt(t *testing.T) {
 }
 
 func TestToUint64(t *testing.T) {
+	t.Parallel()
+
 	value, err := ToUint64(int32(42))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -310,6 +344,8 @@ func TestToUint64(t *testing.T) {
 }
 
 func TestToUint32(t *testing.T) {
+	t.Parallel()
+
 	value, err := ToUint32(uint16(42))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -329,6 +365,8 @@ func TestToUint32(t *testing.T) {
 }
 
 func TestToUint(t *testing.T) {
+	t.Parallel()
+
 	value, err := ToUint(uint16(42))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

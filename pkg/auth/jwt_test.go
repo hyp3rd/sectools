@@ -9,6 +9,8 @@ import (
 )
 
 func TestJWTSignerMissingExpiration(t *testing.T) {
+	t.Parallel()
+
 	signer, err := NewJWTSigner(
 		WithJWTSigningAlgorithm("HS256"),
 		WithJWTSigningKey([]byte("secret")),
@@ -24,6 +26,8 @@ func TestJWTSignerMissingExpiration(t *testing.T) {
 }
 
 func TestJWTSignVerifyRoundTrip(t *testing.T) {
+	t.Parallel()
+
 	now := time.Date(2024, 10, 1, 12, 0, 0, 0, time.UTC)
 	secret := []byte("supersecret")
 
@@ -71,6 +75,8 @@ func TestJWTSignVerifyRoundTrip(t *testing.T) {
 }
 
 func TestJWTVerifierAudienceMismatch(t *testing.T) {
+	t.Parallel()
+
 	now := time.Date(2024, 10, 1, 12, 0, 0, 0, time.UTC)
 	secret := []byte("supersecret")
 
@@ -111,6 +117,8 @@ func TestJWTVerifierAudienceMismatch(t *testing.T) {
 }
 
 func TestJWTVerifierKeySetRequiresKid(t *testing.T) {
+	t.Parallel()
+
 	now := time.Date(2024, 10, 1, 12, 0, 0, 0, time.UTC)
 	secret := []byte("supersecret")
 

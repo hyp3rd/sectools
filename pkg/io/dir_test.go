@@ -10,6 +10,8 @@ import (
 )
 
 func TestSecureReadDirDefaultOptions(t *testing.T) {
+	t.Parallel()
+
 	dirAbs, dirRel := createTempDir(t)
 
 	err := os.WriteFile(filepath.Join(dirAbs, "file.txt"), []byte("data"), 0o600)
@@ -29,6 +31,8 @@ func TestSecureReadDirDefaultOptions(t *testing.T) {
 }
 
 func TestSecureReadDirNotDirectory(t *testing.T) {
+	t.Parallel()
+
 	_, relPath := createTempFile(t, []byte("data"))
 
 	client := New()
@@ -37,6 +41,8 @@ func TestSecureReadDirNotDirectory(t *testing.T) {
 }
 
 func TestSecureMkdirAllDefaultOptions(t *testing.T) {
+	t.Parallel()
+
 	dirName := filepath.Base(uniqueTempPath(t, "sectools-mkdir-"))
 
 	client := New()

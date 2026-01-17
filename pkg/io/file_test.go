@@ -14,6 +14,8 @@ import (
 )
 
 func TestSecureReadFileDefaultOptionsRelativePath(t *testing.T) {
+	t.Parallel()
+
 	absPath, relPath := createTempFile(t, []byte("secret"))
 
 	client := New()
@@ -25,6 +27,8 @@ func TestSecureReadFileDefaultOptionsRelativePath(t *testing.T) {
 }
 
 func TestSecureOpenFileDefaultOptionsRelativePath(t *testing.T) {
+	t.Parallel()
+
 	absPath, relPath := createTempFile(t, []byte("stream"))
 
 	client := New()
@@ -41,6 +45,8 @@ func TestSecureOpenFileDefaultOptionsRelativePath(t *testing.T) {
 }
 
 func TestSecureOpenFileAllowAbsolute(t *testing.T) {
+	t.Parallel()
+
 	absPath, _ := createTempFile(t, []byte("stream"))
 
 	client, err := NewWithOptions(WithAllowAbsolute(true))
@@ -57,6 +63,8 @@ func TestSecureOpenFileAllowAbsolute(t *testing.T) {
 }
 
 func TestSecureReadFileDefaultOptionsAbsolutePathRejected(t *testing.T) {
+	t.Parallel()
+
 	absPath, _ := createTempFile(t, []byte("secret"))
 
 	client := New()
@@ -66,6 +74,8 @@ func TestSecureReadFileDefaultOptionsAbsolutePathRejected(t *testing.T) {
 }
 
 func TestSecureReadFileWithOptionsAllowAbsolute(t *testing.T) {
+	t.Parallel()
+
 	absPath, _ := createTempFile(t, []byte("secret"))
 
 	client, err := NewWithOptions(WithAllowAbsolute(true))
@@ -77,6 +87,8 @@ func TestSecureReadFileWithOptionsAllowAbsolute(t *testing.T) {
 }
 
 func TestSecureReadFileWithOptionsMaxSize(t *testing.T) {
+	t.Parallel()
+
 	_, relPath := createTempFile(t, []byte("secret"))
 
 	client, err := NewWithOptions(WithReadMaxSize(3))
@@ -88,6 +100,8 @@ func TestSecureReadFileWithOptionsMaxSize(t *testing.T) {
 }
 
 func TestSecureReadFileWithMaxSizeSuccess(t *testing.T) {
+	t.Parallel()
+
 	data := []byte("secret")
 	_, relPath := createTempFile(t, data)
 
@@ -100,6 +114,8 @@ func TestSecureReadFileWithMaxSizeSuccess(t *testing.T) {
 }
 
 func TestSecureReadFileWithMaxSizeTooLarge(t *testing.T) {
+	t.Parallel()
+
 	_, relPath := createTempFile(t, []byte("secret"))
 
 	client, err := NewWithOptions(WithReadMaxSize(3))
@@ -110,11 +126,15 @@ func TestSecureReadFileWithMaxSizeTooLarge(t *testing.T) {
 }
 
 func TestSecureReadFileWithMaxSizeInvalid(t *testing.T) {
+	t.Parallel()
+
 	_, err := NewWithOptions(WithReadMaxSize(0))
 	require.ErrorIs(t, err, ErrMaxSizeInvalid)
 }
 
 func TestSecureReadFileWithOptionsSymlinkPolicy(t *testing.T) {
+	t.Parallel()
+
 	targetAbs, linkAbs, linkRel := createTempSymlink(t, []byte("secret"))
 
 	client := New()
@@ -133,6 +153,8 @@ func TestSecureReadFileWithOptionsSymlinkPolicy(t *testing.T) {
 }
 
 func TestSecureReadFileWithOptionsNonRegular(t *testing.T) {
+	t.Parallel()
+
 	dirAbs, dirRel := createTempDir(t)
 
 	client := New()
@@ -144,6 +166,8 @@ func TestSecureReadFileWithOptionsNonRegular(t *testing.T) {
 }
 
 func TestSecureReadFileWithSecureBufferDefaultOptions(t *testing.T) {
+	t.Parallel()
+
 	_, relPath := createTempFile(t, []byte("secret"))
 
 	client := New()
@@ -155,6 +179,8 @@ func TestSecureReadFileWithSecureBufferDefaultOptions(t *testing.T) {
 }
 
 func TestSecureReadFileWithSecureBufferOptionsAllowAbsolute(t *testing.T) {
+	t.Parallel()
+
 	absPath, _ := createTempFile(t, []byte("secret"))
 
 	client, err := NewWithOptions(WithAllowAbsolute(true))
@@ -168,6 +194,8 @@ func TestSecureReadFileWithSecureBufferOptionsAllowAbsolute(t *testing.T) {
 }
 
 func TestSecureReadFileWithSecureBufferOptionsMaxSize(t *testing.T) {
+	t.Parallel()
+
 	_, relPath := createTempFile(t, []byte("secret"))
 
 	client, err := NewWithOptions(WithReadMaxSize(3))
@@ -179,6 +207,8 @@ func TestSecureReadFileWithSecureBufferOptionsMaxSize(t *testing.T) {
 }
 
 func TestSecureWriteFileDefaultOptions(t *testing.T) {
+	t.Parallel()
+
 	filename := filepath.Base(uniqueTempPath(t, "sectools-write-"))
 	data := []byte("write-test")
 
@@ -194,6 +224,8 @@ func TestSecureWriteFileDefaultOptions(t *testing.T) {
 }
 
 func TestSecureWriteFileDisableAtomic(t *testing.T) {
+	t.Parallel()
+
 	filename := filepath.Base(uniqueTempPath(t, "sectools-direct-"))
 	data := []byte("direct-write")
 
@@ -211,6 +243,8 @@ func TestSecureWriteFileDisableAtomic(t *testing.T) {
 }
 
 func TestSecureWriteFileDisableSync(t *testing.T) {
+	t.Parallel()
+
 	filename := filepath.Base(uniqueTempPath(t, "sectools-nosync-"))
 	data := []byte("no-sync")
 
@@ -228,6 +262,8 @@ func TestSecureWriteFileDisableSync(t *testing.T) {
 }
 
 func TestSecureWriteFileSyncDir(t *testing.T) {
+	t.Parallel()
+
 	filename := filepath.Base(uniqueTempPath(t, "sectools-syncdir-"))
 	data := []byte("sync-dir")
 
@@ -249,6 +285,8 @@ func TestSecureWriteFileSyncDir(t *testing.T) {
 }
 
 func TestSecureWriteFileAbsolutePathRejected(t *testing.T) {
+	t.Parallel()
+
 	path := uniqueTempPath(t, "sectools-abs-")
 
 	client := New()
@@ -258,6 +296,8 @@ func TestSecureWriteFileAbsolutePathRejected(t *testing.T) {
 }
 
 func TestSecureWriteFileCreateExclusive(t *testing.T) {
+	t.Parallel()
+
 	absPath, relPath := createTempFile(t, []byte("existing"))
 
 	client, err := NewWithOptions(WithWriteCreateExclusive(true))
@@ -271,6 +311,8 @@ func TestSecureWriteFileCreateExclusive(t *testing.T) {
 }
 
 func TestSecureWriteFileSymlinkRejected(t *testing.T) {
+	t.Parallel()
+
 	_, linkAbs, linkRel := createTempSymlink(t, []byte("secret"))
 
 	client := New()
@@ -281,6 +323,8 @@ func TestSecureWriteFileSymlinkRejected(t *testing.T) {
 }
 
 func TestSecureWriteFromReaderDefaultOptions(t *testing.T) {
+	t.Parallel()
+
 	filename := filepath.Base(uniqueTempPath(t, "sectools-reader-"))
 	data := "reader-data"
 
@@ -296,6 +340,8 @@ func TestSecureWriteFromReaderDefaultOptions(t *testing.T) {
 }
 
 func TestSecureWriteFromReaderMaxSize(t *testing.T) {
+	t.Parallel()
+
 	filename := filepath.Base(uniqueTempPath(t, "sectools-reader-max-"))
 
 	client, err := NewWithOptions(WithWriteMaxSize(3))
@@ -310,6 +356,8 @@ func TestSecureWriteFromReaderMaxSize(t *testing.T) {
 }
 
 func TestSecureReadFileWithOptionsDisallowPerms(t *testing.T) {
+	t.Parallel()
+
 	if runtime.GOOS == "windows" {
 		t.Skip("permission bits are not reliable on Windows")
 	}

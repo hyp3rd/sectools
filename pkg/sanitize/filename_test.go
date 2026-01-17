@@ -6,6 +6,8 @@ import (
 )
 
 func TestFilenameSanitizeBasic(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewFilenameSanitizer()
 	if err != nil {
 		t.Fatalf("expected sanitizer, got %v", err)
@@ -22,6 +24,8 @@ func TestFilenameSanitizeBasic(t *testing.T) {
 }
 
 func TestFilenameSanitizeLeadingDot(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewFilenameSanitizer()
 	if err != nil {
 		t.Fatalf("expected sanitizer, got %v", err)
@@ -38,6 +42,8 @@ func TestFilenameSanitizeLeadingDot(t *testing.T) {
 }
 
 func TestFilenameSanitizeSeparators(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewFilenameSanitizer()
 	if err != nil {
 		t.Fatalf("expected sanitizer, got %v", err)
@@ -54,6 +60,8 @@ func TestFilenameSanitizeSeparators(t *testing.T) {
 }
 
 func TestFilenameSanitizeEmpty(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewFilenameSanitizer()
 	if err != nil {
 		t.Fatalf("expected sanitizer, got %v", err)
@@ -66,6 +74,8 @@ func TestFilenameSanitizeEmpty(t *testing.T) {
 }
 
 func TestFilenameSanitizeMaxLength(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewFilenameSanitizer(WithFilenameMaxLength(3))
 	if err != nil {
 		t.Fatalf("expected sanitizer, got %v", err)

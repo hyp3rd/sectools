@@ -9,6 +9,8 @@ import (
 )
 
 func TestBackupCodeGenerateAndVerify(t *testing.T) {
+	t.Parallel()
+
 	manager, err := NewBackupCodeManager(
 		WithBackupCodeCount(3),
 		WithBackupHasherBcrypt(password.BcryptInteractiveCost),
@@ -52,6 +54,8 @@ func TestBackupCodeGenerateAndVerify(t *testing.T) {
 }
 
 func TestBackupCodeVerifyNormalizesInput(t *testing.T) {
+	t.Parallel()
+
 	manager, err := NewBackupCodeManager(
 		WithBackupCodeCount(1),
 		WithBackupHasherBcrypt(password.BcryptInteractiveCost),
@@ -79,6 +83,8 @@ func TestBackupCodeVerifyNormalizesInput(t *testing.T) {
 }
 
 func TestBackupCodeInvalidInput(t *testing.T) {
+	t.Parallel()
+
 	manager, err := NewBackupCodeManager()
 	if err != nil {
 		t.Fatalf("expected manager, got %v", err)
@@ -91,6 +97,8 @@ func TestBackupCodeInvalidInput(t *testing.T) {
 }
 
 func TestBackupCodeInvalidAlphabet(t *testing.T) {
+	t.Parallel()
+
 	_, err := NewBackupCodeManager(WithBackupCodeAlphabet("ABC"))
 	if !errors.Is(err, ErrInvalidMFAConfig) {
 		t.Fatalf("expected ErrInvalidMFAConfig, got %v", err)
@@ -98,6 +106,8 @@ func TestBackupCodeInvalidAlphabet(t *testing.T) {
 }
 
 func TestBackupCodeInvalidOptions(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		opts []BackupOption
@@ -168,6 +178,8 @@ func TestBackupCodeInvalidOptions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := NewBackupCodeManager(tt.opts...)
 			if !errors.Is(err, tt.err) {
 				t.Fatalf("expected %v, got %v", tt.err, err)

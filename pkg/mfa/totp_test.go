@@ -14,6 +14,8 @@ const (
 )
 
 func TestTOTPGenerateAndVerify(t *testing.T) {
+	t.Parallel()
+
 	now := time.Date(2024, time.January, 2, 15, 4, 5, 0, time.UTC)
 	clock := func() time.Time {
 		return now
@@ -54,6 +56,8 @@ func TestTOTPGenerateAndVerify(t *testing.T) {
 }
 
 func TestTOTPVerifySkew(t *testing.T) {
+	t.Parallel()
+
 	now := time.Date(2024, time.January, 2, 15, 4, 5, 0, time.UTC)
 	clock := func() time.Time {
 		return now
@@ -82,6 +86,8 @@ func TestTOTPVerifySkew(t *testing.T) {
 }
 
 func TestTOTPVerifyWithStep(t *testing.T) {
+	t.Parallel()
+
 	now := time.Date(2024, time.January, 2, 15, 4, 5, 0, time.UTC)
 	clock := func() time.Time {
 		return now
@@ -113,6 +119,8 @@ func TestTOTPVerifyWithStep(t *testing.T) {
 }
 
 func TestTOTPInvalidCode(t *testing.T) {
+	t.Parallel()
+
 	helper, err := NewTOTP(totpTestSecret)
 	if err != nil {
 		t.Fatalf("expected totp helper, got %v", err)
@@ -125,6 +133,8 @@ func TestTOTPInvalidCode(t *testing.T) {
 }
 
 func TestTOTPSecretTooShort(t *testing.T) {
+	t.Parallel()
+
 	_, err := NewTOTP("AAAA")
 	if !errors.Is(err, ErrMFASecretTooShort) {
 		t.Fatalf("expected ErrMFASecretTooShort, got %v", err)
@@ -132,6 +142,8 @@ func TestTOTPSecretTooShort(t *testing.T) {
 }
 
 func TestTOTPInvalidOptions(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		opts []TOTPOption
@@ -160,6 +172,8 @@ func TestTOTPInvalidOptions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := NewTOTP(totpTestSecret, tt.opts...)
 			if !errors.Is(err, ErrInvalidMFAConfig) {
 				t.Fatalf("expected ErrInvalidMFAConfig, got %v", err)
@@ -169,6 +183,8 @@ func TestTOTPInvalidOptions(t *testing.T) {
 }
 
 func TestGenerateTOTPKey(t *testing.T) {
+	t.Parallel()
+
 	key, err := GenerateTOTPKey(
 		WithTOTPKeyIssuer(totpTestIssuer),
 		WithTOTPKeyAccountName(totpTestAccount),

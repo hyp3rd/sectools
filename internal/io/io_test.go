@@ -10,6 +10,8 @@ import (
 )
 
 func TestSecurePath(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name    string
 		path    string
@@ -60,6 +62,8 @@ func TestSecurePath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := SecurePath(tt.path)
 			if tt.wantErr {
 				require.Error(t, err)
@@ -74,22 +78,24 @@ func TestSecurePath(t *testing.T) {
 }
 
 func TestSecurePathSymlink(t *testing.T) {
+	t.Parallel()
+
 	tempDir := os.TempDir()
 	validPath := filepath.Join(tempDir, "valid.txt")
 	symlinkPath := filepath.Join(tempDir, "symlink.txt")
 
-	// Create a test file
 	err := os.WriteFile(validPath, []byte("test"), 0o644)
 	require.NoError(t, err)
 
-	defer func() { _ = os.Remove(validPath) }()
+	t.Cleanup(func() { _ = os.Remove(validPath) })
 
-	// Create a symlink pointing outside temp directory
 	err = os.Symlink("/etc/hosts", symlinkPath)
 	if err == nil {
-		defer func() { _ = os.Remove(symlinkPath) }()
+		t.Cleanup(func() { _ = os.Remove(symlinkPath) })
 
 		t.Run("symlink outside temp directory", func(t *testing.T) {
+			t.Parallel()
+
 			_, err := SecurePath("symlink.txt")
 			assert.Error(t, err)
 		})

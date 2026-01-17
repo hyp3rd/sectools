@@ -9,6 +9,8 @@ import (
 )
 
 func TestSecureRemoveDefaultOptions(t *testing.T) {
+	t.Parallel()
+
 	_, relPath := createTempFile(t, []byte("remove-me"))
 
 	client := New()
@@ -21,6 +23,8 @@ func TestSecureRemoveDefaultOptions(t *testing.T) {
 }
 
 func TestSecureRemoveAllDefaultOptions(t *testing.T) {
+	t.Parallel()
+
 	dirAbs, dirRel := createTempDir(t)
 
 	err := os.WriteFile(filepath.Join(dirAbs, "nested.txt"), []byte("data"), 0o600)
@@ -36,6 +40,8 @@ func TestSecureRemoveAllDefaultOptions(t *testing.T) {
 }
 
 func TestSecureRemoveAbsolutePathRejected(t *testing.T) {
+	t.Parallel()
+
 	absPath, _ := createTempFile(t, []byte("abs"))
 
 	client := New()
@@ -45,6 +51,8 @@ func TestSecureRemoveAbsolutePathRejected(t *testing.T) {
 }
 
 func TestSecureRemoveWithWipe(t *testing.T) {
+	t.Parallel()
+
 	_, relPath := createTempFile(t, []byte("wipe-me"))
 
 	client, err := NewWithOptions(WithRemoveWipe(true))

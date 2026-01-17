@@ -7,6 +7,8 @@ import (
 )
 
 func TestNewSecureBuffer(t *testing.T) {
+	t.Parallel()
+
 	// Test with non-empty data
 	originalData := []byte("sensitive data")
 	buf := NewSecureBuffer(originalData)
@@ -31,6 +33,8 @@ func TestNewSecureBuffer(t *testing.T) {
 }
 
 func TestClear(t *testing.T) {
+	t.Parallel()
+
 	// Create a buffer with test data
 	testData := []byte("test data")
 	buf := NewSecureBuffer(testData)
@@ -48,6 +52,8 @@ func TestClear(t *testing.T) {
 }
 
 func TestClearFast(t *testing.T) {
+	t.Parallel()
+
 	buf := NewSecureBuffer([]byte("fast clear"))
 
 	buf.ClearFast()
@@ -60,6 +66,8 @@ func TestClearFast(t *testing.T) {
 }
 
 func TestBytes(t *testing.T) {
+	t.Parallel()
+
 	// Create a buffer with test data
 	testData := []byte("test data")
 	buf := NewSecureBuffer(testData)
@@ -79,6 +87,8 @@ func TestBytes(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
+	t.Parallel()
+
 	// Create a buffer with test data
 	testData := []byte("test data")
 	buf := NewSecureBuffer(testData)
@@ -98,6 +108,8 @@ func TestString(t *testing.T) {
 }
 
 func TestFinalizer(t *testing.T) {
+	t.Parallel()
+
 	// This is a best-effort test for the finalizer behavior
 	// It's not deterministic due to garbage collection unpredictability
 
@@ -116,6 +128,8 @@ func TestFinalizer(t *testing.T) {
 }
 
 func TestSecureBufferNilInput(t *testing.T) {
+	t.Parallel()
+
 	buf := NewSecureBuffer(nil)
 	if len(buf.data) != 0 {
 		t.Errorf("Expected 0 len data for nil input")
@@ -123,6 +137,8 @@ func TestSecureBufferNilInput(t *testing.T) {
 }
 
 func TestSecureBufferLargeData(t *testing.T) {
+	t.Parallel()
+
 	largeData := make([]byte, 1024*1024)
 	for i := range largeData {
 		largeData[i] = byte(i % 256)
@@ -143,6 +159,8 @@ func TestSecureBufferLargeData(t *testing.T) {
 }
 
 func TestSecureBufferMultipleCopies(t *testing.T) {
+	t.Parallel()
+
 	original := []byte("sensitive data")
 	buf1 := NewSecureBuffer(original)
 	buf2 := NewSecureBuffer(buf1.BytesCopy())
@@ -159,6 +177,8 @@ func TestSecureBufferMultipleCopies(t *testing.T) {
 }
 
 func TestSecureBufferConcurrentAccess(t *testing.T) {
+	t.Parallel()
+
 	data := []byte("concurrent test data")
 	buf := NewSecureBuffer(data)
 
@@ -186,6 +206,8 @@ func TestSecureBufferConcurrentAccess(t *testing.T) {
 }
 
 func TestSecureBufferZeroLengthData(t *testing.T) {
+	t.Parallel()
+
 	buf := NewSecureBuffer(make([]byte, 0))
 	if buf.data == nil {
 		t.Errorf("Zero length buffer should not be nil")
@@ -197,6 +219,8 @@ func TestSecureBufferZeroLengthData(t *testing.T) {
 }
 
 func TestSecureBufferStringWithNonUTF8(t *testing.T) {
+	t.Parallel()
+
 	invalidUTF8 := []byte{0xFF, 0xFE, 0xFD}
 	buf := NewSecureBuffer(invalidUTF8)
 
@@ -207,6 +231,8 @@ func TestSecureBufferStringWithNonUTF8(t *testing.T) {
 }
 
 func TestZeroBytes(t *testing.T) {
+	t.Parallel()
+
 	data := []byte{1, 2, 3, 4}
 	ZeroBytes(data)
 
@@ -218,6 +244,8 @@ func TestZeroBytes(t *testing.T) {
 }
 
 func TestSecureBufferLockUnlockEmpty(t *testing.T) {
+	t.Parallel()
+
 	buf := NewSecureBuffer([]byte{})
 
 	err := buf.Lock()

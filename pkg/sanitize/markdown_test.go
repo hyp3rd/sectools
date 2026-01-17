@@ -7,6 +7,8 @@ import (
 )
 
 func TestMarkdownSanitizeEscape(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewMarkdownSanitizer()
 	if err != nil {
 		t.Fatalf("expected sanitizer, got %v", err)
@@ -26,6 +28,8 @@ func TestMarkdownSanitizeEscape(t *testing.T) {
 }
 
 func TestMarkdownAllowRawHTML(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewMarkdownSanitizer(WithMarkdownAllowRawHTML(true))
 	if err != nil {
 		t.Fatalf("expected sanitizer, got %v", err)
@@ -44,6 +48,8 @@ func TestMarkdownAllowRawHTML(t *testing.T) {
 }
 
 func TestMarkdownMaxLength(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewMarkdownSanitizer(WithMarkdownMaxLength(1))
 	if err != nil {
 		t.Fatalf("expected sanitizer, got %v", err)

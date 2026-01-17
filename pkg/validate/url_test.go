@@ -26,6 +26,8 @@ func (f *fakeRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) 
 }
 
 func TestURLValidateBasic(t *testing.T) {
+	t.Parallel()
+
 	validator, err := NewURLValidator()
 	if err != nil {
 		t.Fatalf("expected validator, got %v", err)
@@ -38,6 +40,8 @@ func TestURLValidateBasic(t *testing.T) {
 }
 
 func TestURLRejectUserInfo(t *testing.T) {
+	t.Parallel()
+
 	validator, err := NewURLValidator()
 	if err != nil {
 		t.Fatalf("expected validator, got %v", err)
@@ -50,6 +54,8 @@ func TestURLRejectUserInfo(t *testing.T) {
 }
 
 func TestURLRejectPrivateIP(t *testing.T) {
+	t.Parallel()
+
 	validator, err := NewURLValidator(
 		WithURLAllowIPLiteral(true),
 	)
@@ -64,6 +70,8 @@ func TestURLRejectPrivateIP(t *testing.T) {
 }
 
 func TestURLRedirectCheck(t *testing.T) {
+	t.Parallel()
+
 	client := &http.Client{
 		Transport: &fakeRoundTripper{
 			responses: map[string]*http.Response{
@@ -100,6 +108,8 @@ func TestURLRedirectCheck(t *testing.T) {
 }
 
 func TestURLRedirectLoop(t *testing.T) {
+	t.Parallel()
+
 	client := &http.Client{
 		Transport: &fakeRoundTripper{
 			responses: map[string]*http.Response{
@@ -127,6 +137,8 @@ func TestURLRedirectLoop(t *testing.T) {
 }
 
 func TestURLReputationBlock(t *testing.T) {
+	t.Parallel()
+
 	checker := NewStaticReputation(nil, []string{"example.com"})
 
 	validator, err := NewURLValidator(
@@ -143,6 +155,8 @@ func TestURLReputationBlock(t *testing.T) {
 }
 
 func TestURLRejectHTTPWithSchemesOption(t *testing.T) {
+	t.Parallel()
+
 	_, err := NewURLValidator(WithURLAllowedSchemes("http"))
 	if !errors.Is(err, ErrInvalidURLConfig) {
 		t.Fatalf("expected ErrInvalidURLConfig, got %v", err)
