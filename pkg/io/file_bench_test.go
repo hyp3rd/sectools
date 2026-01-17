@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func BenchmarkSecureReadFile(b *testing.B) {
@@ -17,10 +19,18 @@ func BenchmarkSecureReadFile(b *testing.B) {
 		b.Fatalf("failed to create temp file: %v", err)
 	}
 
-	defer func() { _ = os.Remove(file.Name()) }()
+	defer func() {
+		err = os.Remove(file.Name())
+		if err != nil {
+			b.Fatalf("failed to remove temp file: %v", err)
+		}
+	}()
 
 	if _, err := file.Write(data); err != nil {
-		_ = file.Close()
+		err = file.Close()
+		if err != nil {
+			b.Fatalf("failed to close temp file: %v", err)
+		}
 
 		b.Fatalf("failed to write temp data: %v", err)
 	}
@@ -62,7 +72,8 @@ func BenchmarkSecureWriteFile(b *testing.B) {
 
 	path := file.Name()
 	if err := file.Close(); err != nil {
-		_ = os.Remove(path)
+		err = os.Remove(path)
+		require.NoError(b, err)
 
 		b.Fatalf("failed to close temp file: %v", err)
 	}
@@ -72,7 +83,8 @@ func BenchmarkSecureWriteFile(b *testing.B) {
 	}
 
 	b.Cleanup(func() {
-		_ = os.Remove(path)
+		err = os.Remove(path)
+		require.NoError(b, err)
 	})
 
 	relPath, err := filepath.Rel(os.TempDir(), path)

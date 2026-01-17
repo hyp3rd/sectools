@@ -10,7 +10,8 @@ import (
 const (
 	totpTestIssuer  = "sectools"
 	totpTestAccount = "user@example.com"
-	totpTestSecret  = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP" // cspell:disable-line
+	//nolint:gosec
+	totpTestSecret = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP" // cspell:disable-line
 )
 
 func TestTOTPGenerateAndVerify(t *testing.T) {

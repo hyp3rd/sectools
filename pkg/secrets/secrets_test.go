@@ -486,6 +486,8 @@ func TestWithSecretMask(t *testing.T) {
 }
 
 // TestNestedStructureRedaction tests redaction of nested structures.
+//
+//nolint:funlen
 func TestNestedStructureRedaction(t *testing.T) {
 	t.Parallel()
 

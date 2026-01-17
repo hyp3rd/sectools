@@ -5,6 +5,11 @@ import (
 	"testing"
 )
 
+const (
+	errMsgNegativeInput = "expected error for negative input"
+	errMsgOverflow      = "expected overflow error"
+)
+
 func TestSafeUint64FromInt(t *testing.T) {
 	t.Parallel()
 
@@ -17,8 +22,9 @@ func TestSafeUint64FromInt(t *testing.T) {
 		t.Fatalf("expected 10, got %d", value)
 	}
 
-	if _, err = SafeUint64FromInt(-1); err == nil {
-		t.Fatalf("expected error for negative input")
+	_, err = SafeUint64FromInt(-1)
+	if err == nil {
+		t.Fatal(errMsgNegativeInput)
 	}
 }
 
@@ -34,8 +40,9 @@ func TestSafeUint64FromInt64(t *testing.T) {
 		t.Fatalf("expected 42, got %d", value)
 	}
 
-	if _, err = SafeUint64FromInt64(-5); err == nil {
-		t.Fatalf("expected error for negative input")
+	_, err = SafeUint64FromInt64(-5)
+	if err == nil {
+		t.Fatal(errMsgNegativeInput)
 	}
 }
 
@@ -54,8 +61,10 @@ func TestSafeIntFromInt64(t *testing.T) {
 	maxInt := int64(^uint(0) >> 1)
 	if maxInt < math.MaxInt64 {
 		overflowCandidate := maxInt + 1
-		if _, err = SafeIntFromInt64(overflowCandidate); err == nil {
-			t.Fatalf("expected overflow error")
+
+		_, err = SafeIntFromInt64(overflowCandidate)
+		if err == nil {
+			t.Fatal(errMsgOverflow)
 		}
 	}
 }
@@ -73,7 +82,7 @@ func TestSafeUintFromInt64(t *testing.T) {
 	}
 
 	if _, err = SafeUintFromInt64(-1); err == nil {
-		t.Fatalf("expected error for negative input")
+		t.Fatal(errMsgNegativeInput)
 	}
 
 	maxUint := uint64(^uint(0))
@@ -82,7 +91,7 @@ func TestSafeUintFromInt64(t *testing.T) {
 	if maxUint < maxInt64 {
 		overflowCandidate := int64(maxUint) + 1
 		if _, err = SafeUintFromInt64(overflowCandidate); err == nil {
-			t.Fatalf("expected overflow error")
+			t.Fatal(errMsgOverflow)
 		}
 	}
 }
@@ -100,11 +109,11 @@ func TestSafeUint32FromInt64(t *testing.T) {
 	}
 
 	if _, err = SafeUint32FromInt64(-1); err == nil {
-		t.Fatalf("expected error for negative input")
+		t.Fatal(errMsgNegativeInput)
 	}
 
 	if _, err = SafeUint32FromInt64(int64(^uint32(0)) + 1); err == nil {
-		t.Fatalf("expected overflow error")
+		t.Fatal(errMsgOverflow)
 	}
 }
 
@@ -121,11 +130,11 @@ func TestSafeUint16FromInt64(t *testing.T) {
 	}
 
 	if _, err = SafeUint16FromInt64(-1); err == nil {
-		t.Fatalf("expected error for negative input")
+		t.Fatal(errMsgNegativeInput)
 	}
 
 	if _, err = SafeUint16FromInt64(int64(^uint16(0)) + 1); err == nil {
-		t.Fatalf("expected overflow error")
+		t.Fatal(errMsgOverflow)
 	}
 }
 
@@ -142,11 +151,11 @@ func TestSafeUint8FromInt64(t *testing.T) {
 	}
 
 	if _, err = SafeUint8FromInt64(-1); err == nil {
-		t.Fatalf("expected error for negative input")
+		t.Fatal(errMsgNegativeInput)
 	}
 
 	if _, err = SafeUint8FromInt64(int64(^uint8(0)) + 1); err == nil {
-		t.Fatalf("expected overflow error")
+		t.Fatal(errMsgOverflow)
 	}
 }
 
@@ -164,7 +173,7 @@ func TestSafeIntFromUint64(t *testing.T) {
 
 	maxInt := uint64(^uint(0) >> 1)
 	if _, err = SafeIntFromUint64(maxInt + 1); err == nil {
-		t.Fatalf("expected overflow error")
+		t.Fatal(errMsgOverflow)
 	}
 }
 
@@ -181,7 +190,7 @@ func TestSafeInt32FromInt64(t *testing.T) {
 	}
 
 	if _, err = SafeInt32FromInt64(int64(1 << 31)); err == nil {
-		t.Fatalf("expected overflow error")
+		t.Fatal(errMsgOverflow)
 	}
 }
 
@@ -198,7 +207,7 @@ func TestSafeInt16FromInt64(t *testing.T) {
 	}
 
 	if _, err = SafeInt16FromInt64(int64(1 << 15)); err == nil {
-		t.Fatalf("expected overflow error")
+		t.Fatal(errMsgOverflow)
 	}
 }
 
@@ -215,7 +224,7 @@ func TestSafeInt8FromInt64(t *testing.T) {
 	}
 
 	if _, err = SafeInt8FromInt64(int64(1 << 7)); err == nil {
-		t.Fatalf("expected overflow error")
+		t.Fatal(errMsgOverflow)
 	}
 }
 
@@ -232,7 +241,7 @@ func TestSafeInt64FromUint64(t *testing.T) {
 	}
 
 	if _, err = SafeInt64FromUint64(uint64(math.MaxInt64) + 1); err == nil {
-		t.Fatalf("expected overflow error")
+		t.Fatal(errMsgOverflow)
 	}
 }
 
@@ -249,7 +258,7 @@ func TestSafeUint32FromUint64(t *testing.T) {
 	}
 
 	if _, err = SafeUint32FromUint64(uint64(^uint32(0)) + 1); err == nil {
-		t.Fatalf("expected overflow error")
+		t.Fatal(errMsgOverflow)
 	}
 }
 
@@ -275,7 +284,7 @@ func TestToInt64(t *testing.T) {
 	}
 
 	if _, err = ToInt64(uint64(math.MaxInt64) + 1); err == nil {
-		t.Fatalf("expected overflow error")
+		t.Fatal(errMsgOverflow)
 	}
 }
 
@@ -292,11 +301,11 @@ func TestToInt32(t *testing.T) {
 	}
 
 	if _, err = ToInt32(uint64(1<<31) + 1); err == nil {
-		t.Fatalf("expected overflow error")
+		t.Fatal(errMsgOverflow)
 	}
 
 	if _, err = ToInt32(int64(-1<<31) - 1); err == nil {
-		t.Fatalf("expected overflow error")
+		t.Fatal(errMsgOverflow)
 	}
 }
 
@@ -315,13 +324,14 @@ func TestToInt(t *testing.T) {
 	maxInt := int64(^uint(0) >> 1)
 	minInt := -maxInt - 1
 
-	if _, err = ToInt(uint64(maxInt) + 1); err == nil {
-		t.Fatalf("expected overflow error")
+	_, err = ToInt(uint64(maxInt) + 1)
+	if err == nil {
+		t.Fatal(errMsgOverflow)
 	}
 
 	if minInt > math.MinInt64 {
 		if _, err = ToInt(minInt - 1); err == nil {
-			t.Fatalf("expected overflow error")
+			t.Fatal(errMsgOverflow)
 		}
 	}
 }
@@ -339,7 +349,7 @@ func TestToUint64(t *testing.T) {
 	}
 
 	if _, err = ToUint64(int64(-1)); err == nil {
-		t.Fatalf("expected error for negative input")
+		t.Fatal(errMsgNegativeInput)
 	}
 }
 
@@ -356,11 +366,11 @@ func TestToUint32(t *testing.T) {
 	}
 
 	if _, err = ToUint32(int64(-1)); err == nil {
-		t.Fatalf("expected error for negative input")
+		t.Fatal(errMsgNegativeInput)
 	}
 
 	if _, err = ToUint32(uint64(^uint32(0)) + 1); err == nil {
-		t.Fatalf("expected overflow error")
+		t.Fatal(errMsgOverflow)
 	}
 }
 
@@ -377,13 +387,13 @@ func TestToUint(t *testing.T) {
 	}
 
 	if _, err = ToUint(int64(-1)); err == nil {
-		t.Fatalf("expected error for negative input")
+		t.Fatal(errMsgNegativeInput)
 	}
 
 	maxUint := uint64(^uint(0))
 	if maxUint < math.MaxUint64 {
 		if _, err = ToUint(maxUint + 1); err == nil {
-			t.Fatalf("expected overflow error")
+			t.Fatal(errMsgOverflow)
 		}
 	}
 }

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 	"time"
+
+	"github.com/hyp3rd/ewrap"
 )
 
 type testRateLimiter struct {
@@ -81,12 +83,12 @@ func TestBackupVerifyRateLimited(t *testing.T) {
 func TestRateLimiterErrorWraps(t *testing.T) {
 	t.Parallel()
 
-	limiter := &testRateLimiter{allow: false, err: errors.New("backend")}
+	limiter := &testRateLimiter{allow: false, err: ewrap.New("backend")}
 
 	helper, err := NewTOTP(
 		totpTestSecret,
 		WithTOTPRateLimiter(limiter),
-		WithTOTPClock(func() time.Time { return time.Now() }),
+		WithTOTPClock(time.Now),
 	)
 	if err != nil {
 		t.Fatalf("expected totp helper, got %v", err)

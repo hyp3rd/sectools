@@ -5,6 +5,8 @@ import (
 	"errors"
 	"strings"
 	"testing"
+
+	"github.com/hyp3rd/ewrap"
 )
 
 func TestNewSecureBufferFromReader(t *testing.T) {
@@ -54,7 +56,7 @@ func TestNewSecureBufferFromReaderNilReader(t *testing.T) {
 func TestNewSecureBufferFromReaderReadError(t *testing.T) {
 	t.Parallel()
 
-	readErr := errors.New("boom")
+	readErr := ewrap.New("boom")
 	reader := errorReader{err: readErr}
 
 	_, err := NewSecureBufferFromReader(reader, 10)

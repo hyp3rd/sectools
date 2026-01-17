@@ -9,7 +9,8 @@ import (
 const (
 	hotpTestIssuer  = "sectools"
 	hotpTestAccount = "user@example.com"
-	hotpTestSecret  = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP" // cspell:disable-line
+	//nolint:gosec
+	hotpTestSecret = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP" // cspell:disable-line
 )
 
 func TestHOTPGenerateAndVerify(t *testing.T) {

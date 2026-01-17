@@ -17,7 +17,13 @@ func TestSecureTempFileDefaultOptions(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, file)
 
-	t.Cleanup(func() { _ = os.Remove(file.Name()) })
+	t.Cleanup(func() {
+		err := os.Remove(file.Name())
+		if err != nil {
+			t.Fatalf("failed to remove temp file: %v", err)
+		}
+	})
+
 	require.NoError(t, file.Close())
 
 	require.True(t, strings.HasPrefix(file.Name(), os.TempDir()))
@@ -30,7 +36,10 @@ func TestSecureTempDirDefaultOptions(t *testing.T) {
 	dir, err := client.TempDir("sectools-tempdir-")
 	require.NoError(t, err)
 
-	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+	t.Cleanup(func() {
+		err = os.RemoveAll(dir)
+		require.NoError(t, err)
+	})
 
 	info, err := os.Stat(dir)
 	require.NoError(t, err)
