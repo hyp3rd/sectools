@@ -8,7 +8,7 @@ import (
 
 const errMsgUnexpected = "expected decoded, got %v"
 
-const base64MaxLength = 4
+const maxLengthForTest = 4
 
 func TestBase64EncodeDecode(t *testing.T) {
 	t.Parallel()
@@ -42,7 +42,7 @@ func TestBase64InvalidWhitespace(t *testing.T) {
 func TestBase64MaxLength(t *testing.T) {
 	t.Parallel()
 
-	_, err := EncodeBase64([]byte("hello"), WithBase64MaxLength(base64MaxLength))
+	_, err := EncodeBase64([]byte("hello"), WithBase64MaxLength(maxLengthForTest))
 	if !errors.Is(err, ErrBase64TooLong) {
 		t.Fatalf("expected ErrBase64TooLong, got %v", err)
 	}
@@ -80,7 +80,7 @@ func TestHexInvalid(t *testing.T) {
 func TestHexMaxLength(t *testing.T) {
 	t.Parallel()
 
-	_, err := EncodeHex([]byte("hello"), WithHexMaxLength(base64MaxLength))
+	_, err := EncodeHex([]byte("hello"), WithHexMaxLength(maxLengthForTest))
 	if !errors.Is(err, ErrHexTooLong) {
 		t.Fatalf("expected ErrHexTooLong, got %v", err)
 	}
@@ -168,7 +168,7 @@ func TestDecodeJSONMaxBytes(t *testing.T) {
 
 	var result payload
 
-	err := DecodeJSON([]byte(`{"name":"alpha"}`), &result, WithJSONMaxBytes(base64MaxLength))
+	err := DecodeJSON([]byte(`{"name":"alpha"}`), &result, WithJSONMaxBytes(maxLengthForTest))
 	if !errors.Is(err, ErrJSONTooLarge) {
 		t.Fatalf("expected ErrJSONTooLarge, got %v", err)
 	}
