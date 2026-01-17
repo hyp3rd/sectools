@@ -304,7 +304,7 @@ func TestToInt64(t *testing.T) {
 	}
 
 	if value != -int8Value {
-		t.Fatalf("expected %d, got %d", -int8Value, value)
+		t.Fatalf(errMsgUnexpectedValue, -int8Value, value)
 	}
 
 	_, err = ToInt64(uint64(math.MaxInt64) + 1)
