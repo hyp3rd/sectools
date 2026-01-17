@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const readMaxSize = 3
+
 func TestSecureReadFileDefaultOptionsRelativePath(t *testing.T) {
 	t.Parallel()
 
@@ -91,7 +93,7 @@ func TestSecureReadFileWithOptionsMaxSize(t *testing.T) {
 
 	_, relPath := createTempFile(t, []byte("secret"))
 
-	client, err := NewWithOptions(WithReadMaxSize(3))
+	client, err := NewWithOptions(WithReadMaxSize(readMaxSize))
 	require.NoError(t, err)
 
 	_, err = client.ReadFile(relPath)
@@ -118,7 +120,7 @@ func TestSecureReadFileWithMaxSizeTooLarge(t *testing.T) {
 
 	_, relPath := createTempFile(t, []byte("secret"))
 
-	client, err := NewWithOptions(WithReadMaxSize(3))
+	client, err := NewWithOptions(WithReadMaxSize(readMaxSize))
 	require.NoError(t, err)
 
 	_, err = client.ReadFile(relPath)
@@ -198,7 +200,7 @@ func TestSecureReadFileWithSecureBufferOptionsMaxSize(t *testing.T) {
 
 	_, relPath := createTempFile(t, []byte("secret"))
 
-	client, err := NewWithOptions(WithReadMaxSize(3))
+	client, err := NewWithOptions(WithReadMaxSize(readMaxSize))
 	require.NoError(t, err)
 
 	_, err = client.ReadFileWithSecureBuffer(relPath)
@@ -369,7 +371,7 @@ func TestSecureWriteFromReaderMaxSize(t *testing.T) {
 
 	filename := filepath.Base(uniqueTempPath(t, "sectools-reader-max-"))
 
-	client, err := NewWithOptions(WithWriteMaxSize(3))
+	client, err := NewWithOptions(WithWriteMaxSize(writeMaxSize))
 	require.NoError(t, err)
 
 	err = client.WriteFromReader(filename, strings.NewReader("secret"))

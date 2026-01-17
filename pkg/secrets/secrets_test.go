@@ -11,6 +11,8 @@ const (
 	errMsgDetector         = "expected detector, got %v"
 )
 
+const longInputLength = 11
+
 func TestSecretDetectorDetectAny(t *testing.T) {
 	t.Parallel()
 
@@ -64,11 +66,11 @@ func TestRedactorKeys(t *testing.T) {
 
 	redacted := redactor.RedactFields(fields)
 	if redacted["password"] == "secret" {
-		t.Fatalf("expected password redacted")
+		t.Fatal("expected password redacted")
 	}
 
 	if redacted["user"] != "alice" {
-		t.Fatalf("expected user intact")
+		t.Fatal("expected user intact")
 	}
 }
 
@@ -91,7 +93,7 @@ func TestRedactorDetector(t *testing.T) {
 
 	redacted := redactor.RedactFields(fields)
 	if redacted["note"] == fields["note"] {
-		t.Fatalf("expected detector to redact note")
+		t.Fatal("expected detector to redact note")
 	}
 }
 
@@ -104,7 +106,7 @@ func TestSecretDetectorInputTooLong(t *testing.T) {
 		t.Fatalf(errMsgDetector, err)
 	}
 
-	longInput := strings.Repeat("a", 11)
+	longInput := strings.Repeat("a", longInputLength)
 
 	_, err = detector.Detect(longInput)
 	if !errors.Is(err, ErrSecretInputTooLong) {
@@ -401,7 +403,7 @@ func TestWithSecretPattern(t *testing.T) {
 	}
 
 	if !found {
-		t.Fatalf("expected to find custom-pattern match")
+		t.Fatal("expected to find custom-pattern match")
 	}
 }
 

@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const writeMaxSize = 3
+
 func TestSecureCopyFileDefaultOptions(t *testing.T) {
 	t.Parallel()
 
@@ -41,7 +43,7 @@ func TestSecureCopyFileMaxSize(t *testing.T) {
 
 	destName := filepath.Base(uniqueTempPath(t, "sectools-copy-max-"))
 
-	client, err := NewWithOptions(WithWriteMaxSize(3))
+	client, err := NewWithOptions(WithWriteMaxSize(writeMaxSize))
 	require.NoError(t, err)
 
 	err = client.CopyFile(relPath, destName)

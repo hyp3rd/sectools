@@ -14,6 +14,8 @@ const (
 	totpTestSecret = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP" // cspell:disable-line
 )
 
+const invalidValue = 99
+
 func TestTOTPGenerateAndVerify(t *testing.T) {
 	t.Parallel()
 	//nolint:revive
@@ -52,7 +54,7 @@ func TestTOTPGenerateAndVerify(t *testing.T) {
 	}
 
 	if ok {
-		t.Fatalf("expected invalid code")
+		t.Fatal("expected invalid code")
 	}
 }
 
@@ -82,7 +84,7 @@ func TestTOTPVerifySkew(t *testing.T) {
 	}
 
 	if !ok {
-		t.Fatalf("expected valid code within skew")
+		t.Fatal("expected valid code within skew")
 	}
 }
 
@@ -151,11 +153,11 @@ func TestTOTPInvalidOptions(t *testing.T) {
 	}{
 		{
 			name: "invalid-digits",
-			opts: []TOTPOption{WithTOTPDigits(Digits(99))},
+			opts: []TOTPOption{WithTOTPDigits(Digits(invalidValue))},
 		},
 		{
 			name: "invalid-algorithm",
-			opts: []TOTPOption{WithTOTPAlgorithm(Algorithm(99))},
+			opts: []TOTPOption{WithTOTPAlgorithm(Algorithm(invalidValue))},
 		},
 		{
 			name: "period-too-short",
@@ -195,7 +197,7 @@ func TestGenerateTOTPKey(t *testing.T) {
 	}
 
 	if key.Secret() == "" {
-		t.Fatalf("expected secret")
+		t.Fatal("expected secret")
 	}
 
 	if !strings.HasPrefix(key.URL(), "otpauth://totp/") {

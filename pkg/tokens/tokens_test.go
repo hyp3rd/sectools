@@ -30,7 +30,7 @@ func TestTokenGenerateAndValidateBase64(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected token valid, got %v", err)
 	}
-
+	//nolint:revive
 	if len(decoded) < 16 {
 		t.Fatalf("expected at least 16 bytes, got %d", len(decoded))
 	}
@@ -58,7 +58,7 @@ func TestTokenGenerateHex(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected token valid, got %v", err)
 	}
-
+	//nolint:revive
 	if len(decoded) < 16 {
 		t.Fatalf("expected at least 16 bytes, got %d", len(decoded))
 	}
@@ -66,7 +66,7 @@ func TestTokenGenerateHex(t *testing.T) {
 
 func TestTokenValidateMaxLength(t *testing.T) {
 	t.Parallel()
-
+	//nolint:revive
 	validator, err := NewValidator(
 		WithTokenMaxLength(4),
 		WithTokenMinEntropyBits(8),
@@ -83,7 +83,7 @@ func TestTokenValidateMaxLength(t *testing.T) {
 
 func TestTokenValidateInsufficientEntropy(t *testing.T) {
 	t.Parallel()
-
+	//nolint:revive
 	validator, err := NewValidator(WithTokenMinEntropyBits(128))
 	if err != nil {
 		t.Fatalf(errMsgValidator, err)
@@ -92,6 +92,8 @@ func TestTokenValidateInsufficientEntropy(t *testing.T) {
 	// Note: make([]byte, 8) produces an all-zero token. This test exercises the
 	// length-based entropy check (8 bytes = 64 bits) rather than measuring actual
 	// randomness of the token bytes.
+	//
+	//nolint:revive
 	short := base64.RawURLEncoding.EncodeToString(make([]byte, 8))
 
 	_, err = validator.Validate(short)
@@ -102,12 +104,12 @@ func TestTokenValidateInsufficientEntropy(t *testing.T) {
 
 func TestTokenValidateMinBytes(t *testing.T) {
 	t.Parallel()
-
+	//nolint:revive
 	validator, err := NewValidator(WithTokenMinBytes(32))
 	if err != nil {
 		t.Fatalf(errMsgValidator, err)
 	}
-
+	//nolint:revive
 	short := base64.RawURLEncoding.EncodeToString(make([]byte, 16))
 
 	_, err = validator.Validate(short)

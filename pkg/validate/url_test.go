@@ -88,7 +88,7 @@ func TestURLRedirectCheck(t *testing.T) {
 			},
 		},
 	}
-
+	//nolint:revive
 	validator, err := NewURLValidator(
 		WithURLCheckRedirects(3),
 		WithURLHTTPClient(client),

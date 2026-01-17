@@ -30,7 +30,7 @@ func TestNewSecureBufferFromReader(t *testing.T) {
 
 func TestNewSecureBufferFromReaderTooLarge(t *testing.T) {
 	t.Parallel()
-
+	//nolint:revive
 	_, err := NewSecureBufferFromReader(bytes.NewReader([]byte("secret")), 3)
 	if !errors.Is(err, ErrBufferTooLarge) {
 		t.Fatalf("expected ErrBufferTooLarge, got %v", err)

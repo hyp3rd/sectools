@@ -5,15 +5,19 @@ import (
 	"testing"
 )
 
+const (
+	keyLength = 32
+)
+
 func TestArgon2idHashVerify(t *testing.T) {
 	t.Parallel()
-
+	//nolint:revive
 	params := Argon2idParams{
 		Memory:     8 * 1024,
 		Time:       1,
 		Threads:    1,
 		SaltLength: 16,
-		KeyLength:  32,
+		KeyLength:  keyLength,
 	}
 
 	hasher, err := NewArgon2id(params)
@@ -44,7 +48,7 @@ func TestArgon2idHashVerify(t *testing.T) {
 		Time:       2,
 		Threads:    1,
 		SaltLength: 16,
-		KeyLength:  32,
+		KeyLength:  keyLength,
 	})
 	if err != nil {
 		t.Fatalf("expected stronger hasher, got error: %v", err)
@@ -72,7 +76,7 @@ func TestArgon2idInvalidHash(t *testing.T) {
 		Time:       1,
 		Threads:    1,
 		SaltLength: 16,
-		KeyLength:  32,
+		KeyLength:  keyLength,
 	})
 	if err != nil {
 		t.Fatalf("expected hasher, got error: %v", err)
