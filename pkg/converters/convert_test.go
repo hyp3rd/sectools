@@ -241,7 +241,7 @@ func TestSafeInt8FromInt64(t *testing.T) {
 	}
 
 	if value != int8Value {
-		t.Fatalf("expected %d, got %d", int8Value, value)
+		t.Fatalf(errMsgUnexpectedValue, int8Value, value)
 	}
 
 	_, err = SafeInt8FromInt64(int64(1 << 7))
