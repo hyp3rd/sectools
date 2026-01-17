@@ -25,7 +25,7 @@ func TestBackupCodeGenerateAndVerify(t *testing.T) {
 	}
 
 	if len(set.Codes) != 3 || len(set.Hashes) != 3 {
-		t.Fatalf("expected 3 codes and hashes")
+		t.Fatal("expected 3 codes and hashes")
 	}
 
 	code := set.Codes[0]
@@ -36,11 +36,11 @@ func TestBackupCodeGenerateAndVerify(t *testing.T) {
 	}
 
 	if !ok {
-		t.Fatalf("expected valid code")
+		t.Fatal("expected valid code")
 	}
 
 	if len(remaining) != 2 {
-		t.Fatalf("expected remaining hashes to shrink")
+		t.Fatal("expected remaining hashes to shrink")
 	}
 
 	ok, _, err = manager.Verify(code, remaining)
@@ -49,7 +49,7 @@ func TestBackupCodeGenerateAndVerify(t *testing.T) {
 	}
 
 	if ok {
-		t.Fatalf("expected replayed code to fail")
+		t.Fatal("expected replayed code to fail")
 	}
 }
 
@@ -78,7 +78,7 @@ func TestBackupCodeVerifyNormalizesInput(t *testing.T) {
 	}
 
 	if !ok || len(remaining) != 0 {
-		t.Fatalf("expected normalized code to verify")
+		t.Fatal("expected normalized code to verify")
 	}
 }
 

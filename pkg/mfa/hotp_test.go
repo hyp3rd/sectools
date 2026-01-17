@@ -39,7 +39,7 @@ func TestHOTPGenerateAndVerify(t *testing.T) {
 	}
 
 	if !ok {
-		t.Fatalf("expected valid code")
+		t.Fatal("expected valid code")
 	}
 
 	if next != counter+1 {
@@ -68,7 +68,7 @@ func TestHOTPVerifyWindow(t *testing.T) {
 	}
 
 	if !ok {
-		t.Fatalf("expected valid code within window")
+		t.Fatal("expected valid code within window")
 	}
 
 	if next != counter+2 {
@@ -102,7 +102,7 @@ func TestHOTPResync(t *testing.T) {
 	}
 
 	if !ok {
-		t.Fatalf("expected valid resync")
+		t.Fatal("expected valid resync")
 	}
 
 	if next != counter+4 {
@@ -136,7 +136,7 @@ func TestHOTPResyncRejectsNonConsecutive(t *testing.T) {
 	}
 
 	if ok {
-		t.Fatalf("expected resync to fail")
+		t.Fatal("expected resync to fail")
 	}
 }
 

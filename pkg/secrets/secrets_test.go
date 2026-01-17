@@ -41,11 +41,11 @@ func TestSecretDetectorRedact(t *testing.T) {
 	}
 
 	if len(matches) == 0 {
-		t.Fatalf("expected matches, got none")
+		t.Fatal("expected matches, got none")
 	}
 
 	if output == input {
-		t.Fatalf("expected redacted output")
+		t.Fatal("expected redacted output")
 	}
 }
 
@@ -223,6 +223,8 @@ func TestRedactorInvalidConfig(t *testing.T) {
 }
 
 // TestRedactorDuplicateKeys tests that duplicate keys are handled correctly.
+//
+//nolint:revive
 func TestRedactorDuplicateKeys(t *testing.T) {
 	t.Parallel()
 
@@ -482,7 +484,7 @@ func TestWithSecretMask(t *testing.T) {
 	}
 
 	if len(matches) == 0 {
-		t.Fatalf("expected matches, got none")
+		t.Fatal("expected matches, got none")
 	}
 
 	if !strings.Contains(output, customMask) {
@@ -492,7 +494,7 @@ func TestWithSecretMask(t *testing.T) {
 
 // TestNestedStructureRedaction tests redaction of nested structures.
 //
-//nolint:funlen
+//nolint:funlen,revive,cyclop
 func TestNestedStructureRedaction(t *testing.T) {
 	t.Parallel()
 
@@ -606,6 +608,8 @@ func TestNestedStructureRedaction(t *testing.T) {
 }
 
 // TestWithRedactionKeys tests the WithRedactionKeys option.
+//
+//nolint:revive
 func TestWithRedactionKeys(t *testing.T) {
 	t.Parallel()
 
@@ -673,6 +677,8 @@ func TestWithRedactionKeys(t *testing.T) {
 }
 
 // TestWithRedactionMaxDepth tests the WithRedactionMaxDepth option.
+//
+//nolint:revive
 func TestWithRedactionMaxDepth(t *testing.T) {
 	t.Parallel()
 

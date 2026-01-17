@@ -63,7 +63,7 @@ func TestNewSecureBufferFromReaderReadError(t *testing.T) {
 
 	_, err := NewSecureBufferFromReader(reader, 10)
 	if err == nil {
-		t.Fatalf("expected read error")
+		t.Fatal("expected read error")
 	}
 
 	if !strings.Contains(err.Error(), "failed to read data") {

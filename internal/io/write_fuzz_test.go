@@ -8,6 +8,7 @@ import (
 	"testing"
 )
 
+//nolint:revive
 func FuzzSecureWriteFromReader(f *testing.F) {
 	f.Add("file.txt", []byte("data"), int64(10), false, false, false)
 	f.Add("../escape", []byte("data"), int64(10), false, false, false)
@@ -74,16 +75,16 @@ func FuzzSecureWriteFromReader(f *testing.F) {
 }
 
 func sanitizeFileName(input string) string {
-	cleaned := strings.Map(func(r rune) rune {
-		if r == '.' {
-			return r
+	cleaned := strings.Map(func(ch rune) rune {
+		if ch == '.' {
+			return ch
 		}
 
-		if r == ':' || os.IsPathSeparator(uint8(r)) {
+		if ch == ':' || os.IsPathSeparator(uint8(ch)) {
 			return -1
 		}
 
-		return r
+		return ch
 	}, input)
 
 	cleaned = strings.TrimSpace(cleaned)

@@ -6,10 +6,10 @@ func TestConstantTimeCompare(t *testing.T) {
 	t.Parallel()
 
 	if !ConstantTimeCompare([]byte("abc"), []byte("abc")) {
-		t.Fatalf("expected equal slices")
+		t.Fatal("expected equal slices")
 	}
 
 	if ConstantTimeCompare([]byte("abc"), []byte("abcd")) {
-		t.Fatalf("expected unequal slices")
+		t.Fatal("expected unequal slices")
 	}
 }
