@@ -19,6 +19,8 @@ func (t *testRateLimiter) Allow() (bool, error) {
 }
 
 func TestTOTPVerifyRateLimited(t *testing.T) {
+	t.Parallel()
+
 	limiter := &testRateLimiter{}
 
 	helper, err := NewTOTP(totpTestSecret, WithTOTPRateLimiter(limiter))
@@ -37,6 +39,8 @@ func TestTOTPVerifyRateLimited(t *testing.T) {
 }
 
 func TestHOTPVerifyRateLimited(t *testing.T) {
+	t.Parallel()
+
 	limiter := &testRateLimiter{}
 
 	helper, err := NewHOTP(hotpTestSecret, WithHOTPRateLimiter(limiter))
@@ -55,6 +59,8 @@ func TestHOTPVerifyRateLimited(t *testing.T) {
 }
 
 func TestBackupVerifyRateLimited(t *testing.T) {
+	t.Parallel()
+
 	limiter := &testRateLimiter{}
 
 	manager, err := NewBackupCodeManager(WithBackupRateLimiter(limiter))
@@ -73,6 +79,8 @@ func TestBackupVerifyRateLimited(t *testing.T) {
 }
 
 func TestRateLimiterErrorWraps(t *testing.T) {
+	t.Parallel()
+
 	limiter := &testRateLimiter{allow: false, err: errors.New("backend")}
 
 	helper, err := NewTOTP(

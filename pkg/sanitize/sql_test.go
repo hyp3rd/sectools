@@ -6,6 +6,8 @@ import (
 )
 
 func TestSQLSanitizeIdentifier(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewSQLSanitizer()
 	if err != nil {
 		t.Fatalf("expected sanitizer, got %v", err)
@@ -27,6 +29,8 @@ func TestSQLSanitizeIdentifier(t *testing.T) {
 }
 
 func TestSQLSanitizeQualifiedIdentifier(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewSQLSanitizer(WithSQLAllowQualifiedIdentifiers(true))
 	if err != nil {
 		t.Fatalf("expected sanitizer, got %v", err)
@@ -48,6 +52,8 @@ func TestSQLSanitizeQualifiedIdentifier(t *testing.T) {
 }
 
 func TestSQLSanitizeLiteral(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewSQLSanitizer(WithSQLMode(SQLModeLiteral))
 	if err != nil {
 		t.Fatalf("expected sanitizer, got %v", err)
@@ -69,6 +75,8 @@ func TestSQLSanitizeLiteral(t *testing.T) {
 }
 
 func TestSQLSanitizeLikePattern(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewSQLSanitizer(WithSQLMode(SQLModeLikePattern))
 	if err != nil {
 		t.Fatalf("expected sanitizer, got %v", err)
@@ -85,6 +93,8 @@ func TestSQLSanitizeLikePattern(t *testing.T) {
 }
 
 func TestSQLInjectionDetector(t *testing.T) {
+	t.Parallel()
+
 	detector, err := NewSQLInjectionDetector()
 	if err != nil {
 		t.Fatalf("expected detector, got %v", err)

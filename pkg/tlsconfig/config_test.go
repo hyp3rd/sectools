@@ -13,6 +13,8 @@ import (
 )
 
 func TestClientConfigDefaults(t *testing.T) {
+	t.Parallel()
+
 	cfg, err := NewClientConfig()
 	if err != nil {
 		t.Fatalf("expected config, got %v", err)
@@ -36,6 +38,8 @@ func TestClientConfigDefaults(t *testing.T) {
 }
 
 func TestClientConfigTLS13Only(t *testing.T) {
+	t.Parallel()
+
 	cfg, err := NewClientConfig(WithTLS13Only())
 	if err != nil {
 		t.Fatalf("expected config, got %v", err)
@@ -47,6 +51,8 @@ func TestClientConfigTLS13Only(t *testing.T) {
 }
 
 func TestClientConfigPostQuantum(t *testing.T) {
+	t.Parallel()
+
 	cfg, err := NewClientConfig(WithPostQuantumKeyExchange())
 	if err != nil {
 		t.Fatalf("expected config, got %v", err)
@@ -64,6 +70,8 @@ func TestClientConfigPostQuantum(t *testing.T) {
 }
 
 func TestClientConfigRejectsWeakVersion(t *testing.T) {
+	t.Parallel()
+
 	_, err := NewClientConfig(WithMinVersion(tls.VersionTLS10))
 	if !errors.Is(err, ErrTLSVersionTooLow) {
 		t.Fatalf("expected ErrTLSVersionTooLow, got %v", err)
@@ -71,6 +79,8 @@ func TestClientConfigRejectsWeakVersion(t *testing.T) {
 }
 
 func TestClientConfigRejectsWeakCipher(t *testing.T) {
+	t.Parallel()
+
 	_, err := NewClientConfig(WithCipherSuites(tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA))
 	if !errors.Is(err, ErrTLSInvalidCipherSuites) {
 		t.Fatalf("expected ErrTLSInvalidCipherSuites, got %v", err)
@@ -78,6 +88,8 @@ func TestClientConfigRejectsWeakCipher(t *testing.T) {
 }
 
 func TestServerConfigRequiresCertificate(t *testing.T) {
+	t.Parallel()
+
 	_, err := NewServerConfig()
 	if !errors.Is(err, ErrTLSMissingCertificate) {
 		t.Fatalf("expected ErrTLSMissingCertificate, got %v", err)
@@ -85,6 +97,8 @@ func TestServerConfigRequiresCertificate(t *testing.T) {
 }
 
 func TestServerConfigWithCertificate(t *testing.T) {
+	t.Parallel()
+
 	cert, _ := testCertificate(t)
 
 	_, err := NewServerConfig(WithCertificates(cert))
@@ -94,6 +108,8 @@ func TestServerConfigWithCertificate(t *testing.T) {
 }
 
 func TestServerConfigClientAuthRequiresCAs(t *testing.T) {
+	t.Parallel()
+
 	cert, _ := testCertificate(t)
 
 	_, err := NewServerConfig(
@@ -106,6 +122,8 @@ func TestServerConfigClientAuthRequiresCAs(t *testing.T) {
 }
 
 func TestServerConfigClientAuthWithCAs(t *testing.T) {
+	t.Parallel()
+
 	cert, pool := testCertificate(t)
 
 	_, err := NewServerConfig(

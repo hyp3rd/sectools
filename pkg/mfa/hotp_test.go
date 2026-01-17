@@ -13,6 +13,8 @@ const (
 )
 
 func TestHOTPGenerateAndVerify(t *testing.T) {
+	t.Parallel()
+
 	helper, err := NewHOTP(hotpTestSecret)
 	if err != nil {
 		t.Fatalf("expected hotp helper, got %v", err)
@@ -40,6 +42,8 @@ func TestHOTPGenerateAndVerify(t *testing.T) {
 }
 
 func TestHOTPVerifyWindow(t *testing.T) {
+	t.Parallel()
+
 	helper, err := NewHOTP(hotpTestSecret, WithHOTPWindow(1))
 	if err != nil {
 		t.Fatalf("expected hotp helper, got %v", err)
@@ -67,6 +71,8 @@ func TestHOTPVerifyWindow(t *testing.T) {
 }
 
 func TestHOTPResync(t *testing.T) {
+	t.Parallel()
+
 	helper, err := NewHOTP(hotpTestSecret, WithHOTPResyncWindow(3))
 	if err != nil {
 		t.Fatalf("expected hotp helper, got %v", err)
@@ -99,6 +105,8 @@ func TestHOTPResync(t *testing.T) {
 }
 
 func TestHOTPResyncRejectsNonConsecutive(t *testing.T) {
+	t.Parallel()
+
 	helper, err := NewHOTP(hotpTestSecret, WithHOTPResyncWindow(3))
 	if err != nil {
 		t.Fatalf("expected hotp helper, got %v", err)
@@ -127,6 +135,8 @@ func TestHOTPResyncRejectsNonConsecutive(t *testing.T) {
 }
 
 func TestHOTPInvalidCode(t *testing.T) {
+	t.Parallel()
+
 	helper, err := NewHOTP(hotpTestSecret)
 	if err != nil {
 		t.Fatalf("expected hotp helper, got %v", err)
@@ -139,6 +149,8 @@ func TestHOTPInvalidCode(t *testing.T) {
 }
 
 func TestHOTPSecretTooShort(t *testing.T) {
+	t.Parallel()
+
 	_, err := NewHOTP("AAAA")
 	if !errors.Is(err, ErrMFASecretTooShort) {
 		t.Fatalf("expected ErrMFASecretTooShort, got %v", err)
@@ -146,6 +158,8 @@ func TestHOTPSecretTooShort(t *testing.T) {
 }
 
 func TestHOTPInvalidOptions(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		opts []HOTPOption
@@ -166,6 +180,8 @@ func TestHOTPInvalidOptions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := NewHOTP(hotpTestSecret, tt.opts...)
 			if !errors.Is(err, ErrInvalidMFAConfig) {
 				t.Fatalf("expected ErrInvalidMFAConfig, got %v", err)
@@ -175,6 +191,8 @@ func TestHOTPInvalidOptions(t *testing.T) {
 }
 
 func TestGenerateHOTPKey(t *testing.T) {
+	t.Parallel()
+
 	key, err := GenerateHOTPKey(
 		WithHOTPKeyIssuer(hotpTestIssuer),
 		WithHOTPKeyAccountName(hotpTestAccount),

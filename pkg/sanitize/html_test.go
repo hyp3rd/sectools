@@ -7,6 +7,8 @@ import (
 )
 
 func TestHTMLSanitizeEscape(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewHTMLSanitizer()
 	if err != nil {
 		t.Fatalf("expected sanitizer, got %v", err)
@@ -26,6 +28,8 @@ func TestHTMLSanitizeEscape(t *testing.T) {
 }
 
 func TestHTMLSanitizeStrip(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewHTMLSanitizer(WithHTMLMode(HTMLSanitizeStrip))
 	if err != nil {
 		t.Fatalf("expected sanitizer, got %v", err)
@@ -42,6 +46,8 @@ func TestHTMLSanitizeStrip(t *testing.T) {
 }
 
 func TestHTMLSanitizePolicy(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewHTMLSanitizer(WithHTMLPolicy(HTMLPolicyFunc(func(_ string) (string, error) {
 		return "policy", nil
 	})))
@@ -60,6 +66,8 @@ func TestHTMLSanitizePolicy(t *testing.T) {
 }
 
 func TestHTMLSanitizeMaxLength(t *testing.T) {
+	t.Parallel()
+
 	sanitizer, err := NewHTMLSanitizer(WithHTMLMaxLength(1))
 	if err != nil {
 		t.Fatalf("expected sanitizer, got %v", err)

@@ -7,6 +7,8 @@ import (
 )
 
 func TestTokenGenerateAndValidateBase64(t *testing.T) {
+	t.Parallel()
+
 	generator, err := NewGenerator()
 	if err != nil {
 		t.Fatalf("expected generator, got %v", err)
@@ -33,6 +35,8 @@ func TestTokenGenerateAndValidateBase64(t *testing.T) {
 }
 
 func TestTokenGenerateHex(t *testing.T) {
+	t.Parallel()
+
 	generator, err := NewGenerator(WithTokenEncoding(TokenEncodingHex))
 	if err != nil {
 		t.Fatalf("expected generator, got %v", err)
@@ -59,6 +63,8 @@ func TestTokenGenerateHex(t *testing.T) {
 }
 
 func TestTokenValidateMaxLength(t *testing.T) {
+	t.Parallel()
+
 	validator, err := NewValidator(
 		WithTokenMaxLength(4),
 		WithTokenMinEntropyBits(8),
@@ -74,6 +80,8 @@ func TestTokenValidateMaxLength(t *testing.T) {
 }
 
 func TestTokenValidateInsufficientEntropy(t *testing.T) {
+	t.Parallel()
+
 	validator, err := NewValidator(WithTokenMinEntropyBits(128))
 	if err != nil {
 		t.Fatalf("expected validator, got %v", err)
@@ -91,6 +99,8 @@ func TestTokenValidateInsufficientEntropy(t *testing.T) {
 }
 
 func TestTokenValidateMinBytes(t *testing.T) {
+	t.Parallel()
+
 	validator, err := NewValidator(WithTokenMinBytes(32))
 	if err != nil {
 		t.Fatalf("expected validator, got %v", err)
@@ -105,6 +115,8 @@ func TestTokenValidateMinBytes(t *testing.T) {
 }
 
 func TestTokenValidateWhitespace(t *testing.T) {
+	t.Parallel()
+
 	validator, err := NewValidator()
 	if err != nil {
 		t.Fatalf("expected validator, got %v", err)

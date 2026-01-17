@@ -9,6 +9,8 @@ import (
 )
 
 func TestSecureCopyFileDefaultOptions(t *testing.T) {
+	t.Parallel()
+
 	data := []byte("copy-data")
 	_, relPath := createTempFile(t, data)
 
@@ -28,6 +30,8 @@ func TestSecureCopyFileDefaultOptions(t *testing.T) {
 }
 
 func TestSecureCopyFileMaxSize(t *testing.T) {
+	t.Parallel()
+
 	data := []byte("copy-too-large")
 	_, relPath := createTempFile(t, data)
 
@@ -46,6 +50,8 @@ func TestSecureCopyFileMaxSize(t *testing.T) {
 }
 
 func TestSecureCopyFileVerifyChecksum(t *testing.T) {
+	t.Parallel()
+
 	data := []byte("copy-verify")
 	_, relPath := createTempFile(t, data)
 
