@@ -41,7 +41,7 @@ func TestTOTPVerifyRateLimited(t *testing.T) {
 	}
 
 	if limiter.calls != 1 {
-		t.Fatalf("expected limiter to be called")
+		t.Fatal("expected limiter to be called")
 	}
 }
 
@@ -61,7 +61,7 @@ func TestHOTPVerifyRateLimited(t *testing.T) {
 	}
 
 	if limiter.calls != 1 {
-		t.Fatalf("expected limiter to be called")
+		t.Fatal("expected limiter to be called")
 	}
 }
 
@@ -81,7 +81,7 @@ func TestBackupVerifyRateLimited(t *testing.T) {
 	}
 
 	if limiter.calls != 1 {
-		t.Fatalf("expected limiter to be called")
+		t.Fatal("expected limiter to be called")
 	}
 }
 

@@ -11,7 +11,7 @@ func TestHTMLSanitizeEscape(t *testing.T) {
 
 	sanitizer, err := NewHTMLSanitizer()
 	if err != nil {
-		t.Fatalf("expected sanitizer, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	input := `<script>alert("x")</script>`
@@ -32,7 +32,7 @@ func TestHTMLSanitizeStrip(t *testing.T) {
 
 	sanitizer, err := NewHTMLSanitizer(WithHTMLMode(HTMLSanitizeStrip))
 	if err != nil {
-		t.Fatalf("expected sanitizer, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	output, err := sanitizer.Sanitize("Hello <b>World</b>")
@@ -52,7 +52,7 @@ func TestHTMLSanitizePolicy(t *testing.T) {
 		return "policy", nil
 	})))
 	if err != nil {
-		t.Fatalf("expected sanitizer, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	output, err := sanitizer.Sanitize("ignored")
@@ -70,7 +70,7 @@ func TestHTMLSanitizeMaxLength(t *testing.T) {
 
 	sanitizer, err := NewHTMLSanitizer(WithHTMLMaxLength(1))
 	if err != nil {
-		t.Fatalf("expected sanitizer, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	_, err = sanitizer.Sanitize("ab")

@@ -10,7 +10,7 @@ func TestSQLSanitizeIdentifier(t *testing.T) {
 
 	sanitizer, err := NewSQLSanitizer()
 	if err != nil {
-		t.Fatalf("expected sanitizer, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	output, err := sanitizer.Sanitize("users")
@@ -33,7 +33,7 @@ func TestSQLSanitizeQualifiedIdentifier(t *testing.T) {
 
 	sanitizer, err := NewSQLSanitizer(WithSQLAllowQualifiedIdentifiers(true))
 	if err != nil {
-		t.Fatalf("expected sanitizer, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	output, err := sanitizer.Sanitize("public.users")
@@ -56,7 +56,7 @@ func TestSQLSanitizeLiteral(t *testing.T) {
 
 	sanitizer, err := NewSQLSanitizer(WithSQLMode(SQLModeLiteral))
 	if err != nil {
-		t.Fatalf("expected sanitizer, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	output, err := sanitizer.Sanitize("O'Reilly")
@@ -79,7 +79,7 @@ func TestSQLSanitizeLikePattern(t *testing.T) {
 
 	sanitizer, err := NewSQLSanitizer(WithSQLMode(SQLModeLikePattern))
 	if err != nil {
-		t.Fatalf("expected sanitizer, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	output, err := sanitizer.Sanitize(`50%_off\`)

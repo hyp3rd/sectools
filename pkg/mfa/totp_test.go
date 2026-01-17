@@ -38,7 +38,7 @@ func TestTOTPGenerateAndVerify(t *testing.T) {
 	}
 
 	if !ok {
-		t.Fatalf("expected valid code")
+		t.Fatal("expected valid code")
 	}
 
 	badCode := code[:len(code)-1] + "0"
@@ -110,7 +110,7 @@ func TestTOTPVerifyWithStep(t *testing.T) {
 	}
 
 	if !ok {
-		t.Fatalf("expected valid code")
+		t.Fatal("expected valid code")
 	}
 	//nolint:gosec
 	expectedStep := uint64(now.Unix() / int64(totpDefaultPeriod/time.Second))

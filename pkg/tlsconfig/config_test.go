@@ -12,12 +12,14 @@ import (
 	"time"
 )
 
+const errMsgUnexpected = "expected config, got %v"
+
 func TestClientConfigDefaults(t *testing.T) {
 	t.Parallel()
 
 	cfg, err := NewClientConfig()
 	if err != nil {
-		t.Fatalf("expected config, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	if cfg.MinVersion != tlsDefaultMinVersion {
@@ -25,15 +27,15 @@ func TestClientConfigDefaults(t *testing.T) {
 	}
 
 	if cfg.InsecureSkipVerify {
-		t.Fatalf("expected secure defaults")
+		t.Fatal("expected secure defaults")
 	}
 
 	if !uint16SliceEqual(cfg.CipherSuites, defaultCipherSuites()) {
-		t.Fatalf("unexpected cipher suites")
+		t.Fatal("unexpected cipher suites")
 	}
 
 	if !curveSliceEqual(cfg.CurvePreferences, defaultCurvePreferences()) {
-		t.Fatalf("unexpected curve preferences")
+		t.Fatal("unexpected curve preferences")
 	}
 }
 
@@ -42,11 +44,11 @@ func TestClientConfigTLS13Only(t *testing.T) {
 
 	cfg, err := NewClientConfig(WithTLS13Only())
 	if err != nil {
-		t.Fatalf("expected config, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	if cfg.MinVersion != tls.VersionTLS13 || cfg.MaxVersion != tls.VersionTLS13 {
-		t.Fatalf("expected tls 1.3 only")
+		t.Fatal("expected tls 1.3 only")
 	}
 }
 
@@ -55,7 +57,7 @@ func TestClientConfigPostQuantum(t *testing.T) {
 
 	cfg, err := NewClientConfig(WithPostQuantumKeyExchange())
 	if err != nil {
-		t.Fatalf("expected config, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	expected := []tls.CurveID{
@@ -65,7 +67,7 @@ func TestClientConfigPostQuantum(t *testing.T) {
 		tls.CurveP384,
 	}
 	if !curveSliceEqual(cfg.CurvePreferences, expected) {
-		t.Fatalf("unexpected post-quantum curve preferences")
+		t.Fatal("unexpected post-quantum curve preferences")
 	}
 }
 
@@ -103,7 +105,7 @@ func TestServerConfigWithCertificate(t *testing.T) {
 
 	_, err := NewServerConfig(WithCertificates(cert))
 	if err != nil {
-		t.Fatalf("expected config, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 }
 
@@ -132,7 +134,7 @@ func TestServerConfigClientAuthWithCAs(t *testing.T) {
 		WithClientCAs(pool),
 	)
 	if err != nil {
-		t.Fatalf("expected config, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 }
 

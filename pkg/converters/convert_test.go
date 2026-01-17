@@ -96,7 +96,7 @@ func TestSafeUintFromInt64(t *testing.T) {
 
 	maxUint := uint64(^uint(0))
 
-	maxInt64 := uint64(^uint64(0) >> 1)
+	maxInt64 := ^uint64(0) >> 1
 	if maxUint < maxInt64 {
 		overflowCandidate := int64(maxUint) + 1
 

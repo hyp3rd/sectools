@@ -43,7 +43,7 @@ func TestPasetoLocalRoundTrip(t *testing.T) {
 	}
 
 	if parsed == nil {
-		t.Fatalf("expected parsed token")
+		t.Fatal("expected parsed token")
 	}
 }
 
@@ -88,7 +88,7 @@ func TestPasetoPublicRoundTrip(t *testing.T) {
 	}
 
 	if parsed == nil {
-		t.Fatalf("expected parsed token")
+		t.Fatal("expected parsed token")
 	}
 }
 
