@@ -58,7 +58,7 @@ func TestPasetoPublicRoundTrip(t *testing.T) {
 		WithPasetoPublicSecretKey(secret),
 	)
 	if err != nil {
-		t.Fatalf("expected signer, got error: %v", err)
+		t.Fatalf(errMsgExpectedSigner, err)
 	}
 
 	verifier, err := NewPasetoPublicVerifier(
@@ -103,7 +103,9 @@ func TestPasetoMissingExpiration(t *testing.T) {
 	}
 
 	missingExp := paseto.NewToken()
-	if _, err := local.Encrypt(&missingExp); !errors.Is(err, ErrPasetoMissingExpiry) {
+
+	_, err = local.Encrypt(&missingExp)
+	if !errors.Is(err, ErrPasetoMissingExpiry) {
 		t.Fatalf("expected ErrPasetoMissingExpiry, got %v", err)
 	}
 
@@ -111,10 +113,11 @@ func TestPasetoMissingExpiration(t *testing.T) {
 
 	signer, err := NewPasetoPublicSigner(WithPasetoPublicSecretKey(secret))
 	if err != nil {
-		t.Fatalf("expected signer, got error: %v", err)
+		t.Fatalf(errMsgExpectedSigner, err)
 	}
 
-	if _, err := signer.Sign(&missingExp); !errors.Is(err, ErrPasetoMissingExpiry) {
+	_, err = signer.Sign(&missingExp)
+	if !errors.Is(err, ErrPasetoMissingExpiry) {
 		t.Fatalf("expected ErrPasetoMissingExpiry, got %v", err)
 	}
 }

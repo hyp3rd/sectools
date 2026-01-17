@@ -26,7 +26,8 @@ func BenchmarkSecureReadFile(b *testing.B) {
 		}
 	}()
 
-	if _, err := file.Write(data); err != nil {
+	_, err = file.Write(data)
+	if err != nil {
 		err = file.Close()
 		if err != nil {
 			b.Fatalf("failed to close temp file: %v", err)
@@ -35,7 +36,8 @@ func BenchmarkSecureReadFile(b *testing.B) {
 		b.Fatalf("failed to write temp data: %v", err)
 	}
 
-	if err := file.Close(); err != nil {
+	err = file.Close()
+	if err != nil {
 		b.Fatalf("failed to close temp file: %v", err)
 	}
 
@@ -71,14 +73,17 @@ func BenchmarkSecureWriteFile(b *testing.B) {
 	}
 
 	path := file.Name()
-	if err := file.Close(); err != nil {
+
+	err = file.Close()
+	if err != nil {
 		err = os.Remove(path)
 		require.NoError(b, err)
 
 		b.Fatalf("failed to close temp file: %v", err)
 	}
 
-	if err := os.Remove(path); err != nil {
+	err = os.Remove(path)
+	if err != nil {
 		b.Fatalf("failed to remove temp file: %v", err)
 	}
 

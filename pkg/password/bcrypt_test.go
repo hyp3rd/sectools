@@ -26,11 +26,11 @@ func TestBcryptHashVerify(t *testing.T) {
 	}
 
 	if !ok {
-		t.Fatalf("expected password match")
+		t.Fatal("expected password match")
 	}
 
 	if needsRehash {
-		t.Fatalf("expected no rehash with same cost")
+		t.Fatal("expected no rehash with same cost")
 	}
 
 	stronger, err := NewBcrypt(bcrypt.MinCost + 1)
@@ -44,11 +44,11 @@ func TestBcryptHashVerify(t *testing.T) {
 	}
 
 	if !ok {
-		t.Fatalf("expected password match")
+		t.Fatal("expected password match")
 	}
 
 	if !needsRehash {
-		t.Fatalf("expected rehash with higher cost")
+		t.Fatal("expected rehash with higher cost")
 	}
 }
 

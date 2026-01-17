@@ -398,7 +398,7 @@ func TestSecureReadFileWithOptionsDisallowPerms(t *testing.T) {
 	require.ErrorIs(t, err, ErrPermissionsNotAllowed)
 }
 
-func createTempFile(t *testing.T, data []byte) (string, string) {
+func createTempFile(t *testing.T, data []byte) (filename, relPath string) {
 	t.Helper()
 
 	file, err := os.CreateTemp(t.TempDir(), "sectools-file-*")
@@ -410,25 +410,20 @@ func createTempFile(t *testing.T, data []byte) (string, string) {
 	require.NoError(t, file.Close())
 
 	t.Cleanup(func() {
+		//nolint:errcheck
 		_ = os.Remove(file.Name())
 	})
 
-	relPath, err := filepath.Rel(os.TempDir(), file.Name())
+	relPath, err = filepath.Rel(os.TempDir(), file.Name())
 	require.NoError(t, err)
 
 	return file.Name(), relPath
 }
 
-func createTempDir(t *testing.T) (string, string) {
+func createTempDir(t *testing.T) (dir, relPath string) {
 	t.Helper()
 
-	dir, err := os.MkdirTemp("", "sectools-dir-*")
-	require.NoError(t, err)
-
-	t.Cleanup(func() {
-		err = os.RemoveAll(dir)
-		require.NoError(t, err)
-	})
+	dir = t.TempDir()
 
 	relPath, err := filepath.Rel(os.TempDir(), dir)
 	require.NoError(t, err)
@@ -436,6 +431,7 @@ func createTempDir(t *testing.T) (string, string) {
 	return dir, relPath
 }
 
+//nolint:revive,unparam
 func createTempSymlink(t *testing.T, data []byte) (string, string, string) {
 	t.Helper()
 

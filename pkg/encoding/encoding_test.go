@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+const errMsgUnexpected = "expected decoded, got %v"
+
 func TestBase64EncodeDecode(t *testing.T) {
 	t.Parallel()
 
@@ -18,7 +20,7 @@ func TestBase64EncodeDecode(t *testing.T) {
 
 	decoded, err := DecodeBase64(encoded)
 	if err != nil {
-		t.Fatalf("expected decoded, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	if string(decoded) != string(input) {
@@ -56,7 +58,7 @@ func TestHexEncodeDecode(t *testing.T) {
 
 	decoded, err := DecodeHex(encoded)
 	if err != nil {
-		t.Fatalf("expected decoded, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	if string(decoded) != string(input) {
@@ -95,8 +97,10 @@ func TestDecodeJSON(t *testing.T) {
 	}
 
 	var result payload
-	if err := DecodeJSON(data, &result); err != nil {
-		t.Fatalf("expected decoded, got %v", err)
+
+	err = DecodeJSON(data, &result)
+	if err != nil {
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	if result.Name != "alpha" {
@@ -134,7 +138,7 @@ func TestDecodeJSONAllowUnknown(t *testing.T) {
 		WithJSONAllowUnknownFields(true),
 	)
 	if err != nil {
-		t.Fatalf("expected decoded, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 }
 
@@ -181,7 +185,7 @@ func TestDecodeJSONReader(t *testing.T) {
 
 	err := DecodeJSONReader(reader, &result)
 	if err != nil {
-		t.Fatalf("expected decoded, got %v", err)
+		t.Fatalf(errMsgUnexpected, err)
 	}
 
 	if result.Name != "alpha" {

@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+const errMsgValidator = "expected validator, got %v"
+
 func TestTokenGenerateAndValidateBase64(t *testing.T) {
 	t.Parallel()
 
@@ -16,7 +18,7 @@ func TestTokenGenerateAndValidateBase64(t *testing.T) {
 
 	validator, err := NewValidator()
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	token, err := generator.Generate()
@@ -44,7 +46,7 @@ func TestTokenGenerateHex(t *testing.T) {
 
 	validator, err := NewValidator(WithTokenEncoding(TokenEncodingHex))
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	token, err := generator.Generate()
@@ -70,7 +72,7 @@ func TestTokenValidateMaxLength(t *testing.T) {
 		WithTokenMinEntropyBits(8),
 	)
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	_, err = validator.Validate("aaaaa")
@@ -84,7 +86,7 @@ func TestTokenValidateInsufficientEntropy(t *testing.T) {
 
 	validator, err := NewValidator(WithTokenMinEntropyBits(128))
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	// Note: make([]byte, 8) produces an all-zero token. This test exercises the
@@ -103,7 +105,7 @@ func TestTokenValidateMinBytes(t *testing.T) {
 
 	validator, err := NewValidator(WithTokenMinBytes(32))
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	short := base64.RawURLEncoding.EncodeToString(make([]byte, 16))
@@ -119,7 +121,7 @@ func TestTokenValidateWhitespace(t *testing.T) {
 
 	validator, err := NewValidator()
 	if err != nil {
-		t.Fatalf("expected validator, got %v", err)
+		t.Fatalf(errMsgValidator, err)
 	}
 
 	_, err = validator.Validate("token with space")

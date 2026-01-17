@@ -8,7 +8,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const issuer = "sectools"
+const (
+	issuer               = "sectools"
+	errMsgExpectedSigner = "expected signer, got error: %v"
+	errMsgExpectedToken  = "expected token, got error: %v"
+)
 
 func TestJWTSignerMissingExpiration(t *testing.T) {
 	t.Parallel()
@@ -18,7 +22,7 @@ func TestJWTSignerMissingExpiration(t *testing.T) {
 		WithJWTSigningKey([]byte("secret")),
 	)
 	if err != nil {
-		t.Fatalf("expected signer, got error: %v", err)
+		t.Fatalf(errMsgExpectedSigner, err)
 	}
 
 	_, err = signer.Sign(jwt.RegisteredClaims{})
@@ -39,7 +43,7 @@ func TestJWTSignVerifyRoundTrip(t *testing.T) {
 		WithJWTSigningKeyID("kid-1"),
 	)
 	if err != nil {
-		t.Fatalf("expected signer, got error: %v", err)
+		t.Fatalf(errMsgExpectedSigner, err)
 	}
 
 	verifier, err := NewJWTVerifier(
@@ -63,7 +67,7 @@ func TestJWTSignVerifyRoundTrip(t *testing.T) {
 
 	token, err := signer.Sign(claims)
 	if err != nil {
-		t.Fatalf("expected token, got error: %v", err)
+		t.Fatalf(errMsgExpectedToken, err)
 	}
 
 	parsed := &jwt.RegisteredClaims{}
@@ -89,7 +93,7 @@ func TestJWTVerifierAudienceMismatch(t *testing.T) {
 		WithJWTSigningKey(secret),
 	)
 	if err != nil {
-		t.Fatalf("expected signer, got error: %v", err)
+		t.Fatalf(errMsgExpectedSigner, err)
 	}
 
 	verifier, err := NewJWTVerifier(
@@ -111,7 +115,7 @@ func TestJWTVerifierAudienceMismatch(t *testing.T) {
 
 	token, err := signer.Sign(claims)
 	if err != nil {
-		t.Fatalf("expected token, got error: %v", err)
+		t.Fatalf(errMsgExpectedToken, err)
 	}
 
 	parsed := &jwt.RegisteredClaims{}
@@ -134,7 +138,7 @@ func TestJWTVerifierKeySetRequiresKid(t *testing.T) {
 		WithJWTSigningKeyID("kid-1"),
 	)
 	if err != nil {
-		t.Fatalf("expected signer, got error: %v", err)
+		t.Fatalf(errMsgExpectedSigner, err)
 	}
 
 	signerWithoutKid, err := NewJWTSigner(
@@ -142,7 +146,7 @@ func TestJWTVerifierKeySetRequiresKid(t *testing.T) {
 		WithJWTSigningKey(secret),
 	)
 	if err != nil {
-		t.Fatalf("expected signer, got error: %v", err)
+		t.Fatalf(errMsgExpectedSigner, err)
 	}
 
 	verifier, err := NewJWTVerifier(
@@ -164,7 +168,7 @@ func TestJWTVerifierKeySetRequiresKid(t *testing.T) {
 
 	tokenWithKid, err := signerWithKid.Sign(claims)
 	if err != nil {
-		t.Fatalf("expected token, got error: %v", err)
+		t.Fatalf(errMsgExpectedToken, err)
 	}
 
 	err = verifier.Verify(tokenWithKid, &jwt.RegisteredClaims{})
@@ -174,10 +178,11 @@ func TestJWTVerifierKeySetRequiresKid(t *testing.T) {
 
 	tokenWithoutKid, err := signerWithoutKid.Sign(claims)
 	if err != nil {
-		t.Fatalf("expected token, got error: %v", err)
+		t.Fatalf(errMsgExpectedToken, err)
 	}
 
-	if err := verifier.Verify(tokenWithoutKid, &jwt.RegisteredClaims{}); !errors.Is(err, ErrJWTMissingKeyID) {
+	err = verifier.Verify(tokenWithoutKid, &jwt.RegisteredClaims{})
+	if !errors.Is(err, ErrJWTMissingKeyID) {
 		t.Fatalf("expected ErrJWTMissingKeyID, got %v", err)
 	}
 }

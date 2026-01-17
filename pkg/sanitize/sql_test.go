@@ -97,7 +97,7 @@ func TestSQLInjectionDetector(t *testing.T) {
 
 	detector, err := NewSQLInjectionDetector()
 	if err != nil {
-		t.Fatalf("expected detector, got %v", err)
+		t.Fatalf(errMsgDetector, err)
 	}
 
 	err = detector.Detect("1 OR 1=1; --")

@@ -15,20 +15,20 @@ func TestNewSecureBuffer(t *testing.T) {
 
 	// Verify data was copied correctly
 	if !bytes.Equal(buf.data, originalData) {
-		t.Errorf("Expected buffer data to equal original data")
+		t.Error("Expected buffer data to equal original data")
 	}
 
 	// Verify the buffer is using a different memory location
 	originalData[0] = 'X'
 
 	if buf.data[0] == 'X' {
-		t.Errorf("Buffer should contain a copy of the data, not a reference")
+		t.Error("Buffer should contain a copy of the data, not a reference")
 	}
 
 	// Test with empty data
 	emptyBuf := NewSecureBuffer([]byte{})
 	if len(emptyBuf.data) != 0 {
-		t.Errorf("Expected empty buffer for empty input")
+		t.Error("Expected empty buffer for empty input")
 	}
 }
 
@@ -44,7 +44,7 @@ func TestClear(t *testing.T) {
 
 	// Verify data was cleared
 	if buf.data != nil {
-		t.Errorf("Buffer data should be nil after clearing")
+		t.Error("Buffer data should be nil after clearing")
 	}
 
 	// Test clearing an already cleared buffer
@@ -59,7 +59,7 @@ func TestClearFast(t *testing.T) {
 	buf.ClearFast()
 
 	if buf.data != nil {
-		t.Errorf("Buffer data should be nil after fast clearing")
+		t.Error("Buffer data should be nil after fast clearing")
 	}
 
 	buf.ClearFast() // Should not panic
@@ -77,12 +77,12 @@ func TestBytes(t *testing.T) {
 
 	// Verify data matches
 	if !bytes.Equal(retrievedData, testData) {
-		t.Errorf("Retrieved data doesn't match original data")
+		t.Error("Retrieved data doesn't match original data")
 	}
 
 	retrievedAlias := buf.Bytes()
 	if !bytes.Equal(retrievedAlias, testData) {
-		t.Errorf("Bytes alias mismatch")
+		t.Error("Bytes alias mismatch")
 	}
 }
 
@@ -99,11 +99,11 @@ func TestString(t *testing.T) {
 
 	// Verify string matches
 	if str != string(testData) {
-		t.Errorf("String representation doesn't match original data")
+		t.Error("String representation doesn't match original data")
 	}
 
 	if unsafeStr != string(testData) {
-		t.Errorf("Unsafe string representation doesn't match original data")
+		t.Error("Unsafe string representation doesn't match original data")
 	}
 }
 
@@ -120,7 +120,7 @@ func TestFinalizer(t *testing.T) {
 	}()
 
 	// Force garbage collection
-	runtime.GC()
+	runtime.GC() //nolint:revive
 
 	// We can't actually verify the Clear() was called by the finalizer
 	// since we don't have access to the buffer anymore, but this at least
@@ -132,7 +132,7 @@ func TestSecureBufferNilInput(t *testing.T) {
 
 	buf := NewSecureBuffer(nil)
 	if len(buf.data) != 0 {
-		t.Errorf("Expected 0 len data for nil input")
+		t.Error("Expected 0 len data for nil input")
 	}
 }
 
@@ -146,7 +146,7 @@ func TestSecureBufferLargeData(t *testing.T) {
 
 	buf := NewSecureBuffer(largeData)
 	if len(buf.data) != len(largeData) {
-		t.Errorf("Buffer size mismatch for large data")
+		t.Error("Buffer size mismatch for large data")
 	}
 
 	for i := range largeData {
@@ -166,13 +166,13 @@ func TestSecureBufferMultipleCopies(t *testing.T) {
 	buf2 := NewSecureBuffer(buf1.BytesCopy())
 
 	if !bytes.Equal(buf1.data, buf2.data) {
-		t.Errorf("Data mismatch between buffer copies")
+		t.Error("Data mismatch between buffer copies")
 	}
 
 	buf1.Clear()
 
 	if buf2.data == nil {
-		t.Errorf("Clearing one buffer should not affect others")
+		t.Error("Clearing one buffer should not affect others")
 	}
 }
 
@@ -210,11 +210,11 @@ func TestSecureBufferZeroLengthData(t *testing.T) {
 
 	buf := NewSecureBuffer(make([]byte, 0))
 	if buf.data == nil {
-		t.Errorf("Zero length buffer should not be nil")
+		t.Error("Zero length buffer should not be nil")
 	}
 
 	if len(buf.data) != 0 {
-		t.Errorf("Zero length buffer should have length 0")
+		t.Error("Zero length buffer should have length 0")
 	}
 }
 
@@ -226,18 +226,18 @@ func TestSecureBufferStringWithNonUTF8(t *testing.T) {
 
 	str := buf.UnsafeString()
 	if len(str) != len(invalidUTF8) {
-		t.Errorf("String length mismatch for non-UTF8 data")
+		t.Error("String length mismatch for non-UTF8 data")
 	}
 }
 
 func TestZeroBytes(t *testing.T) {
 	t.Parallel()
-
+	//nolint:revive
 	data := []byte{1, 2, 3, 4}
 	ZeroBytes(data)
 
 	if !bytes.Equal(data, []byte{0, 0, 0, 0}) {
-		t.Errorf("Expected zeroed bytes")
+		t.Error("Expected zeroed bytes")
 	}
 
 	ZeroBytes(nil) // Should not panic

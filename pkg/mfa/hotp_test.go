@@ -13,19 +13,24 @@ const (
 	hotpTestSecret = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP" // cspell:disable-line
 )
 
+const (
+	errExpectedCode   = "expected code, got %v"
+	errExpectedHelper = "expected hotp helper, got %v"
+)
+
 func TestHOTPGenerateAndVerify(t *testing.T) {
 	t.Parallel()
 
 	helper, err := NewHOTP(hotpTestSecret)
 	if err != nil {
-		t.Fatalf("expected hotp helper, got %v", err)
+		t.Fatalf(errExpectedHelper, err)
 	}
 
 	counter := uint64(1)
 
 	code, err := helper.Generate(counter)
 	if err != nil {
-		t.Fatalf("expected code, got %v", err)
+		t.Fatalf(errExpectedCode, err)
 	}
 
 	ok, next, err := helper.Verify(code, counter)
@@ -47,14 +52,14 @@ func TestHOTPVerifyWindow(t *testing.T) {
 
 	helper, err := NewHOTP(hotpTestSecret, WithHOTPWindow(1))
 	if err != nil {
-		t.Fatalf("expected hotp helper, got %v", err)
+		t.Fatalf(errExpectedHelper, err)
 	}
 
 	counter := uint64(5)
 
 	code, err := helper.Generate(counter + 1)
 	if err != nil {
-		t.Fatalf("expected code, got %v", err)
+		t.Fatalf(errExpectedCode, err)
 	}
 
 	ok, next, err := helper.Verify(code, counter)
@@ -76,19 +81,19 @@ func TestHOTPResync(t *testing.T) {
 
 	helper, err := NewHOTP(hotpTestSecret, WithHOTPResyncWindow(3))
 	if err != nil {
-		t.Fatalf("expected hotp helper, got %v", err)
+		t.Fatalf(errExpectedHelper, err)
 	}
 
 	counter := uint64(5)
 
 	code1, err := helper.Generate(counter + 2)
 	if err != nil {
-		t.Fatalf("expected code, got %v", err)
+		t.Fatalf(errExpectedCode, err)
 	}
 
 	code2, err := helper.Generate(counter + 3)
 	if err != nil {
-		t.Fatalf("expected code, got %v", err)
+		t.Fatalf(errExpectedCode, err)
 	}
 
 	ok, next, err := helper.Resync(code1, code2, counter)
@@ -110,19 +115,19 @@ func TestHOTPResyncRejectsNonConsecutive(t *testing.T) {
 
 	helper, err := NewHOTP(hotpTestSecret, WithHOTPResyncWindow(3))
 	if err != nil {
-		t.Fatalf("expected hotp helper, got %v", err)
+		t.Fatalf(errExpectedHelper, err)
 	}
 
 	counter := uint64(5)
 
 	code1, err := helper.Generate(counter + 1)
 	if err != nil {
-		t.Fatalf("expected code, got %v", err)
+		t.Fatalf(errExpectedCode, err)
 	}
 
 	code2, err := helper.Generate(counter + 3)
 	if err != nil {
-		t.Fatalf("expected code, got %v", err)
+		t.Fatalf(errExpectedCode, err)
 	}
 
 	ok, _, err := helper.Resync(code1, code2, counter)
@@ -140,7 +145,7 @@ func TestHOTPInvalidCode(t *testing.T) {
 
 	helper, err := NewHOTP(hotpTestSecret)
 	if err != nil {
-		t.Fatalf("expected hotp helper, got %v", err)
+		t.Fatalf(errExpectedHelper, err)
 	}
 
 	_, _, err = helper.Verify("invalid", 0)

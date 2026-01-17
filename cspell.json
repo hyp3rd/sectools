@@ -212,6 +212,7 @@
     "Tracef",
     "uid",
     "umask",
+    "unparam",
     "uppercasing",
     "URLHTTP",
     "userinfo",
