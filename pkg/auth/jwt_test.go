@@ -33,8 +33,8 @@ func TestJWTSignerMissingExpiration(t *testing.T) {
 
 func TestJWTSignVerifyRoundTrip(t *testing.T) {
 	t.Parallel()
-	//nolint:revive
-	now := time.Date(2024, 10, 1, 12, 0, 0, 0, time.UTC)
+
+	now := time.Date(2024, 10, 1, 12, 0, 0, 0, time.UTC) //nolint:revive
 	secret := []byte("supersecret")
 
 	signer, err := NewJWTSigner(

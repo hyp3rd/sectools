@@ -20,6 +20,7 @@ Security-focused Go helpers for file I/O, in-memory handling of sensitive data, 
 - Email and URL validation with optional DNS/redirect/reputation checks
 - Random token generation and validation with entropy/length caps
 - Bounded base64/hex encoding and strict JSON decoding
+- Size-bounded JSON/YAML/XML parsing helpers
 - Redaction helpers and secret detection heuristics for logs/config dumps
 - Opinionated TLS configs with TLS 1.2/1.3 defaults, mTLS, and optional post-quantum key exchange
 - HTML/Markdown sanitization, SQL/NoSQL input guards, and filename sanitizers
@@ -340,7 +341,29 @@ func main() {
   Name string `json:"name"`
  }
 
- _ = encoding.DecodeJSON([]byte(`{"name":"alpha"}`), &payload{})
+_ = encoding.DecodeJSON([]byte(`{"name":"alpha"}`), &payload{})
+}
+```
+
+### Parsing limits
+
+```go
+package main
+
+import (
+ "strings"
+
+ "github.com/hyp3rd/sectools/pkg/limits"
+)
+
+func main() {
+ var payload map[string]any
+
+ reader := strings.NewReader(`{"name":"alpha"}`)
+ err := limits.DecodeJSON(reader, &payload, limits.WithMaxBytes(1<<20))
+ if err != nil {
+  panic(err)
+ }
 }
 ```
 
