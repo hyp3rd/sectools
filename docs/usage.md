@@ -12,6 +12,7 @@ supporting implementations in `internal/`.
 - `pkg/validate`: email and URL validation helpers.
 - `pkg/tokens`: random token generation and validation helpers.
 - `pkg/encoding`: bounded encoding and decoding helpers.
+- `pkg/limits`: size-bounded parsing helpers for common formats.
 - `pkg/secrets`: redaction and secret detection helpers.
 - `pkg/tlsconfig`: opinionated TLS configuration helpers.
 - `pkg/sanitize`: HTML/Markdown sanitizers, SQL input guards, and filename sanitizers.
@@ -458,6 +459,35 @@ Behavior:
 - Disallows unknown fields by default; can be toggled.
 - Rejects payloads larger than the configured max size.
 - Rejects trailing data after the first JSON value.
+
+## pkg/limits
+
+### Size-bounded decoding
+
+```go
+func ReadAll(reader io.Reader, opts ...Option) ([]byte, error)
+func DecodeJSON(reader io.Reader, value any, opts ...Option) error
+func DecodeYAML(reader io.Reader, value any, opts ...Option) error
+func DecodeXML(reader io.Reader, value any, opts ...Option) error
+```
+
+Behavior:
+
+- Enforces a maximum input size (default 1 MiB).
+- Rejects inputs that exceed the configured limit.
+- YAML decoding rejects unknown fields by default (override with `WithYAMLAllowUnknownFields(true)`).
+
+Example:
+
+```go
+import "github.com/hyp3rd/sectools/pkg/limits"
+
+var payload map[string]any
+err := limits.DecodeJSON(reader, &payload, limits.WithMaxBytes(1<<20))
+if err != nil {
+ panic(err)
+}
+```
 
 ## pkg/secrets
 
