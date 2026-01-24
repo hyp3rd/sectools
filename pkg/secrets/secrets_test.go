@@ -11,7 +11,10 @@ const (
 	errMsgDetector         = "expected detector, got %v"
 )
 
-const longInputLength = 11
+const (
+	longInputLength = 11
+	testMaxLen      = 20
+)
 
 func TestSecretDetectorDetectAny(t *testing.T) {
 	t.Parallel()
@@ -436,8 +439,8 @@ func TestWithSecretPatterns(t *testing.T) {
 // TestWithSecretMaxLength tests the WithSecretMaxLength option.
 func TestWithSecretMaxLength(t *testing.T) {
 	t.Parallel()
-	//nolint:revive
-	maxLen := 20
+
+	maxLen := testMaxLen
 
 	detector, err := NewSecretDetector(WithSecretMaxLength(maxLen))
 	if err != nil {
@@ -496,7 +499,7 @@ func TestWithSecretMask(t *testing.T) {
 
 // TestNestedStructureRedaction tests redaction of nested structures.
 //
-//nolint:funlen,revive,cyclop
+//nolint:funlen,cyclop,revive
 func TestNestedStructureRedaction(t *testing.T) {
 	t.Parallel()
 

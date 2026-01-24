@@ -96,6 +96,30 @@ func ToInt32[T Integer](value T) (int32, error) {
 	return int32(unsignedValue), nil
 }
 
+// ToInt8 converts any integer type to int8, ensuring the value fits in the target type.
+func ToInt8[T Integer](value T) (int8, error) {
+	const (
+		maxInt8  = int64(1<<7 - 1)
+		minInt8  = -1 << 7
+		maxInt8U = uint64(^uint8(0) >> 1)
+	)
+
+	signed, signedValue, unsignedValue := splitInteger(value)
+	if signed {
+		if signedValue > maxInt8 || signedValue < minInt8 {
+			return 0, ErrOverflow
+		}
+
+		return int8(signedValue), nil
+	}
+
+	if unsignedValue > maxInt8U {
+		return 0, ErrOverflow
+	}
+
+	return int8(unsignedValue), nil
+}
+
 // ToInt converts any integer type to int, ensuring the value fits in the target type.
 func ToInt[T Integer](value T) (int, error) {
 	maxInt := int64(^uint(0) >> 1)
@@ -157,6 +181,33 @@ func ToUint32[T Integer](value T) (uint32, error) {
 	}
 
 	return uint32(unsignedValue), nil
+}
+
+// ToUint8 converts any integer type to uint8 while guarding against negative values and overflow.
+func ToUint8[T Integer](value T) (uint8, error) {
+	const (
+		maxUint8    = uint64(^uint8(0))
+		maxUint8Int = int64(^uint8(0))
+	)
+
+	signed, signedValue, unsignedValue := splitInteger(value)
+	if signed {
+		if signedValue < 0 {
+			return 0, ErrNegativeValue
+		}
+
+		if signedValue > maxUint8Int {
+			return 0, ErrOverflow
+		}
+
+		return uint8(signedValue), nil
+	}
+
+	if unsignedValue > maxUint8 {
+		return 0, ErrOverflow
+	}
+
+	return uint8(unsignedValue), nil
 }
 
 // ToUint converts any integer type to uint while guarding against negative values and overflow.
@@ -330,6 +381,17 @@ func SafeInt64FromUint64(value uint64) (int64, error) {
 	return int64(value), nil
 }
 
+// SafeInt8FromUint64 converts a uint64 to int8, ensuring the value fits in the target type.
+func SafeInt8FromUint64(value uint64) (int8, error) {
+	const maxInt8 = uint64(1<<7 - 1)
+
+	if value > maxInt8 {
+		return 0, ErrOverflow
+	}
+
+	return int8(value), nil
+}
+
 // SafeUint32FromUint64 converts a uint64 to uint32, ensuring the value fits in the target type.
 func SafeUint32FromUint64(value uint64) (uint32, error) {
 	if value > uint64(^uint32(0)) {
@@ -337,4 +399,13 @@ func SafeUint32FromUint64(value uint64) (uint32, error) {
 	}
 
 	return uint32(value), nil
+}
+
+// SafeUint8FromUint64 converts a uint64 to uint8, ensuring the value fits in the target type.
+func SafeUint8FromUint64(value uint64) (uint8, error) {
+	if value > uint64(^uint8(0)) {
+		return 0, ErrOverflow
+	}
+
+	return uint8(value), nil
 }

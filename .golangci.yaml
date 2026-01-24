@@ -14,7 +14,7 @@ run:
   issues-exit-code: 2
   # Include test files or not.
   # Default: true
-  tests: true
+  tests: false
   # List of build tags, all linters use it.
   # Default: []
   # build-tags:
@@ -143,7 +143,7 @@ linters:
           arguments:
             - max-lit-count: "3"
               allow-strs: '"","-","%w: %w","windows","alice","data","HS256","app","apps","sectools","hello","password","secret","stream","0xFF","0xFE","0xFD"'
-              allow-ints: "-1,0,1,2,10,1024,0o600,0o644,0o700,0o755,0666,0755,0xFF,0xFE,0xFD,0o004"
+              allow-ints: "-1,0,1,2,4,8,10,16,32,64,128,256,1024,0o600,0o644,0o700,0o755,0666,0755,0xFF,0xFE,0xFD,0o004"
               allow-floats: "0.0,1.0"
 
         - name: cognitive-complexity

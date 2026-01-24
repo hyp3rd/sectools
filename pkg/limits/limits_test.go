@@ -7,7 +7,10 @@ import (
 	"testing"
 )
 
-const payloadName = "sectools"
+const (
+	payloadName  = "sectools"
+	maxJSONBytes = 5
+)
 
 func TestReadAllWithinLimit(t *testing.T) {
 	t.Parallel()
@@ -24,7 +27,7 @@ func TestReadAllWithinLimit(t *testing.T) {
 
 func TestReadAllTooLarge(t *testing.T) {
 	t.Parallel()
-	//nolint:revive
+
 	_, err := ReadAll(strings.NewReader("hello"), WithMaxBytes(4))
 	if !errors.Is(err, ErrLimitExceeded) {
 		t.Fatalf("expected ErrLimitExceeded, got %v", err)
@@ -48,7 +51,7 @@ func TestDecodeJSON(t *testing.T) {
 	}
 
 	var out payload
-	//nolint:revive
+
 	err := DecodeJSON(strings.NewReader(`{"name":"sectools"}`), &out, WithMaxBytes(128))
 	if err != nil {
 		t.Fatalf("expected decode, got %v", err)
@@ -67,8 +70,8 @@ func TestDecodeJSONTooLarge(t *testing.T) {
 	}
 
 	var out payload
-	//nolint:revive
-	err := DecodeJSON(strings.NewReader(`{"name":"sectools"}`), &out, WithMaxBytes(5))
+
+	err := DecodeJSON(strings.NewReader(`{"name":"sectools"}`), &out, WithMaxBytes(maxJSONBytes))
 	if !errors.Is(err, ErrLimitExceeded) {
 		t.Fatalf("expected ErrLimitExceeded, got %v", err)
 	}
@@ -82,7 +85,7 @@ func TestDecodeYAMLUnknownFields(t *testing.T) {
 	}
 
 	var out payload
-	//nolint:revive
+
 	err := DecodeYAML(strings.NewReader("name: sectools\nextra: field\n"), &out, WithMaxBytes(256))
 	if !errors.Is(err, ErrDecodeFailed) {
 		t.Fatalf("expected ErrDecodeFailed, got %v", err)
@@ -101,7 +104,7 @@ func TestDecodeYAMLAllowUnknownFields(t *testing.T) {
 	err := DecodeYAML(
 		strings.NewReader("name: sectools\nextra: field\n"),
 		&out,
-		WithMaxBytes(256), //nolint:revive
+		WithMaxBytes(256),
 		WithYAMLAllowUnknownFields(true),
 	)
 	if err != nil {
@@ -121,7 +124,7 @@ func TestDecodeXML(t *testing.T) {
 	}
 
 	var out payload
-	//nolint:revive
+
 	err := DecodeXML(strings.NewReader(fmt.Sprintf("<payload><name>%s</name></payload>", payloadName)), &out, WithMaxBytes(256))
 	if err != nil {
 		t.Fatalf("expected decode, got %v", err)

@@ -268,6 +268,24 @@ func TestSafeInt64FromUint64(t *testing.T) {
 	}
 }
 
+func TestSafeInt8FromUint64(t *testing.T) {
+	t.Parallel()
+
+	value, err := SafeInt8FromUint64(uint64(int8Value))
+	if err != nil {
+		t.Fatalf(errMsgUnexpected, err)
+	}
+
+	if value != int8Value {
+		t.Fatalf(errMsgUnexpectedValue, int8Value, value)
+	}
+
+	_, err = SafeInt8FromUint64(uint64(1 << 7))
+	if err == nil {
+		t.Fatal(errMsgOverflow)
+	}
+}
+
 func TestSafeUint32FromUint64(t *testing.T) {
 	t.Parallel()
 
@@ -281,6 +299,24 @@ func TestSafeUint32FromUint64(t *testing.T) {
 	}
 
 	_, err = SafeUint32FromUint64(uint64(^uint32(0)) + 1)
+	if err == nil {
+		t.Fatal(errMsgOverflow)
+	}
+}
+
+func TestSafeUint8FromUint64(t *testing.T) {
+	t.Parallel()
+
+	value, err := SafeUint8FromUint64(uint64(testValue))
+	if err != nil {
+		t.Fatalf(errMsgUnexpected, err)
+	}
+
+	if value != testValue {
+		t.Fatalf(errMsgUnexpectedValue, testValue, value)
+	}
+
+	_, err = SafeUint8FromUint64(uint64(^uint8(0)) + 1)
 	if err == nil {
 		t.Fatal(errMsgOverflow)
 	}
@@ -331,6 +367,38 @@ func TestToInt32(t *testing.T) {
 	}
 
 	_, err = ToInt32(int64(-1<<31) - 1)
+	if err == nil {
+		t.Fatal(errMsgOverflow)
+	}
+}
+
+func TestToInt8(t *testing.T) {
+	t.Parallel()
+
+	value, err := ToInt8(uint16(testValue))
+	if err != nil {
+		t.Fatalf(errMsgUnexpected, err)
+	}
+
+	if value != testValue {
+		t.Fatalf(errMsgUnexpectedValue, testValue, value)
+	}
+
+	value, err = ToInt8(int8(-int8Value))
+	if err != nil {
+		t.Fatalf(errMsgUnexpected, err)
+	}
+
+	if value != -int8Value {
+		t.Fatalf(errMsgUnexpectedValue, -int8Value, value)
+	}
+
+	_, err = ToInt8(uint64(1 << 7))
+	if err == nil {
+		t.Fatal(errMsgOverflow)
+	}
+
+	_, err = ToInt8(int64(-1<<7) - 1)
 	if err == nil {
 		t.Fatal(errMsgOverflow)
 	}
@@ -400,6 +468,29 @@ func TestToUint32(t *testing.T) {
 	}
 
 	_, err = ToUint32(uint64(^uint32(0)) + 1)
+	if err == nil {
+		t.Fatal(errMsgOverflow)
+	}
+}
+
+func TestToUint8(t *testing.T) {
+	t.Parallel()
+
+	value, err := ToUint8(int32(testValue))
+	if err != nil {
+		t.Fatalf(errMsgUnexpected, err)
+	}
+
+	if value != testValue {
+		t.Fatalf(errMsgUnexpectedValue, testValue, value)
+	}
+
+	_, err = ToUint8(int64(-1))
+	if err == nil {
+		t.Fatal(errMsgNegativeInput)
+	}
+
+	_, err = ToUint8(uint64(^uint8(0)) + 1)
 	if err == nil {
 		t.Fatal(errMsgOverflow)
 	}
