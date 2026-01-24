@@ -536,28 +536,28 @@ func TestNestedStructureRedaction(t *testing.T) {
 
 		auth, ok := redacted["auth"].(map[string]any)
 		if !ok {
-			t.Fatalf("expected auth to be map[string]any")
+			t.Fatal("expected auth to be map[string]any")
 		}
 
 		if auth["password"] == "secret123" {
-			t.Fatalf("expected password redacted in nested map")
+			t.Fatal("expected password redacted in nested map")
 		}
 
 		if auth["token"] == "ghp_abcdefghijklmnopqrstuvwxyz1234567890" {
-			t.Fatalf("expected token redacted in nested map")
+			t.Fatal("expected token redacted in nested map")
 		}
 
 		metadata, ok := auth["metadata"].(map[string]any)
 		if !ok {
-			t.Fatalf("expected metadata to be map[string]any")
+			t.Fatal("expected metadata to be map[string]any")
 		}
 
 		if metadata["api_key"] == "sensitive" {
-			t.Fatalf("expected api_key redacted in deeply nested map")
+			t.Fatal("expected api_key redacted in deeply nested map")
 		}
 
 		if metadata["name"] != "test" {
-			t.Fatalf("expected name intact in deeply nested map")
+			t.Fatal("expected name intact in deeply nested map")
 		}
 	})
 
