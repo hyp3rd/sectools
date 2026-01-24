@@ -11,7 +11,7 @@ const (
 
 func TestArgon2idHashVerify(t *testing.T) {
 	t.Parallel()
-	//nolint:revive
+
 	params := Argon2idParams{
 		Memory:     8 * 1024,
 		Time:       1,
