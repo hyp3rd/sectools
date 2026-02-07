@@ -7,7 +7,7 @@ require (
 	github.com/goccy/go-json v0.10.5
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/hyp3rd/ewrap v1.3.7
-	github.com/hyp3rd/hyperlogger v0.1.1
+	github.com/hyp3rd/hyperlogger v0.1.2
 	github.com/pquerna/otp v1.5.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.47.0
