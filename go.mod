@@ -11,7 +11,7 @@ require (
 	github.com/pquerna/otp v1.5.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.48.0
-	golang.org/x/net v0.49.0
+	golang.org/x/net v0.50.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
