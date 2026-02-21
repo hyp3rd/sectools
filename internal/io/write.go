@@ -755,6 +755,7 @@ func renameTempFile(root *os.Root, tempRel, targetRel, originalPath string) erro
 }
 
 func renameTempFileOnDisk(tempName, targetPath, originalPath string) error {
+	// #nosec G703 -- paths are derived from previously validated/contained write targets.
 	err := os.Rename(tempName, targetPath)
 	if err != nil {
 		return ewrap.Wrap(err, "failed to replace target file").

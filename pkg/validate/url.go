@@ -604,6 +604,7 @@ func (v *URLValidator) nextRedirect(ctx context.Context, client *http.Client, cu
 		return nil, nil, ErrURLInvalid
 	}
 
+	// #nosec G704 -- URL has already passed scheme/host/IP policy validation before this request.
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, nil, ErrURLRedirectNotAllowed

@@ -358,9 +358,16 @@ func hasTraversalSegments(path string) bool {
 }
 
 func splitPathSegments(path string) []string {
-	return strings.FieldsFunc(path, func(r rune) bool {
-		return os.IsPathSeparator(uint8(r))
-	})
+	return strings.FieldsFunc(path, isPathSeparatorRune)
+}
+
+func isPathSeparatorRune(r rune) bool {
+	sep := rune(os.PathSeparator)
+	if sep == '\\' {
+		return r == '\\' || r == '/'
+	}
+
+	return r == sep
 }
 
 func findBestRoot(path string, roots []string) (string, error) {
