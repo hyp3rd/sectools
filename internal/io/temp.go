@@ -173,9 +173,7 @@ func secureTempDirInRoot(prefix string, opts DirOptions, log hyperlogger.Logger)
 }
 
 func validateTempPrefix(prefix string) error {
-	if strings.ContainsFunc(prefix, func(r rune) bool {
-		return os.IsPathSeparator(uint8(r))
-	}) {
+	if strings.ContainsFunc(prefix, isPathSeparatorRune) {
 		return ErrInvalidTempPrefix.WithMetadata(pathLabel, prefix)
 	}
 

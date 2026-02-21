@@ -1,6 +1,6 @@
 module github.com/hyp3rd/sectools
 
-go 1.25.6
+go 1.26.0
 
 require (
 	aidanwoods.dev/go-paseto v1.6.0

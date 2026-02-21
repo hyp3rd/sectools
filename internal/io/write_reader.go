@@ -562,7 +562,7 @@ func writeFromReader(file *os.File, reader io.Reader, maxBytes int64) error {
 }
 
 func removeFileOnDisk(path, originalPath string, log hyperlogger.Logger) {
-	// #nosec G304 -- path is validated against allowed roots and symlink policy.
+	// #nosec G304,G703 -- path is validated against allowed roots and symlink policy.
 	err := os.Remove(path)
 	if err != nil && log != nil {
 		log.WithError(err).Errorf("failed to remove file for path %v", originalPath)
