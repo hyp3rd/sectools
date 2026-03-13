@@ -392,7 +392,7 @@ func isDotAtom(local string) bool {
 				return false
 			}
 
-			if !isAtext(byte(r)) {
+			if !isAtext(r) {
 				return false
 			}
 		}
@@ -401,20 +401,20 @@ func isDotAtom(local string) bool {
 	return true
 }
 
-func isAtext(ch byte) bool {
-	if ch >= 'A' && ch <= 'Z' {
+func isAtext(char rune) bool {
+	if char >= 'A' && char <= 'Z' {
 		return true
 	}
 
-	if ch >= 'a' && ch <= 'z' {
+	if char >= 'a' && char <= 'z' {
 		return true
 	}
 
-	if ch >= '0' && ch <= '9' {
+	if char >= '0' && char <= '9' {
 		return true
 	}
 
-	switch ch {
+	switch char {
 	case '!', '#', '$', '%', '&', '\'', '*', '+', '-', '/', '=', '?', '^', '_', '`', '{', '|', '}', '~':
 		return true
 	default:
