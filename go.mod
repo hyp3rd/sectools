@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	aidanwoods.dev/go-paseto v1.6.0
-	github.com/goccy/go-json v0.10.5
+	github.com/goccy/go-json v0.10.6
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/hyp3rd/ewrap v1.3.7
 	github.com/hyp3rd/hyperlogger v0.1.5
