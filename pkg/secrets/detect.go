@@ -1,9 +1,10 @@
 package secrets
 
 import (
+	"cmp"
 	"fmt"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 )
 
@@ -222,32 +223,15 @@ func mergeSecretRanges(matches []SecretMatch) []SecretMatch {
 		return nil
 	}
 
-	sort.Slice(matches, func(i, j int) bool {
-		if matches[i].Start == matches[j].Start {
-			return matches[i].End < matches[j].End
-		}
-
-		return matches[i].Start < matches[j].Start
-	})
+	slices.SortStableFunc(matches, compareSecretMatches)
 
 	merged := make([]SecretMatch, 0, len(matches))
 	for _, match := range matches {
-		if match.Start < 0 || match.End <= match.Start {
+		if !isValidSecretMatch(match) {
 			continue
 		}
 
-		if len(merged) == 0 {
-			merged = append(merged, match)
-
-			continue
-		}
-
-		last := &merged[len(merged)-1]
-		if match.Start <= last.End {
-			if match.End > last.End {
-				last.End = match.End
-			}
-
+		if mergeIntoLastSecretMatch(&merged, match) {
 			continue
 		}
 
@@ -255,6 +239,35 @@ func mergeSecretRanges(matches []SecretMatch) []SecretMatch {
 	}
 
 	return merged
+}
+
+func compareSecretMatches(leftMatch, rightMatch SecretMatch) int {
+	if leftMatch.Start != rightMatch.Start {
+		return cmp.Compare(leftMatch.Start, rightMatch.Start)
+	}
+
+	return cmp.Compare(leftMatch.End, rightMatch.End)
+}
+
+func isValidSecretMatch(match SecretMatch) bool {
+	return match.Start >= 0 && match.End > match.Start
+}
+
+func mergeIntoLastSecretMatch(merged *[]SecretMatch, match SecretMatch) bool {
+	if len(*merged) == 0 {
+		return false
+	}
+
+	last := &(*merged)[len(*merged)-1]
+	if match.Start > last.End {
+		return false
+	}
+
+	if match.End > last.End {
+		last.End = match.End
+	}
+
+	return true
 }
 
 func compileSecretPatterns(cfg secretOptions) ([]secretCompiled, error) {
