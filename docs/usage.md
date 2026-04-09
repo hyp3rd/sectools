@@ -18,7 +18,7 @@ supporting implementations in `internal/`.
 - `pkg/sanitize`: HTML/Markdown sanitizers, SQL input guards, and filename sanitizers.
 - `pkg/memory`: secure in-memory buffers.
 - `pkg/converters`: safe numeric conversions.
-- `internal/io`: implementation details; not part of the public API contract.
+- `internal/iosec`: implementation details; not part of the public API contract.
 
 ## pkg/io
 
