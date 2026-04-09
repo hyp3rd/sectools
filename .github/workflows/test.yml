@@ -85,7 +85,7 @@ jobs:
             ${{ runner.os }}-go-${{ steps.settings.outputs.go_version }}-
       - name: Modules
         run: go mod download
-      - name: Fuzz internal/io (clean relative path)
-        run: go test ./internal/io -run='^$' -fuzz=FuzzCleanRelativePath -fuzztime=10s
-      - name: Fuzz internal/io (resolve path)
-        run: go test ./internal/io -run='^$' -fuzz=FuzzResolvePath -fuzztime=10s
+      - name: Fuzz internal/iosec (clean relative path)
+        run: go test ./internal/iosec -run='^$' -fuzz=FuzzCleanRelativePath -fuzztime=10s
+      - name: Fuzz internal/iosec (resolve path)
+        run: go test ./internal/iosec -run='^$' -fuzz=FuzzResolvePath -fuzztime=10s
