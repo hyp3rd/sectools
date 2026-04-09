@@ -1,6 +1,7 @@
 package secrets
 
 import (
+	"cmp"
 	"fmt"
 	"regexp"
 	"slices"
@@ -242,22 +243,10 @@ func mergeSecretRanges(matches []SecretMatch) []SecretMatch {
 
 func compareSecretMatches(leftMatch, rightMatch SecretMatch) int {
 	if leftMatch.Start != rightMatch.Start {
-		return compareInts(leftMatch.Start, rightMatch.Start)
+		return cmp.Compare(leftMatch.Start, rightMatch.Start)
 	}
 
-	return compareInts(leftMatch.End, rightMatch.End)
-}
-
-func compareInts(leftValue, rightValue int) int {
-	if leftValue < rightValue {
-		return -1
-	}
-
-	if leftValue > rightValue {
-		return 1
-	}
-
-	return 0
+	return cmp.Compare(leftMatch.End, rightMatch.End)
 }
 
 func isValidSecretMatch(match SecretMatch) bool {
