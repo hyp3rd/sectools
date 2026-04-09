@@ -47,7 +47,7 @@ import (
  "os"
  "path/filepath"
 
- sectools "github.com/hyp3rd/sectools/pkg/io"
+ sectools "github.com/hyp3rd/sectools/pkg/iosec"
 )
 
 func main() {
@@ -73,7 +73,7 @@ import (
  "os"
  "path/filepath"
 
- sectools "github.com/hyp3rd/sectools/pkg/io"
+ sectools "github.com/hyp3rd/sectools/pkg/iosec"
 )
 
 func main() {
@@ -114,7 +114,7 @@ func main() {
 package main
 
 import (
- sectools "github.com/hyp3rd/sectools/pkg/io"
+ sectools "github.com/hyp3rd/sectools/pkg/iosec"
 )
 
 func main() {

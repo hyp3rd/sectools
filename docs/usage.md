@@ -62,7 +62,7 @@ Common configuration options:
 Example:
 
 ```go
-import sectio "github.com/hyp3rd/sectools/pkg/io"
+import sectio "github.com/hyp3rd/sectools/pkg/iosec"
 
 client, err := sectio.NewWithOptions(
  sectio.WithAllowAbsolute(true),
