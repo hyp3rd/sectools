@@ -49,15 +49,18 @@ linters:
   # https://golangci-lint.run/usage/linters/#enabled-by-default
   default: all
   enable:
+    - gomodguard_v2
     - wsl_v5
   disable:
     - depguard
     - embeddedstructfieldcheck
     - exhaustruct
     - gomoddirectives
+    - gomodguard
     - ireturn
     - lll
     - nonamedreturns
+    - nolintlint
     - recvcheck
     - tagliatelle
     - tagalign
