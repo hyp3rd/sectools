@@ -1,0 +1,10 @@
+# Vendored config Prettier shouldn't reflow
+LICENSE
+.pre-commit-config.yaml
+.cspell/
+.github/
+.pre-commit/
+.vscode/settings.json
+
+# Claude Code harness local settings — not part of the codebase.
+.claude/

@@ -1,8 +1,8 @@
 include .project-settings.env
 
 GOLANGCI_LINT_VERSION ?= v2.12.2
-BUF_VERSION ?= v1.69.0
-GO_VERSION ?= 1.26.3
+BUF_VERSION ?= v1.70.0
+GO_VERSION ?= 1.26.4
 GCI_PREFIX ?= github.com/hyp3rd/sectools
 PROTO_ENABLED ?= false
 
@@ -129,6 +129,9 @@ vet:
 	@for file in ${GOFILES}; do \
 		go vet -vettool=$(shell which shadow) $$file; \
 	done
+
+format:
+	prettier --write "**/*.{js,jsx,ts,tsx,mjs,json,css,scss,md,html,yaml,yml}"
 
 sec:
 	@echo "Running govulncheck..."
