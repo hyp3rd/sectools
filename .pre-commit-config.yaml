@@ -9,7 +9,8 @@ repos:
         exclude: |
           (?x)^(
             cspell.json |
-            .vscode/settings.json
+            .vscode/settings.json|
+            .prettierrc.json
           )$
       - id: end-of-file-fixer
       - id: mixed-line-ending
