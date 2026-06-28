@@ -15,8 +15,8 @@ github.com/golang-jwt/jwt/v5 v5.3.1 h1:kYf81DTWFe7t+1VvL7eS+jKFVWaUnK9cB1qbwn63Y
 github.com/golang-jwt/jwt/v5 v5.3.1/go.mod h1:fxCRLWMO43lRc8nhHWY6LGqRcf+1gQWArsqaEUEa5bE=
 github.com/hyp3rd/ewrap v1.5.1 h1:rnLaig+rnpBYkL7vQsvLUJGQpCLa/Yl5RRAnWjphJPs=
 github.com/hyp3rd/ewrap v1.5.1/go.mod h1:Pbote45XDYyodYzdcUH7xnWmnI6SSewbOYtTlRSsfvw=
-github.com/hyp3rd/hyperlogger v0.2.1 h1:3qYaUqi79N5Z0Rry3VXVKZfFVGG1dlZ6GJ9JSZECRks=
-github.com/hyp3rd/hyperlogger v0.2.1/go.mod h1:iavOtzSex2IR/KGugt/9aEo+jKTjqNwfqIJ/F8Pcagk=
+github.com/hyp3rd/hyperlogger v0.2.2 h1:XYKpYNeBdKgUOu0HPCgaKw+p7cWpvuzAlbZmK/sxgW0=
+github.com/hyp3rd/hyperlogger v0.2.2/go.mod h1:5jxo+S/FXlrkILrJuN9BzFPrD1o1kN1MUNTZifdNXZ4=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
