@@ -76,17 +76,16 @@ func NewServerConfig(opts ...Option) (*tls.Config, error) {
 	}
 
 	return &tls.Config{
-		MinVersion:               cfg.minVersion, // #nosec G402 -- validated against tls.VersionTLS12 in validateCommonConfig.
-		MaxVersion:               cfg.maxVersion,
-		CipherSuites:             cfg.cipherSuites,
-		CurvePreferences:         cfg.curvePreferences,
-		NextProtos:               cfg.nextProtos,
-		Certificates:             cfg.certificates,
-		GetCertificate:           cfg.getCertificate,
-		ClientAuth:               cfg.clientAuth,
-		ClientCAs:                cfg.clientCAs,
-		PreferServerCipherSuites: true,
-		KeyLogWriter:             cfg.keyLogWriter,
+		MinVersion:       cfg.minVersion, // #nosec G402 -- validated against tls.VersionTLS12 in validateCommonConfig.
+		MaxVersion:       cfg.maxVersion,
+		CipherSuites:     cfg.cipherSuites,
+		CurvePreferences: cfg.curvePreferences,
+		NextProtos:       cfg.nextProtos,
+		Certificates:     cfg.certificates,
+		GetCertificate:   cfg.getCertificate,
+		ClientAuth:       cfg.clientAuth,
+		ClientCAs:        cfg.clientCAs,
+		KeyLogWriter:     cfg.keyLogWriter,
 	}, nil
 }
 
