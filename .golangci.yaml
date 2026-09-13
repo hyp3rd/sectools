@@ -55,6 +55,7 @@ linters:
     - depguard
     - embeddedstructfieldcheck
     - exhaustruct
+    - exhaustruct_v5
     - gomoddirectives
     - gomodguard
     - ireturn
