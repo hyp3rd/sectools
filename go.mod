@@ -4,7 +4,7 @@ go 1.27.1
 
 require (
 	aidanwoods.dev/go-paseto v1.6.0
-	github.com/goccy/go-json v0.10.6
+	github.com/goccy/go-json v0.11.2
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/hyp3rd/ewrap v1.5.2
 	github.com/hyp3rd/hyperlogger v0.2.4
