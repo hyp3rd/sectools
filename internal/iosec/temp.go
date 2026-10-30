@@ -11,6 +11,8 @@ import (
 	"github.com/hyp3rd/hyperlogger"
 )
 
+const errMsgFailedToCreateTempDir = "failed to create temp directory"
+
 // SecureTempFile creates a temp file securely with configurable options.
 //
 //nolint:funlen
@@ -224,14 +226,14 @@ func createTempDirOnDisk(baseDir, prefix string, perm os.FileMode) (string, erro
 				continue
 			}
 
-			return "", ewrap.Wrap(err, "failed to create temp directory").
+			return "", ewrap.Wrap(err, errMsgFailedToCreateTempDir).
 				WithMetadata(pathLabel, baseDir)
 		}
 
 		return dir, nil
 	}
 
-	return "", ewrap.New("failed to create temp directory").
+	return "", ewrap.New(errMsgFailedToCreateTempDir).
 		WithMetadata(pathLabel, baseDir)
 }
 
@@ -248,14 +250,14 @@ func createTempDirInRoot(root *os.Root, prefix string, perm os.FileMode, origina
 				continue
 			}
 
-			return "", ewrap.Wrap(err, "failed to create temp directory").
+			return "", ewrap.Wrap(err, errMsgFailedToCreateTempDir).
 				WithMetadata(pathLabel, originalPath)
 		}
 
 		return name, nil
 	}
 
-	return "", ewrap.New("failed to create temp directory").
+	return "", ewrap.New(errMsgFailedToCreateTempDir).
 		WithMetadata(pathLabel, originalPath)
 }
 

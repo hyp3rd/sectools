@@ -38,6 +38,7 @@ func isValidDigits(digits Digits) bool {
 }
 
 func isValidAlgorithm(alg Algorithm) bool {
+	//nolint:exhaustive
 	switch alg {
 	case AlgorithmSHA1, AlgorithmSHA256, AlgorithmSHA512:
 		return true
