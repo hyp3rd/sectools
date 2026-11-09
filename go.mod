@@ -6,8 +6,8 @@ require (
 	aidanwoods.dev/go-paseto v1.6.0
 	github.com/goccy/go-json v0.12.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
-	github.com/hyp3rd/ewrap v1.5.2
-	github.com/hyp3rd/hyperlogger v0.2.5
+	github.com/hyp3rd/ewrap v1.5.3
+	github.com/hyp3rd/hyperlogger v0.2.4
 	github.com/pquerna/otp v1.5.0
 	github.com/stretchr/testify v1.12.1
 	golang.org/x/crypto v0.58.0
